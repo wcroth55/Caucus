@@ -91,10 +91,18 @@ FUNCTION  Hose hose_accept (struct sweb_conf_t *conf, int timeout)
       }
    }
 
+   alarm  (0);
    signal (SIGALRM, timeouter);
    alarm  (timeout);
+   long startTime = time(NULL);
 
-   if (setjmp (jmpbuf) != 0)  RETURN (BADHOSE);
+   if (setjmp (jmpbuf) != 0)  {
+      char temp[200];
+      long delta = time(NULL) - startTime;
+      sprintf (temp, "hose_accept read failure, timeout=%d, delta=%ld\n", timeout, delta);
+      logger (1, LOG_FILE, temp);
+      RETURN (BADHOSE);
+   }
 
    clientlen = sizeof(client);
    cd = accept (sd, (struct sockaddr *) &client, &clientlen);

@@ -62,6 +62,7 @@ extern Vartab   vars, form, macs;
 
 #define  BUFMAX 30000
 AsciiBuf sqlbuf;
+int client_pid;
 
 static jmp_buf      jmpbuf;
 
@@ -99,6 +100,7 @@ FUNCTION  main (int argc, char *argv[])
    Chix     timeoutResult, empty;
    CML_File make_cml();
    Obtab    make_obtab();
+   char     reasonDied[200];
 
    ENTRY ("swebs main", "");
 
@@ -187,16 +189,21 @@ FUNCTION  main (int argc, char *argv[])
 
    /*** Process each connection and request from the browser client,
    /    until we get a timeout or HANGUP. */
+   strcpy (reasonDied, "died-setjmp");
    if (setjmp (jmpbuf) == 0)  while (1) {
 
       /*** Wait for a client to request to talk to us, within
       /    conf.timeout seconds. */
-      if ( (cd = hose_accept (&conf, conf.timeout)) == BADHOSE)  break;
+      if ( (cd = hose_accept (&conf, conf.timeout)) == BADHOSE)  {
+         sprintf (reasonDied, "NEW7: died-timeout %d", conf.timeout);
+         break;
+      }
   
       /*** Get the client's security code, userid, and ip address. */
       remote[0] = 0xFF;
       hose_read (cd, temp,     7, 0);             temp   [ 7] = '\0';
       hose_read (cd, remote,  MAX_USERID, 0);     remote [MAX_USERID] = '\0';
+      hose_read (cd, &client_pid, sizeof(int), 0);
       hose_read (cd, &conf.auth_method, 1, 0);
       hose_read (cd, caucus_ver, 10, 0);          caucus_ver[10] = '\0';
       hose_read (cd, ip_addr, 25, 0);             ip_addr[25]    = '\0';
@@ -265,8 +272,14 @@ FUNCTION  main (int argc, char *argv[])
           "BAD: remote='%s', userid='%s', secure=%07d, subcode=%07d, ver='%s'",
                      conf.remote, remote, conf.secure, subcode, caucus_ver);
          logger (1, LOG_FILE, temp);
-         if (errcomm)  break;        /* Something's hosed, exit. */
-         if (badcode)  break;
+         if (errcomm)  {
+            strcpy (reasonDied, "NEW5: died-errcom");
+            break;        /* Something's hosed, exit. */
+         }
+         if (badcode)  {
+            strcpy (reasonDied, "NEW6: died-badcode");
+            break;
+         }
       }
 
       if (first_service) {
@@ -302,7 +315,9 @@ FUNCTION  main (int argc, char *argv[])
       buf_close (cd);
    }
 
-   /*** Here if we received a SIGHUP or SIGLARM (kill or a timeout).
+   logger (1, LOG_FILE, reasonDied);
+
+   /*** Here if we received a SIGHUP or SIGALRM (kill or a timeout).
    /    Run the timeout.cml to do any UI level cleanup. */
    ctemp = chxalloc (16L, THIN, "swebs ctemp");
    chxofascii (ctemp, "Cannot load timeout.cml");

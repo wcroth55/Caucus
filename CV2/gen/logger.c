@@ -50,6 +50,8 @@
 /*: CR  5/28/03 Add force = -1 to reset option */
 
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 #include "chixuse.h"
 #include "logger.h"
 
@@ -83,6 +85,7 @@ FUNCTION  logger (int force, int code, char *str)
    FILE      *fp;
    char       temp[200], now[120];
    char      *mytime();
+   struct     timeval tv;
 
    /*** First call, determine if DEBUG file exists. */
    if (do_log < 0) {
@@ -106,7 +109,8 @@ FUNCTION  logger (int force, int code, char *str)
       sprintf (temp, "%s/%s%05d.log", dir, prog, (int) getpid());
       nt_chkfile (temp, 0755);
       if ( (fp = fopen (temp, "a")) != NULL) {
-         fprintf (fp, "%s: %s\n", now, str);
+         gettimeofday(&tv, NULL);
+         fprintf (fp, "%s %3d: %s\n", now, tv.tv_usec/1000, str);
          fclose  (fp);
       }
    }

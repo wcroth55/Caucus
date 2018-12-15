@@ -192,9 +192,13 @@ struct sweb_conf_t {
    char  stderrTo  [200];       /* what to do with output to stderr? */
 
    /*** The rest is specific to each instance of the subserver. */
+   char  spacer1[4096];
    char  remote [MAX_USERID+2]; /* remote client's userid. */
+   char  spacer2[4096];
    char  ip_addr    [100];      /* remote client's ip address */
+   char  spacer3[4096];
    char  cmlname    [200];      /* cml file name and dir. */
+   char  spacer4[4096];
    int   secure;                /* security code to identify this subserver. */
    int   output;                /* redirected output file descriptor. */
    int   new_win_x;             /* new_win width */

@@ -39,8 +39,11 @@
 #include "chixuse.h"
 #include "sweb.h"
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 static  struct sockmsg_t sockmsg = {0, 0};
+extern  int client_pid;
 extern  FILE  *sublog;
 
 FUNCTION  buf_write (
@@ -50,6 +53,8 @@ FUNCTION  buf_write (
 {
    int    pos, space, data, move, sent, ackgot;
    char   temp;
+   char   temper[200];
+   char  *prefix;
    ENTRY ("buf_write", "");
 
    if (len == 0)                                           RETURN (1);
@@ -63,7 +68,21 @@ FUNCTION  buf_write (
       if (sockmsg.len == SOCKMSGMAX) {
 
 #if UNIX
+         errno = 0;
          sent   = send (hose, (char *) &sockmsg, sizeof(sockmsg), 0);
+         prefix = " |||";
+         if (sent <= 0)  prefix = " <<<";
+         sprintf (temper, "NEW8: %s send bytes=%d to pid=%d, sent=%d, errno=%d", 
+             prefix, sizeof(sockmsg), client_pid, sent, errno);
+         logger (1, LOG_FILE, temper);
+
+/*
+         if (sent < 0) {
+            char diagnostic[200];
+            sprintf (diagnostic, " <<< SEND -1 on %d, errno=%d", sizeof(sockmsg), errno);
+            logger (1, LOG_FILE, diagnostic);
+         }
+*/
 #endif
 
 #if NUT40 | WNT40
@@ -75,7 +94,24 @@ FUNCTION  buf_write (
 /*       sleep (10);  */
 
 #if LNX12
-         ackgot = recv (hose, &temp, 1, 0);
+         ackgot = recv (hose, &temp, 1, MSG_WAITALL);
+         prefix = " |||";
+         if (ackgot <= 0)  prefix = " <<<";
+         sprintf (temper, "NEW9: %s recv 1 from pid=%d, ackgot=%d, errno=%d", prefix, client_pid, ackgot, errno);
+         logger (1, LOG_FILE, temper);
+         if (ackgot <= 0)  sleep(1);
+/*
+         if (ackgot ==  0) {
+            logger (1, LOG_FILE, " <<< RECV  0 >>>");
+            sleep(1);
+         }
+         if (ackgot == -1) {
+            char diagnostic[200];
+            sprintf (diagnostic, " <<< RECV -1, errno=%d", errno);
+            logger (1, LOG_FILE, diagnostic);
+            sleep(1);
+         }
+*/
 #endif
 /*       fprintf (stderr, "sent=%d, errno=%d, ackgot=%d\n", 
                            sent, errno, ackgot);   */

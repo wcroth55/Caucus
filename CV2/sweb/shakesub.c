@@ -73,6 +73,7 @@ FUNCTION  int shake_subserver (
    Hose   sockfd, hose_open();
    int    success;
    char   temp[256], remote[256];
+   int    pid;
 
    /*** Open a connection to the "hose" the subserver is listening on. */
    *hose = BADHOSE;
@@ -81,9 +82,11 @@ FUNCTION  int shake_subserver (
 
    /*** OK, the subserver's there.  Tell it who we are, and see if it
    /    will serve us. */
+   pid = (int) getpid();
    sprintf (temp, "%07d", subcode);
    hose_write   (sockfd, temp,    7);
    hose_write   (sockfd, userid, MAX_USERID);
+   hose_write   (sockfd, &pid, sizeof(int));
    hose_write   (sockfd, &auth_method, 1);
    hose_write   (sockfd, caucus_ver, 10);
    env_var (remote, "REMOTE_ADDR");

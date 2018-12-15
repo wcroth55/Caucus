@@ -285,6 +285,7 @@ FUNCTION  main (argc, argv)
       
    /*** Read the "timeout" value for swebsock from swebs! */
    got = hose_read (sockfd, (char *) &pagetime, sizeof(pagetime), 120);
+   logRead (subpid, sockfd, sizeof(pagetime), got);
 
    /*** ==============================================================
    /    SECTION C:  Write data to subserver, and echo results to stdout. */
@@ -356,24 +357,32 @@ FUNCTION  main (argc, argv)
    signal (SIGHUP,  jumper);
    signal (SIGALRM, jumper);
 #endif
-   if (setjmp (jmpbuf) != 0)  swebt_shutdown(0);
+   if (setjmp (jmpbuf) != 0)  {
+      myLogS("shutdown", "");
+      swebt_shutdown(0);
+   }
    
    attempts = 0;   
    ack = 0xFF;
+   myLogN("pagetime", pagetime);
    do {
 #if UNIX | NUT40
       alarm (pagetime);  
 #endif
 
       got = hose_read (sockfd, (char *) &sockmsg, sizeof(sockmsg), pagetime);
+      logRead (subpid, sockfd, sizeof(sockmsg), got);
 
 #if LNX12
       acksent = send (sockfd, &ack, 1, 0);
+      logSend (subpid, acksent);
 #endif
 
 #if UNIX | NUT40
       alarm (  0);
 #endif
+      myLogN("got", got);
+      myLogN("acksent", acksent);
 
       if (got <= 0)  {
          if (++attempts > MAX_STALL)  break;
@@ -381,14 +390,17 @@ FUNCTION  main (argc, argv)
          continue;
       }
 
+      myLogN("sockmsg.len", sockmsg.len);
       sockmsg.buf[sockmsg.len] = '\0';
       fputs (sockmsg.buf, stdout);
       fflush (stdout);
 
-/*    { char temp[10000];
-        sprintf (temp, "'%s'", sockmsg.buf);
+/*
+      { char temp[10000];
+        sprintf (temp, "subpid=%d, sockmsg='%s'\n", subpid, sockmsg.buf);
         logger  (1, LOG_FILE, temp);
-      } */
+      }
+*/
 
 /*    syssleep(3);  */   /* Simulate slow client. */
 
@@ -424,4 +436,37 @@ FUNCTION  void removeOpenidProtocol (char *userid) {
       lastPos = strlen(userid) - 1;
       if (userid[lastPos] == '/')  userid[lastPos] = '\0';
    }
+}
+
+FUNCTION void myLogN(char *msg, int number) {
+   char temp[500];
+   sprintf (temp, "NEW1: %s=%d\n", msg, number);
+   logger (1, LOG_FILE, temp);
+}
+
+FUNCTION void myLogS(char *msg, char text) {
+   char temp[500];
+   sprintf (temp, "NEW2: %s=%s\n", msg, text);
+   logger (1, LOG_FILE, temp);
+}
+
+FUNCTION logRead(int subpid, int sockfd, int size, int got) {
+   char temp[200];
+   char *prefix;
+
+   prefix = " |||";
+   if (got <= 0)  prefix = " <<<";
+   sprintf (temp, "NEW3: %s read from pid=%d on fd=%d size=%d got=%d, errno=%d", 
+         prefix, subpid, sockfd, size, got, errno);
+   logger (1, LOG_FILE, temp);
+}
+
+FUNCTION logSend(int subpid, int acksent) {
+   char temp[200];
+   char *prefix;
+ 
+   prefix = " |||";
+   if (acksent <= 0)  prefix = " <<<";
+   sprintf (temp, "NEW4: ||| send to pid=%d, size=1, ack=%d, errno=%d", subpid, acksent, errno);
+   logger (1, LOG_FILE, temp);
 }

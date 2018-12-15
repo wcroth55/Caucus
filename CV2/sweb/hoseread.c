@@ -40,10 +40,13 @@
 
 FUNCTION  int hose_read (Hose fh, char *buf, int size, int timeout)
 {
+   int charsRead;
 
 #if UNIX | NUT40
    /*** Ignores timeout, which is fine. */
-   return (read (fh, buf, size));
+   charsRead = read (fh, buf, size);
+   buf[size-1] = '\0';   /* Just to be sure there is no over-run possible! */
+   return charsRead;
 #endif
 
 

@@ -40,7 +40,7 @@
 #include "api.h"
 #include "null.h"
 
-#define  INITIAL_SIZE  100
+#define  INITIAL_SIZE  200
 
 extern union null_t null;
 extern int          api_debug;
