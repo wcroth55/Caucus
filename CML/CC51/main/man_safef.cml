@@ -1,0 +1,113 @@
+#
+#---man_safef.cml.    Handles results (editing file safes) of man_safe.cml
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/23/02 Add filesafe.
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#: CR 01/25/03 Add configurable hdr
+#: CR 02/10/03 Clear site_vars after all work.
+#: CR 10/02/05 C5 changes.
+#: CR 11/21/05 Replace group_update() with group_update_rule().
+#: CR 12/15/06 When creating a filesafe, don't allow colons in name.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#: CR 05/07/17 Convert dashes to underscores in filesafe names, otherwise javascript gets hosed!
+#-------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_safef.cml
+end
+
+set nch $unique()
+
+#---Calculate permissions: must be either file_manager for this particular
+#   filesafe, or else regular manager with proper perms.
+set is_manager     0
+if %mgr_in_group ($userid() filesafeManage)
+   set is_manager  1
+   set access     $priv(organizer)
+end
+else
+   set access $group_access ($userid() Filesafe $arg(9))
+end
+set  file_manager  $gt_equal ($(access) $priv(organizer))
+set _userCanUpdate $gt_equal ($(access) $priv(include))
+
+
+#"Content-type: text/plain
+#"
+
+if $or ($(is_manager) $(file_manager))
+   #---Creating a new file safe.
+   if $and ($equal (x$form(submit) xGo) $(is_manager))
+   
+      #---Create the variable name (FN_safename)
+      set newname $replace (:  _ $lower($form(newname)))
+      set newname $replace (-  _ $(newname))
+      set newname $replace (32 _ $(newname))
+      eval $set_site_data  (0 - FN_$(newname) $(newname))
+   
+      #---Create the initial grouprules row, making creator the Primary.
+      set query INSERT INTO grouprules (grkey, owner, name, userid, access) \
+                VALUES (NULL, 'Filesafe', '$(newname)', '$userid()', $priv(primary))
+      eval %sql($(query))
+      eval $group_update_rule ($userid() $quote(Filesafe $(newname)))
+
+      "%location (man_safe.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                      $arg(6)+$arg(7)+$arg(8)+$(newname))
+   end
+   
+   #---Check other sections for name change or deletion.
+   set fdir    $caucus_path()/public_html/LIB/FILESAFE
+   if $less ($strlen($form(vprefix)) 5)
+      eval $append (/tmp/$caucus_id().filesafe.err vprefix='$form(vprefix)'$newline())
+   end
+   else
+      for vn in $list_site_data (0 - $form(vprefix))
+         eval $append (/tmp/$caucus_id().filesafe.log vn='$(vn)'$newline())
+         if %sane($(vn))
+         
+            #---If the title is different, save it.
+            if $not_equal ($quote($site_data(0 - $(vn))) $quote($form($(vn))))
+               eval $set_site_data (0 - $(vn) $form($(vn)))
+            end
+      
+         
+            #---If marked for deletion, remove subdir and wipe variable.
+            if $not_empty ($form(cb_%makeLegal($(vn))))
+               eval $deldir($(fdir)/$(vn))
+               eval $set_site_data  (0 - $(vn))
+            end
+         end
+      end
+   end
+   
+   #---Adding a new section.
+   set vname $form(newsec)
+   if %sane($(vname))
+      if $not_empty ($form($(vname)))
+         eval $set_site_data (0 - $(vname) $form($(vname)))
+      end
+   end
+   
+   #---If the header is different, save it.
+   if $or ($not_equal (x$(h1)         x$form(h1)) \
+           $not_equal (x$quote($(h2)) x$quote($form(h2))))
+      if %sane($arg(9))
+         eval $set_site_data (0 - FH_$arg(9) $form(h1) \
+                             $ifthen ($equal ($form(h1) t) $form(h2)))
+      end
+   end
+
+   if %sane($arg(9))
+      eval $set_site_data (0 - FN_$arg(9) $form(dispname))
+      eval $set_site_data (0 - FReadonly_$arg(9) $form(readonly))
+   end
+   
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------

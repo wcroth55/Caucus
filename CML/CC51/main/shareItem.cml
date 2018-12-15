@@ -1,0 +1,138 @@
+#
+#---shareItem
+#
+#
+# Copyright (C) 2010 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/22/10 New file.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i shareItem.cml 
+end
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set error
+set targetLabel
+set alreadyShared
+if $not_empty($form(conf))
+   if $equal (0 $form(conf))
+      set error <b>Error:</b> no conference selected.&nbsp;  Please try again.<p/>
+   end
+   elif $empty($form(item))
+      set error <b>Error:</b> no item selected.&nbsp;  Please try again.<p/>
+   end
+   else
+      set sharedItem $item_id ($form(conf) $form(item))
+      if $less ($(sharedItem) 0)
+         set error <b>Error:</b> no such item exists.&nbsp;  Please try again.<p/> \
+             item_id($form(conf) $form(item))= $(sharedItem)
+      end
+      else
+         set alreadyShared $item_label($arg(3) $(sharedItem))
+         if $empty($(alreadyShared))
+            include $(main)/linkItemToNewItem.i $form(conf) $form(item) $arg(3)
+         end
+      end
+   end
+end
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 shareItem.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Share an Item into $(cname))
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+
+include $(main)/head.i $arg(3)  $quote(Share an Item into $(cname)) 0 0 1
+
+include $(main)/body.i $arg(3)   onUnload="pop_close('all');"
+
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     shareItem  Share Item
+
+set is_org     $gt_equal (%access($arg(3)) $priv(organizer))
+
+"<p/>
+"$(error)
+
+if $not_empty ($(targetLabel)$(alreadyShared))
+   "<ul>
+   "<table cellspacing=0 cellpadding=0>
+   "<tr>
+   "<td>Conference:&nbsp;</td>
+   "<td>$cl_name($form(conf))</td>
+
+   "<tr>
+   "<td>Item:</td>
+   "<td>$form(item) 
+   "  $unquote($sql_query_select(SELECT title FROM items WHERE id=$(sharedItem)))</td>
+   "</table>
+
+   "<p/>
+   if $empty($(alreadyShared))
+      "now appears as shared 
+      "<a href="viewitem.cml?$unique()+$(nxt)+$(cnum)+$(sharedItem)+0+x+x+x"
+      "  >item $(targetLabel)</a> in this conference.
+   end
+   else
+      "is already shared in this conference as
+      "<a href="viewitem.cml?$unique()+$(nxt)+$(cnum)+$(sharedItem)+0+x+x+x"
+      "  >item $item_label($(cnum) $(sharedItem))</a>.
+   end
+   "</ul>
+end
+else
+
+   "<form METHOD=POST ACTION="shareItem.cml?$(nch)+$(nxt)+\
+          $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)" NAME="share">
+   
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr>
+   "<td>Share item number&nbsp;</td>
+   "<td><input type="text" size="8" name="item"></td>
+   "<td> &nbsp;from conference&nbsp; </td>
+   "<td>
+   "   <select name="conf">
+   "      <option value="0">(Select a conference)</option>
+          set query  \
+             SELECT c.name, c.cnum, g.access, h.hidden FROM (confs c, groups g) \
+               LEFT JOIN confhidden h \
+                 ON (h.userid = '$userid()'  AND  g.name = h.cnum) \
+              WHERE  g.userid = '$userid()'  AND  g.active > 0  AND g.access >= $priv(organizer) \
+                AND  g.owner = 'CONF'  AND  c.cnum = g.name  AND c.cnum >= 0 \
+                AND  c.cnum != $arg(3) \
+                AND  c.deleted = 0 \
+              ORDER BY c.name
+          set h $sql_query_open ($(query))
+          while $sql_query_row  ($(h))
+             if $not (0$(hidden))
+                set cname $replace(_ 32 $(name))
+                set selected $ifthen ($equal (x$form(conf) x$(name)) selected)
+                "<option value="$(cnum)" $(selected)>$(cname)</option> 
+             end
+          end
+          eval $sql_query_close($(h))
+   "   </select>
+   "</td>
+   
+   "<tr><td>&nbsp;</td>
+   "<tr>
+   "<td><input type="submit" value="Share"></td>
+   "</table>
+   "</form>
+end
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</html>
+

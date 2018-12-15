@@ -1,0 +1,121 @@
+#
+#---H_ITEMCONT.CML.   Help about Item Content
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_itemcont.cml $quote(Help on Item Content)
+"<P>
+
+"Caucus allows much more than just text in your items or responses.&nbsp;  In
+"fact, anything that can be on a Web page can be in a Caucus 
+"item or response:<p>
+"<UL>
+"<LI><B>photographs and other graphic images</LI>
+"<LI>HTML text or an HTML page
+"<LI>a video or audio clip</LI>
+"<LI>an animation</LI>
+"<LI>a Java applet</LI>
+"<LI>a live link to someplace on the Web</LI>
+"<LI>a live link to another location in Caucus</LI>
+"<LI>a live link to download a file</LI>
+"<LI>and much more.&nbsp;  Because Caucus is completely Web-compatible, you can have
+"multi-media conversations.</LI>
+"</UL></B>
+"Here are some things you can try:<p>
+"<B>A Live URL:</B> If you want to put a live link into Caucus&#151;to any 
+"location on the Web&#151;just type (or cut and paste) the URL into your 
+"item or response text box.&nbsp;  Caucus does the rest.&nbsp;  People reading your 
+"item or response can just click right on the URL and go where you send 
+"them. (Be sure you use the complete URL&#151;Caucus uses the http: portion
+"to identify valid URLs)<p>
+
+"<B>A link to another place in Caucus</B>: just type http:/caucus into 
+"your item or response.&nbsp;  Someone clicking on that Caucus URL (notice one 
+"slash "/" in place of the usual two slashes "//") will go right to the 
+"$(center_name).
+
+"<P>
+"Or, for another example, http:/caucus/big_meeting/7:32 will take someone who
+"clicks on it to Item 7, response 32 of a conference called "Big Meeting."&nbsp;
+"(See <A HREF="h_specurl.cml?x+x">Caucus URLs</A> for more information.)
+
+"<P>
+"<B>A File</B>: Sharing information is a great use of Caucus.&nbsp;  
+"Simply <A HREF="$(helpurl)/h_upload.cml?x+x">attach a file</A>
+"into your item or response, 
+"then post it just as you usually would.
+
+"<P>
+"<B>Formatting with text macros:</B>&nbsp;
+"You can format your text, adding bold text, colors, and so on,
+"by using the supplied Caucus 
+"<A HREF="$(helpurl)/i_resp.cml?x+x#mac">text macros</A>.&nbsp;
+"For example, if you type "\%b(hello)", your response will
+"show "<B>hello</B>".
+
+"<P>
+"<B>Formatting with HTML:</B>&nbsp;
+"HTML is a lot easier than you might think.&nbsp;  You can learn the HTML
+""tags" to create centered, bold, italic, colorful, large or small, bulleted,
+"indented, or other text styles very quickly, and then enter them
+"in your response.&nbsp; (See <B>Choosing a Style</B>, below.)
+
+"<P>
+"Or, if you use a popular word processor like Microsoft Word, 
+"you can write your (formatted) response in Word, and then
+"choose "Save As HTML".&nbsp;
+"Then attach the result to your response (or cut and paste
+"it 'by hand'), and choose "HTML".
+
+"<p>
+"<FORM>
+"<B>Choosing A Style</B><BR>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top>
+"<TD>
+   "Right above the response box is a pull-down menu.&nbsp;
+   "Click on it to see your choice of styles.
+"</TD>
+"<TD>&nbsp;&nbsp;</TD>
+"<TD>
+    include $(main)/resptype.i xyz 1
+"</TD>
+"</TABLE>
+"</FORM>
+
+"<B>Word-wrapped:</B>&nbsp; 
+"The default is style is "word-wrapped".&nbsp; 
+"This is usually the best choice if you are just typing in 
+"ordinary text.&nbsp;
+"It tells Caucus to wrap your text naturally to fit the width of 
+"the browser window.
+
+"<P>
+"<B>Literal:</B>&nbsp; 
+"Choose "literal" to make Caucus create an item or
+"response that looks exactly like what you have typed in your text box.&nbsp;
+"Wherever lines break in your tex box, that's where they'll break on
+"the Item page.&nbsp; 
+"Your indents will be preserved, and the text will 
+"be in a fixed-pitch font (in case you were trying to line things up in 
+"columns, for example).
+
+"<P>
+"<B>HTML:</B>&nbsp; 
+"Always choose HTML in the dropdown box if you are writing 
+"an item or response that employs HTML.
+
+"<P>
+"<B>CML:</B>&nbsp;
+"CML, the <B>C</B>aucus <B>M</B>arkup <B>L</B>anguage,
+"is an advanced form of HTML with special functions.&nbsp;
+"See the <A HREF="http://www.caucuscare.com" TARGET="_blank">CaucusCare</A> site
+" for more information about CML.
+
+"<P>
+include $(help)/hb.i

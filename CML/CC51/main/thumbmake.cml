@@ -1,0 +1,21 @@
+#
+#---thumbmake.cml   (Re)Create initial thumbnail for all users who have 
+#                   pictures.
+#
+#:CR 03/02/06 New sweba script.
+#-----------------------------------------------------------------------
+
+set thumbNailSize $word (1 $site_data (0 - SWdefault_thumbnail) 60x40)
+set picdir $caucus_path()/public_html/LIB/PICTURES
+set query SELECT userid, picture FROM user_info \
+           WHERE (picture IS NOT NULL  AND  picture != '')
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set  tmpjpg /tmp/caucus.$caucus_id().$(userid).jpg
+   eval $xshell (1 1 1 $config(convertDir)/convert $escsingle($(picdir)/$(picture)) \
+                 -resize $(thumbNailSize) $(tmpjpg))
+   eval $copy2lib ($(tmpjpg) PICTURES/$(userid)/_thumb.jpg)
+   eval $delfile  ($(tmpjpg))
+   eval $set_user_data ($(userid) thumbNailSize $(thumbNailSize))
+end
+eval $sql_query_close($(h))

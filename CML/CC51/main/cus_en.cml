@@ -1,0 +1,290 @@
+#
+#---CUS_EN.CML.   Organizer controls e-mail notification.
+#
+#   This page is the "head" of a set of pages that control organizer-defined
+#   e-mail notification of new conference material.  The other files
+#   all begin with the prefix "cus_en".
+#
+#   See also per_en.cml for the parallel "head" for personal
+#   e-mail notification.
+#
+#   The following conference or user variables are involved:
+#
+#   Global "switch" variables
+#
+#     e_notify     allow *all* organizers to enable notification?
+#     en_run       run e-notification daemon?
+#
+#   conference variables
+#     en_on        is e-notification enabled (by the organizer) in this conf?
+#
+#     i_notify     1=allow individual e-mail notification; else 0
+#                  (may be ignored...)
+#
+#     en_user_U    exists if userid "U" has defined an individual e-mail not.
+#
+#     en_allow     1=conference is allowed notification, else 0.
+#
+#   item groups are defined by the epoch time of their creation, T.
+#     en_items-T   word 1 = 1 (active), else 0 (inactive)
+#                  word 2 = 1 (incl new items as created), else 0 (fixed list)
+#                  word 3 = 1 (report on newly created items), else 0 (don't)
+#                  word 4 = # of highest-reported item, or MySQL date of newest
+#                  word 5 = 0
+#                  rest   = "english" list of items in group ("All" is special)
+#
+#     en_dates-T   word 1 = 1 (week days), else 0 (month days)
+#                  rest   = list of day numbers
+#
+#     en_hours-T   word 1 = 1 (detailed report), else 0 (summary report)
+#                  rest   = list of hour numbers
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 12/29/03 Add en_loginurl field, URL to use in building email notifies.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 04/20/04 Show path as "customize" or "control panel".
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#-----------------------------------------------------------------------------
+
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_en.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+set is_course $equal (x$site_data($arg(3) - confType) xCourse)
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set title1 Customize
+set title2 Conference Information
+set nxt   $page_save (1 cus_en.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title1): E-mail Notification )
+
+
+include $(main)/head.i $arg(3)  $quote($(title1) : E-mail Notification)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+set custompage custom.cml
+include $(main)/header.i cus_en </A><A HREF="$(custompage)?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">$(title1)\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   E-mail&nbsp;Notification
+
+
+"<BLOCKQUOTE>
+"<B>E-mail Notification</B>
+"is a Caucus feature that lets you automatically notify
+"the members of this conference,
+"via e-mail, of new conference activity (items and responses)
+"without their having to access the conference itself.
+#"This can be a very helpful way to "prompt" your members to check
+#"in on the conference.&nbsp;
+#"(But be careful not to over-use it and drown them in e-mail, either.)
+
+"<P>
+"<form NAME="en_on_off" METHOD=POST
+"    ACTION="cus_enonf.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+x+x+x">
+set en_on 0$site_data ($arg(3) - en_on)
+"E-mail notification is currently
+
+"<B>$if ($(en_on) on off)</B> for this conference.&nbsp;&nbsp;
+"You may turn it
+"<INPUT NAME=submit TYPE=submit VALUE="$if ($(en_on) Off On)">.
+
+"</form>
+
+if $not ($(en_on))
+   "<P>
+   "<HR>
+   "</div>
+"</body>
+   "</HTML>
+   quit
+end
+
+#---Now make sure that the Caucus id is allowed in this conference.
+if $not (%access($arg(3) $caucus_id()))
+   "<P>
+   "You must add the userid '<B>$caucus_id()</B>' to the list of
+   "users allowed to access this conference.&nbsp;
+   "Otherwise no e-mail notifications can be sent.&nbsp;
+#  "(See <A HREF="custom_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#                             $arg(6)+$arg(7)+$arg(8)">Customize Users</A>.)
+   "(See 
+   "<A HREF="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+CONF+_+$arg(3)"
+   ">Access Control</a>.)
+   "<P/>
+   "<HR>
+   "</div>
+"</body>
+   "</HTML>
+   quit
+end
+
+
+#"To use this feature, you must define one or more groups of items.&nbsp;
+#"A group can be as simple as the entire conference, or a single
+#"item, or anything in-between.&nbsp;
+#"Then for each group, you select a frequency -- how often the items
+#"in the group should be checked for new material.&nbsp;
+#"When new material is found, an e-mail will be sent to each member
+#"of the conference.
+
+if $empty ($user_info ($userid() email))
+   "<P>
+   "<span class="bigger"><B><BLINK>Warning!</BLINK></B>&nbsp;</span>
+   "You have not set your own e-mail address.&nbsp;
+   "Please do so immediately, by clicking on your own name
+   "in the upper right hand corner of the window.
+end
+
+"<p>
+"<form NAME="loginurl" METHOD=POST
+"    ACTION="cus_enurlf.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+x+x+x">
+"<b>Login URLs</b><br>
+"The e-mails that your members receive will contain a URL that they 
+"can click on to login and see the new material.&nbsp;
+"This can be the "default" URL, or you may specify a special 
+"login page for your members.&nbsp;
+"If you use the default, you can also choose which "interface"
+"your users will see once they've logged in.
+
+"<p>
+set loginurl  $word (1 $site_data ($(cnum) - en_loginurl)  (default-URL) )
+set interface $word (1 $site_data ($(cnum) - enotifyif)    (default-interface) )
+"<table cellspacing=0 cellpadding=0>
+"<tr>
+"<td>E-mail notifications will use the login URL:&nbsp;&nbsp;</td>
+"<td><input type=text size=50 name="en_loginurl" value="$(loginurl)">&nbsp;</td>
+#"<td><input type=submit value="Change"></td>
+"<tr>
+"<td>If using default login URL, which interface?</td>
+"<td><input type=text size=50 name="enotifyif" value="$(interface)"></td>
+"<tr><td></td>
+"<td align=right><input type=submit value="Make Changes">&nbsp;</td>
+"</table>
+"</form>
+
+"<P>
+"<b>Create or Edit Notification groups and times</b><br>
+"To use e-mail notification, start by
+"identifying one or more groups of
+"items (from one item, to all of them)
+"that are important for your members to keep current on.&nbsp;
+"Create a new notification group for these items, and
+"set their schedule for notification (what days and times).&nbsp;
+"After they have been established, both the items in a group and
+"the notification schedules may be changed.&nbsp;
+"You may also elect to include all <B>newly</B> created items
+"in a group.&nbsp;
+"<P>
+"Note that, if you've allowed your users to set their own
+"individual notification schedules (see
+"<A HREF="custom_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+      $arg(7)+$arg(8)">Customize Users</A>), they can
+"then override your e-mail notification settings for themselves if they choose.
+
+#"<P>
+#"Use this page to create new groups, or edit existing groups.&nbsp;
+#"Each group then has its own page for selecting or removing items,
+#"and setting the frequency.
+
+"<P>
+"Choose from among the following:
+"<P>
+"<OL>
+"<LI><A HREF="cus_ennew.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                            $arg(7)+$arg(8)"
+"  >Create a new group</A> of selected items, and set its notification
+"schedule.
+
+"<P>
+"<LI><A HREF="cus_enwiz.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                            $arg(7)+$arg(8)"
+"  >Quickset option</A> to notify members of all new activity
+"(including newly created items), every Monday morning at 6 a.m.
+
+#---Build list of e-mail notification groups (T values).
+set groups
+for vname in $list_site_data ($arg(3) - en_items-)
+   set pos $plus (1 $str_index (- $(vname)))
+   set groups $(groups) $str_sub ($(pos) 1000 $(vname))
+end
+
+#---If there are any groups at all...
+if $not_empty ($(groups))
+   "<A NAME="edit"><P></A>
+   "<LI>The existing items groups are shown below.&nbsp;
+   "Click on one to edit it.
+  
+   "<P>
+   "<UL>
+   "<TABLE CELLPADDING=0 CELLSPACING=0>
+   "<TR><TD><B>Items</B>&nbsp;&nbsp;&nbsp;</TD>
+   "    <TD COLSPAN=2><B>Approx. Frequency&nbsp;&nbsp;</B></TD>
+   "<TD><B>Report Type</B></TD>
+
+   #---For each group, display what it owns.
+   for group in $(groups)
+      set items $rest(6 $site_data($arg(3) - en_items-$(group)))
+      if $and ($word (2 $site_data($arg(3) - en_items-$(group))) \
+               $not_equal ($(items) All))
+         set items $(items) +new
+      end
+      "<TR VALIGN=top>
+      if $empty ($(items))
+         set items (none)
+      end
+      "<TD>&nbsp;<A
+      "   HREF="cus_engrp.cml?$(nch)+$(nxt)+$arg(3)+x+\
+             $(group)+x+x+x">$(items)</A></TD>
+      "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      set period $word (1 $site_data ($arg(3) - en_dates-$(group)))
+      if $empty ($(period))
+         "<TD>(never)</TD>
+      end
+      else
+         "<TD>$mult (\
+            $minus ($sizeof($site_data ($arg(3) - en_dates-$(group))) 1)  \
+            $minus ($sizeof($site_data ($arg(3) - en_hours-$(group))) 1)) \
+            / $if ($(period) week month)
+         "</TD>
+      end
+      if $word (1 $site_data ($arg(3) - en_hours-$(group)))
+         "<TD>detailed</TD>
+      end
+      else
+         "<TD>summary</TD>
+      end
+   end
+   "</TABLE>
+   "</UL>
+end
+
+"</OL>
+"</BLOCKQUOTE>
+
+
+if $(trailerbar)
+   include $(main)/trailer.i  cus_en  </A><A HREF="custom.cml?\
+     $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+     $(cname)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+     E-mail&nbsp;Notification
+end
+
+"$errors()
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

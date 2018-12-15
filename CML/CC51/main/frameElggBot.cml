@@ -1,0 +1,39 @@
+#
+#---frameElggBot.cml
+#
+#:CR 09/04/2009 New script for framed Elgg support.
+#--------------------------------------------------------------------
+
+set elggUrl $arg(2)
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<script language="javascript">
+"   function submitMe() {
+"      document.myForm.submit();
+"   }
+"</script>
+"</head>
+
+"<body onLoad="submitMe();">
+"   <form method="post" name="myForm"
+"         action="http://$(elggUrl)/mod/openid_client/actions/login.php">
+"      <input type="hidden" name="passthru_url" value="http://$(elggUrl)" />
+"      <div style="display: none;">
+"      <select name="externalservice">
+"         <option value="">OpenID</option>
+"      </select>
+"      <input type="hidden" name="username" value="$userid()" />
+"	   <input type="checkbox" name="remember" checked="checked" />
+"      </div>
+"   </form>
+
+"   <p/>
+"   <center>
+"      ...working...
+"   </center>
+
+"</body>
+"</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+
+
+  
+  
+  <title>CML Reference Guide 4.9 Organizer Information</title>
+  <link rel="stylesheet" type="text/css" href="cml.css">
+</head>
+
+
+<body bgcolor="#ffffff">
+
+
+
+<center>
+<h2>CML Reference Guide</h2>
+
+
+</center>
+
+
+
+<blockquote>
+  
+  <table cellpadding="0" cellspacing="0" width="90%">
+
+
+    <tbody>
+
+      <tr valign="top">
+
+
+        <td>
+        
+        <h2>Chapter 4.9:&nbsp; Conference Organizer Information</h2>
+
+        </td>
+
+
+        <td align="right">
+   [<a href="index.html">TOP</a>]
+   [<a href="ref4.html">UP</a>]
+   [<a href="ref408.html">PREV</a>]
+   [<a href="ref410.html">NEXT</a>]
+        </td>
+
+
+      </tr>
+
+    
+    </tbody>
+  
+  </table>
+
+
+
+  
+  <p>
+Another family of functions relates to information about a conference
+that gets set (or changed) by the <b>c</b>onference <b>o</b>rganizer.&nbsp;
+In all of these functions, <i>num</i> is the conference number.
+
+  </p>
+
+  
+  <p>
+  </p>
+
+  
+  <dl>
+
+
+
+    
+    <p></p>
+
+    <dt><a name="co_org">$co_org(num)</a>
+    </dt>
+
+    <dd>
+Evaluates to the userid of the primary organizer of the conference.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dd>
+Change the primary organizer of conference <i>num</i> to userid
+      <i>id</i>.&nbsp;  The caller must already be the primary organizer,
+or else have the MGR_BEORG manager bit.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_greet">$co_greet(num)</a>
+    </dt>
+
+    <dd>
+Evaluates to the text of the "greeting" for the conference.&nbsp;
+In the original (text) Caucus interface, the greeting was displayed
+every time a person entered a conference.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_intro">$co_intro(num)</a>
+    </dt>
+
+    <dd>
+Evaluates to the text of the "introduction" for the
+conference.&nbsp;  In the original Caucus, the introduction was displayed
+when a person tried to join a conference for the very first time.
+
+      
+      <p>
+The introduction offers more information about the conference,
+to help a person decide if they really wish to join the conference.
+
+      </p>
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_add">$co_add(num)</a>
+    </dt>
+
+    <dd>
+Evaluates to "1" if ordinary users can add an item,
+or "0" otherwise.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="set_co_add">$set_co_add(num add)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+If <i>add</i> is non-zero, ordinary users may add new items.&nbsp;
+If <i>add</i> is "0", they may not.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_change">$co_change(num)</a>
+    </dt>
+
+    <dd>
+Evalutes to "1" if ordinary users can change their
+own responses.&nbsp;  Otherwise "0".
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="set_co_change">$set_co_change(num chg)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+If <i>chg</i> is non-zero, ordinary users may change their responses.&nbsp;
+If <i>chg</i> is "0" they may not.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_userlist">$co_userlist(num)</a>
+    </dt>
+
+    <dd>
+Evaluates to the text of the conference "userlist".&nbsp;
+The text of a simple userlist might look like:
+      
+      <p>
+      </p>
+
+      
+      <pre>   :include<br>   *<br>   :organizer<br>   smith<br></pre>
+
+
+
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="set_co_userlist">$set_co_userlist(num list)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+Set the text of conference <i>num</i>'s "userlist" to <i>list</i>.
+
+      
+      <p></p>
+
+    </dd>
+    <dt><a name="co_remove">$co_remove(num)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+Completely and permanently remove (delete) conference <i>num</i>.&nbsp;
+Will only work for managers with permission bit MGR_RMCONF.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="co_makeorg">$co_makeorg(num userid)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+Immediately add <i>userid</i> as an organizer to conference <i>num</i>.&nbsp;
+Will only work for managers with permission bit MGR_BEORG.
+
+      
+      <p></p>
+
+    </dd>
+
+    <dt><a name="create_conf">$create_conf(name priorg org1 [org2...])</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+Create a new conference <i>name</i>, with primary organizer <i>priorg</i>,
+and secondary organizers <i>org1, org2</i>, etc.&nbsp;  
+Will only work for users in manager group conferenceCreate.&nbsp;
+Evaluates to:
+      
+      <ul>
+
+
+ &nbsp;&nbsp;new conference number on success<br>
+
+
+ &nbsp;&nbsp;0 if user does not have permission<br>
+
+
+ -1 if <i>name</i> already exists<br>
+
+
+ -2 <i>priorg</i> not supplied<br>
+
+
+ -3 internal database error<br>
+
+
+ -4 if <i>name</i> is bad
+      
+      </ul>
+      <br>
+      <br>
+    </dd>
+
+    <dt><a name="co_rename">$co_rename(cnum newname)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b><a href="ref402.html#protect">{protected}</a></b>
+    </dt>
+
+    <dd>
+Renames conference <i>cnum</i> to have the name <i>newname</i>.&nbsp;
+Will only work for managers with permission bits MGR_CRCONF or 
+MGR_RMCONF.&nbsp;
+Evaluates to:
+      
+      <ul>
+
+
+ &nbsp;&nbsp;1 on success<br>
+
+
+ &nbsp;&nbsp;0 if the user doesn't have manager permission<br>
+
+
+ -1 if <i>newname</i> is bad<br>
+
+
+ -2 if <i>cnum</i> doesn't exist<br>
+
+
+ -3 if <i>newname</i> already exists!
+      
+      </ul>
+
+
+
+    </dd>
+
+  
+  </dl>
+
+
+</blockquote>
+
+
+
+<p>
+</p>
+
+<hr>
+</body>
+</html>

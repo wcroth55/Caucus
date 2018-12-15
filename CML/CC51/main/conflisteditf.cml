@@ -1,0 +1,73 @@
+#
+#---conflisteditf.cml   Handle form processing from 'Edit Conference list'
+#
+#   Handle:
+#      Hide   (insert row into confhidden)
+#      UnHide (delete row from confhidden)
+#      Delete (insert bySelf exclude row into grouprules)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  9/16/05 New file.
+#: CR 11/21/05 Replace group_update() with group_update_rule().
+#: CR 01/09/06 Add Join button for "Other confs", "All confs"
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i conflistedit.cml
+end
+
+set nch $unique()
+
+if $equal ($form(submit) Hide)
+   for cnum in $form(ibox)
+      set query INSERT INTO confhidden (userid, cnum, hidden) \
+                VALUES ('$userid()', '$(cnum)', 1)
+      eval %sql($(query))
+   end
+end
+
+elif $equal ($form(submit) Join)
+   for cnum in $form(ibox)
+      include $(main)/confaccess.i $(cnum)
+      include $(main)/confpartic.i $(cnum)
+   end
+end
+
+elif $equal ($form(submit) UnHide)
+   set checked $replace (32 , $form(ibox))
+   set query DELETE FROM confhidden \
+              WHERE userid='$userid()' AND cnum IN ($(checked))
+   eval %sql($(query))
+end
+
+elif $equal ($form(submit) Delete)
+
+   #---Unhide any to-be-deleted confs, just in case they ever come back.
+   set checked $replace (32 , $form(ibox))
+   set query DELETE FROM confhidden \
+              WHERE userid='$userid()' AND cnum IN ($(checked))
+   eval %sql($(query))
+
+   #---Insert a 'bySelf' rule to exclude myself from each checked conf.
+   for cnum in $form(ibox)
+      set query INSERT INTO   grouprules \
+         (grkey, owner, name, userid, access, bySelf)  VALUES \
+         (NULL, 'CONF', '$(cnum)', '$userid()', 0, 1)
+      eval %sql($(query))
+      eval $group_update_rule ($userid() $quote(CONF $(cnum)))
+   end
+end
+
+elif $equal ($form(submit) Resign)
+   for cnum in $form(ibox)
+      include $(main)/resign.i $(cnum)
+   end
+end
+
+"Location: center.cml?$(nch)+$arg(2)+x+x+x+x+x+x
+"
+#--------------------------------------------------------------------------

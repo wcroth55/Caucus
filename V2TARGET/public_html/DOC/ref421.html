@@ -1,0 +1,191 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.21: Password Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.21:&nbsp; Password Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref420.html">PREV</A>]
+   [<A HREF="ref422.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus version 4.0 adds a much more complete set of userid & password
+manipulation functions.&nbsp;  See the swebd configuration file
+<B>swebd.conf</B> for more information about setting up the
+initial userid & password management.
+
+<P>
+<DL>
+
+<P><DT><A NAME="pw_methods">$pw_methods()</A>
+<DD>
+Evaluates to the list of password verification and manipulation
+methods specified in the PW_Prog parameter in the
+configuration file swebd.conf.&nbsp;
+Typically "ldap", "internal", or "ldap internal" if both
+methods are allowed.
+
+<P><DT><A NAME="pw_can_add">$pw_can_add([method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to 1 if userids may be added to the userid & password
+database, and 0 otherwise.&nbsp;
+Returns result for <i>method</i>.&nbsp; If not specified, 
+defaults to "internal" method or PW_Prog external program.
+
+<P><DT><A NAME="pw_can_change">$pw_can_change([method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to 1 if passwords may be changed in the userid & password
+database, and 0 otherwise.&nbsp;
+Returns result for <i>method</i>.&nbsp; If not specified, 
+defaults to "internal" method or PW_Prog external program.
+
+<P><DT><A NAME="pw_can_delete">$pw_can_delete([method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to 1 if userids may be deleted from the userid & password
+database, and 0 otherwise.&nbsp;
+Returns result for <i>method</i>.&nbsp; If not specified, 
+defaults to "internal" method or PW_Prog external program.
+
+<P><DT><A NAME="pw_can_reset">$pw_can_reset([method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to 1 if the PW_Can_Reset parameter was set "on"
+in swebd.conf.&nbsp;
+See $pw_change(), below.&nbsp;
+Returns result for <i>method</i>.&nbsp; If not specified, 
+defaults to "internal" method or PW_Prog external program.
+
+<P><DT><A NAME="pw_can_verify">$pw_can_verify([method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to 1 if userids and passwords may be verified from 
+the userid & password database, and 0 otherwise.&nbsp;
+Returns result for <i>method</i>.&nbsp; If not specified, 
+defaults to "internal" method or PW_Prog external program.
+
+</DL>
+
+<P>
+The values of the last 5 functions are taken directly from
+the parameters of the same name (for the specified
+method) in <B>swebd.conf</B>.
+<p>
+In the functions below, <i>method</i> is again the name
+of the password manipulation method.&nbsp;
+If not specified, 
+it defaults to "internal" method or PW_Prog external program.
+
+<p>
+<DL>
+
+<P><DT><A NAME="pw_add">$pw_add(id pw override [method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Add the userid <I>id</I> with password <I>pw</I> to the
+password database.&nbsp;
+If <I>override</I> is 1, anyone can add a userid.&nbsp;
+Otherwise, the user must have the MGR_MKID permission bit.&nbsp;
+Evaluates to 0 on success, or one of the 
+<A HREF="#errors">error codes</A> listed below.
+
+<P><DT><A NAME="pw_change">$pw_change(id pw [method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Change userid <I>id</I>'s password to <I>pw</I>.&nbsp;
+Allowed if:
+<ul>
+<li>A user is changing their own password
+<li>User is a manager with the MGR_CHGPASS permission bit
+<li>No user is logged in, and swebd.conf parameter PW_Can_Reset is "on".&nbsp;
+(Used, for example, in password-reset feature that assigns random password and
+e-mails it to user.)
+
+</ul>
+Evaluates to 0 on success, or one of the 
+<A HREF="#errors">error codes</A> listed below.
+
+<P><DT><A NAME="pw_delete">$pw_delete(id [method])</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Delete userid <I>id</I> from the password database.&nbsp;
+Requires that the user have the MGR_RMID permission bit.&nbsp;
+Evaluates to 0 on success, or one of the 
+<A HREF="#errors">error codes</A> listed below.
+<P>
+(Remember to delete the user information with
+<A HREF="ref410.html#per_delete">$per_delete()</A>
+before deleting the userid!)
+
+
+
+<P><DT><A NAME="pw_verify">$pw_verify(id pw)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Verifies that userid <I>id</I> has password <I>pw</I>.&nbsp;
+Evaluates to 0 on success, or one of the 
+<A HREF="#errors">error codes</A> listed below.&nbsp;
+Will try all of the authentication methods 
+known by $pw_methods(), in order, until one succeeds
+or all fail.
+
+<P><DT><A NAME="pw_source">$pw_source()</A>
+<DD>
+Evaluates to the "source" or authentication method of
+the first successful call to $pw_verify() in a session.&nbsp;
+(Thus it either returns nothing, or one of the methods
+known by $pw_methods().)
+
+</DL>
+
+<P>
+<A NAME="errors">
+The error codes for the previous 4 pw_ functions are:</A>
+<UL>
+<TABLE CELLSPACING=0 CELLPADDING=0>
+<TR><TD ALIGN=right>-1</TD><TD>&nbsp;&nbsp;</TD> <TD>Action not allowed</TD>
+<TR><TD ALIGN=right>1</TD> <TD></TD> <TD>Program error</TD>
+<TR><TD ALIGN=right>2</TD> <TD></TD> <TD>ID already exists</TD>
+<TR><TD ALIGN=right>3</TD> <TD></TD> <TD>ID does not exist</TD>
+<TR><TD ALIGN=right>4</TD> <TD></TD> <TD>Password is incorrect</TD>
+<TR><TD ALIGN=right>6</TD> <TD></TD> <TD>Password is too long</TD>
+<TR><TD ALIGN=right>7</TD> <TD></TD> <TD>Password has bad characters</TD>
+<TR><TD ALIGN=right>8</TD> <TD></TD> <TD>Password database lock failed</TD>
+<TR><TD ALIGN=right>9</TD> <TD></TD> <TD>Can't read password database</TD>
+<TR><TD ALIGN=right>10</TD><TD></TD> <TD>Can't write to password database</TD>
+<TR><TD ALIGN=right>&nbsp;11</TD><TD></TD> <TD>System error, disk may be full</TD>
+<TR><TD ALIGN=right>&nbsp;12</TD><TD></TD> <TD>Authentication source 
+     does not allow this action</TD>
+</TABLE>
+</UL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

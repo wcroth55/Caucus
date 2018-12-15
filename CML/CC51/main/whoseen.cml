@@ -1,0 +1,144 @@
+#
+#---WHOSEEN.CML.   Who has seen this item?
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 05/11/04 Limit list to conf members *with* access.
+#: CR 11/12/04 Don't try to display info on non-existent people!
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 11/08/07 Fix query to properly LEFT JOIN against s.items_id.
+#: CR 07/11/08 Skip users who have user_data.name='whatIveRead', value not null
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i whoseen.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set ilabel $item_label($arg(3) $arg(4))
+set nxt   $page_save (1 whoseen.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Who Has Seen Item $(ilabel)? )
+ 
+include $(main)/head.i $arg(3)  $quote(Who Has Seen Item $(ilabel)?)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i   whoseen   Who Has Seen Item $(ilabel)?
+
+set is_org     $gt_equal (%access($arg(3)) $priv(organizer))
+
+"<FORM METHOD=POST ACTION="whoseen.cml?$(nch)+$(nxt)+\
+   $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"Report on
+"<INPUT TYPE="submit" NAME="submit" VALUE="Everyone">
+"or on
+"<INPUT TYPE="submit" NAME="submit" VALUE="People">
+"named:
+"<INPUT TYPE="text"   NAME="who"   SIZE=30>
+"</FORM>
+
+if $empty ($form(submit)$form(who))
+   "<P><HR>
+   "</div>
+"</body>
+   "</HTML>
+   return
+end
+
+if $equal($form(submit) Everyone)
+   set who $peo_members($arg(3))
+end
+else
+   set who $userids_byname($arg(3) $form(who))
+   if $empty ($(who))
+      "<P>
+      "No one matched the name '$form(who)'.
+      "<P><HR>
+      "</div>
+"</body>
+      "</HTML>
+      return
+   end
+end
+
+set lastresp %item_lastresp($arg(4))
+
+set disablePrivateReading $equal ($config(disablePrivateReading) true)
+
+"<TABLE border=0 cellspacing=0 cellpadding=0>
+"<TR>
+"<TD>&nbsp;</TD>
+"<td></td>
+"<TD><B>Name</B></TD>
+"<TD>&nbsp;</TD>
+"<TD ALIGN=right><B>Seen?</B> ($(lastresp)</TD>
+"<TD>&nbsp;responses total)</TD>
+
+"<TR>
+"<TD></TD>
+"<TD></TD>
+"<TD><HR></TD>
+"<TD></TD>
+"<TD COLSPAN=2><HR></TD>
+
+set q SELECT u.fname, u.lname, u.userid, s.seen, s.forgot, d.value \
+        FROM user_info u \
+        LEFT JOIN resps_seen s ON (u.userid = s.userid  AND  s.items_id=$arg(4)) \
+        LEFT JOIN user_data  d ON (u.userid = d.userid  AND  d.name='whatIveRead') \
+       WHERE u.userid IN ($commaList(string $(who))) \
+         AND ($(is_org) OR $(disablePrivateReading) OR d.value IS NULL) \
+       ORDER BY u.lname, u.fname
+set hs $sql_query_open ($(q))
+set counter 0
+set parity  1
+while  $sql_query_row  ($(hs))
+   set counter $plus($(counter) 1)
+   set parity  $minus(1 $(parity))
+   "<tr class="peoplelist$(parity)">
+   "<td align="right">$(counter).&nbsp;</td>
+   "<TD></TD>
+   "<td><a href="javascript: pop_up('person', '$(userid)');" %help(h_name)
+   "   >$(fname) $(lname)</a></td>
+
+   "<TD></TD>
+   "<TD ALIGN=right>
+   if 0$(forgot)
+      "<i>forgot</i>
+   end
+   elif $empty($(seen))
+      "<FONT COLOR="#FF0000">new</FONT>
+   end
+   elif $gt_equal ($(seen) $(lastresp))
+      "<IMG $(src_check)>
+   end
+   elif $equal ($(seen) 0)
+      "<A HREF="viewitem.cml?$(nch)+$(nxt)+\
+          $arg(3)+$arg(4)+$(seen)+x+$arg(7)+$arg(8)#here">item only</A>
+   end
+   else
+      "<A HREF="viewitem.cml?$(nch)+$(nxt)+\
+          $arg(3)+$arg(4)+$(seen)+x+$arg(7)+$arg(8)#here">$(seen)</A>
+   end
+   "</TD>
+   "<td>&nbsp;</td>
+end
+eval $sql_query_close($(hs))
+"</TABLE>
+
+if $(trailerbar)
+   include $(main)/trailer.i  whoseen  Who Has Seen Item $(ilabel)?
+end
+
+"</div>
+"</body>
+"</HTML>

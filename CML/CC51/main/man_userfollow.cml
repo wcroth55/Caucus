@@ -1,0 +1,105 @@
+#
+#---man_userfollow.cml   New user registration follow-up control.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 02/14/06 New file.
+#----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_userfollow.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+if $not_empty ($form(submit))
+   eval $set_site_data (0 - reg_sendto_$(iface)        $form(sendto))
+   eval $set_site_data (0 - reg_confirmEmail_$(iface)  $form(confirmEmail))
+   eval $set_site_data (0 - reg_confirmText_$(iface)   $form(confirmText))
+
+   "%location($(mainurl)/manage.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+\
+                         $arg(5)+$arg(6)+$arg(7)+$arg(8))
+   quit
+end
+
+set nch   $unique()
+set nxt   $page_save (2 man_userfollow.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: New User Registration Followup )
+
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : New User Registration Followup)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_userfollow </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">New User Registration Followup</A>
+
+"<BLOCKQUOTE>
+
+"Use this page to control exactly what happens when a new user
+"registers him or her self via the $(iface) interface.&nbsp;
+"(This does <b>not</b> apply to a user who is created or registered
+"by a manager, either one at a time, or through the batch registration
+"page.)
+"<p/>
+"Note that each interface is controlled separately.&nbsp;
+"There are several options that you can choose from; you can turn
+"each option on or off.
+
+"<form METHOD=POST name="follow"
+"      ACTION="man_userfollow.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+set q SELECT value FROM site_data WHERE name='reg_confirmText_$(iface)'
+set confirmText $unquote($sql_query_select ($(q)))
+if $empty ($(confirmText))
+   set confirmText Dear (name): $newline()$newline()\
+       We have received your request to register for the $(iface) Caucus event \
+       at $host().  To confirm your registration, please click \
+       on the link below:
+end
+
+"<ol>
+"<li><b>Require correct email address.</b>&nbsp;
+"If this is turned on,
+"when a new user registers, they are automatically sent a special email.&nbsp;
+"They <b>must</b> follow the instructions in the email in order to activate
+"their userid.
+"<p/>
+"<ul>
+"<table border=0>
+"<tr><td colspan=2><td>Text of email (the user's name is automatically inserted):</td>
+"<tr valign=top>
+"<td><input type="checkbox" value="1" name="confirmEmail"
+"   $ifthen ($site_data(0 - reg_confirmEmail_$(iface)) checked)
+"   >&nbsp;&nbsp;Require correct email?</td>
+"<td>&nbsp;&nbsp;&nbsp;</td>
+"<td><textarea name="confirmText" rows=5 cols=50
+"   >$t2esc($(confirmText))</textarea><br>
+"(Link is automatically inserted at the bottom)</td>
+"</table>
+"</ul>
+
+"&nbsp;<br>
+"<p/>
+"<li><b>Notify manager via email.</b>&nbsp;
+"When a new user registers, send email to: 
+"<input type="text" name="sendto" value="$site_data(0 - reg_sendto_$(iface))"
+"       size=30>
+
+"<p/>
+"<input type="submit" name="submit" value="Save All Changes">
+"</ol>
+"</form>
+"</BLOCKQUOTE>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

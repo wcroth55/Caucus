@@ -1,0 +1,23 @@
+#
+#---VIEWEXPA.    Go to viewitem.cml, showing *all* responses to an item in
+#                one page.
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viewexpa.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+#set cur_pageresps 10000
+
+#---Use the empty variable "_empty" to force display to the end of the item.
+"%location($(mainurl)/viewitem.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+0+\
+           $arg(7)+$arg(8)+_empty#here)
+
+#-------------------------------------------------------------------------

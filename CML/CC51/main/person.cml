@@ -1,0 +1,431 @@
+#
+#---PERSON.CML.   Display general information about a person (not yourself)
+#                 Links to oneself now go directly to me.cml
+#
+#   arg 9    userid of person
+#   arg 10   ????
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/30/00 13:03 Add textbox field type "_x".
+#: CR 05/07/00 20:42 Add space for urc macro field.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR 02/01/02 16:30 Put proper http(s): protocol in front of image.
+#: CR 09/27/02 Add ht, h2 interpretation on person page
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 12/26/03 Use %onnow_user() for "is user on now?" display.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 04/20/04 Show "remove" button even if no $per_lastin().
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR  9/24/04 Use new CSS stuff for itemlist.
+#: CR 01/10/06 Use interface control for "who has seen this item" to determine
+#              if viewing history should be available.
+#: CR 01/22/06 Special handling for 'intro' field (can't do it via macro?)
+#: CR 03/08/06 Add display of groups user belongs to, at end, and Registered:
+#              field at top.
+#: CR 05/16/08 Add map display.
+#: CR 07/13/08 If "who has seen" is disabled, don't show what user has seen!
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 03/18/09 Close window properly even if window.opener not defined.
+#: CR 03/18/09 Add std person icon for people w/o pictures.
+#: CR 08/02/09 Do not display (userid) if global show_id is false.
+#: CR 08/24/09 Interface-specific showUserid controls "(userid)" display instead of show_id.
+#: CR 03/03/10 Correct call to itemListOf.i to use *current* userid!
+#: CR 10/24/15 When evaluating macros, replace @ with 01, then back again after expansion.
+#==================================================================
+
+set  nch   $unique()
+set  target_switch 1
+#set id    $arg(9)
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i person.cml +$arg(9)
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+eval %onnow_check()
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>%per_name($arg(9))</TITLE>
+
+include $(main)/css.i 1
+
+"<script type="text/javascript" language="javascript">
+include $(main)/popup.js
+include $(main)/setsort.js
+
+if $(use_resize)
+"   var started = new Date();
+"   function resizer() {
+"      var thistime = new Date();
+"      if (thistime.getTime() - started.getTime() < 3000)
+"         return;
+"      var xv = $if ($(is_netscape4) window.innerWidth  document.body.clientWidth);
+"      var yv = $if ($(is_netscape4) window.innerHeight document.body.clientHeight);
+"      window.opener.xs_person = xv;
+"      window.opener.ys_person = yv;
+"      location.href = "personr.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+               $arg(6)+$arg(7)+$arg(8)+$arg(9)+_$arg(10)+" + xv + "+" + yv;
+"   }
+
+"   function closeMe() {
+"      if (window.opener != null) window.opener.pop_gone('person');
+"      window.close();
+"   }
+end
+"</SCRIPT>
+
+"</HEAD>
+
+"<body $ifthen ($(use_resize) onResize="resizer();")
+"   onLoad="initialize();">
+
+set name %per_name($arg(9))
+if $empty($(name))
+   set name ($arg(9))
+end
+
+
+#---If this is a "fake" person (a userid, perhaps from the Demonstration
+#   conference, that doesn't really exist) say so.
+if $empty (%per_lname($arg(9)))
+   "<form>
+   "<table width="100%">
+   "<TR><TD><span class="pageTitle"><B>$arg(9)</B></span></TD>
+   "<TD ALIGN=RIGHT><INPUT TYPE=BUTTON VALUE="Close" onClick="closeMe();"></TD>
+   "</table>
+   "</form>
+   "<BLOCKQUOTE>
+   "Userid <B>$arg(9)</B> is not registered at this site.&nbsp; They may have
+   "been a sample user or someone who is no longer a participant at
+   "this site.
+   "</BLOCKQUOTE>
+   "<P></div>
+"</body></HTML>
+   set target_switch 0
+   return
+end
+
+#---Determine prohibited tag list for HTML code.
+set prohibited $(tag_list)
+if $not_equal  ( x$site_data($(vi_cnum) - tag_list_user) x)
+   set prohibited $site_data($(vi_cnum) - tag_list_user)
+end
+
+#---Person's name and Close button.
+"<form NAME="perform">
+"<table width="100%" BORDER=0 CELLSPACING=0 CELLPADDING=0>
+"<TR valign=top><TD><span class="pageTitle"><B>$(name)</B>
+"   $if ($(showUserid) ($arg(9)))</span></TD>
+   "<TD ALIGN=right><nobr>
+   if $(use_javascript)
+      if %mgr_in_group ($userid() userEdit)
+         "<INPUT TYPE=BUTTON NAME=edit VALUE="Edit"
+         " onClick="window.opener.location.href=\
+           '$(mainurl)/them.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)\
+            +$arg(6)+$arg(7)+$arg(8)+$arg(9)';">
+      end
+      "<INPUT TYPE=BUTTON VALUE="Close" onClick="closeMe();">
+   end
+   "</nobr></TD>
+"</table>
+"</form>
+
+#---For a real person, display each field of info about them.
+"<table cellspacing=0 cellpadding=0 width="100%" border=1>
+"<tr valign=top><td><table BORDER=0 CELLPADDING=5 width="100%">
+
+set is_self $equal ($arg(9) $userid())
+set is_mgr  %mgr_in_group ($userid() userEdit)
+set pictures
+set latlong (none)
+
+set query SELECT name, format, position, label, \
+                 on_reg, on_public, on_self, on_mgr, macro \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND (on_public > 0  \
+                  $ifthen ($(is_self) OR on_self > 0)   \
+                  $ifthen ($(is_mgr)  OR on_mgr  > 0) ) \
+           ORDER BY position
+set skipnames {none} {CML-line} {CML-box} {Password} {Verify-PW} {Error-msg} \
+              {Toolbar} userid lname fname
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   if $tablefind ($(name) $(skipnames))
+      continue
+   end
+   if $equal (x$(name) xpicture)
+      set pictures $(pictures) $user_info ($arg(9) $(name))
+      continue
+   end
+   if $equal ($(name) latitude_longitude)
+      set latlong $word (1 $user_info ($arg(9) $(name)) (none))
+      continue
+   end
+
+   "<tr class="person_row" valign=top>
+   "<td width="10%">$(label)</td>
+   set value $user_info ($arg(9) $(name))
+   if $equal ($(name) intro)
+      set value \
+          $cleanhtml(prohibited $protect($mac_expand($wrap2html($(value)))))
+   end
+   elif $not_empty ($(macro))
+      set value $replace(64 01 $(value))
+      set value $mac_expand (%$(macro)($(value)))
+      set value $replace(01 64 $(value))
+   end
+   "<td>$(value)</td>
+end
+eval $sql_query_close ($(h))
+
+"<p/>
+#---If we're in a conf, and the person is a member, when were they
+#   last in it?
+set lastin
+if $not_equal ($arg(3) x)
+   set pq SELECT lastin FROM user_in_conf WHERE userid='$arg(9)' AND cnum=$arg(3)
+   set lastin $unquote($sql_query_select ($(pq)))
+   if $not_empty ($(lastin))
+      "<TR VALIGN=top $(body_fg)>
+      "<TD VALIGN="middle">Last in $(cname):</TD>
+      "<TD VALIGN="middle">%monthDayYearHour($(lastin)) $(timezonename)</TD>
+   end
+end
+
+#"<tr $(body_fg)><td>Registered:</td>
+#set q SELECT time FROM events \
+#       WHERE event='adduser' AND object='$arg(9)' ORDER BY time LIMIT 1
+#set created $unquote($sql_query_select($(q)))
+#"<td>$ifthen ($not_empty($(created)) \
+#     %monthDayYear($word(1 $(created))) $str_sub(0 5 $word(2 $(created))))</td>
+
+"</table></td>
+
+"<td>
+   "<table cellpadding=5 border=0>
+   "<tr class="person_row"><td>
+      if $not_empty ($(pictures))
+         for x in $(pictures)
+            " %picture($(x))
+         end
+      end
+      else
+         "<img src="/~$caucus_id()/GIF50/personIcon.jpg">
+      end
+   "</td>
+   "</table>
+
+
+if $greater ($str_index(, x$(latlong)) 0)
+   set zoom 11
+   "<p/>
+   "<table cellpadding=5 border=0>
+   "<tr class="person_row"><td>
+   "<div id="map_canvas" style="width: 350px; height: 250px"></div>
+   "<div style="text-align: center">$(latlong)</div>
+   "<script src="http://maps.google.com/maps?file=api&v=2&key=$config(GoogleMapKey)"
+   "        type="text/javascript"></script>
+   "<script type="text/javascript">
+   "   function initialize() {
+   "     if (GBrowserIsCompatible()) {
+   "       var map = new GMap2(document.getElementById("map_canvas"));
+   "       map.setCenter(new GLatLng($(latlong)), $(zoom));
+   "       map.addControl(new GSmallZoomControl());
+   "       map.addControl(new GMapTypeControl());
+   "       icon = new GIcon();
+#  "       confirm (new GLatLng($(latlong)));
+#  "       addrpnt = new GMarker(new GLatLng($(latlong)), {draggable: false }) ;
+   "       addrpnt = new GMarker(new GLatLng($(latlong)), {draggable: true, title: "title"  }) ;
+   "       map.addOverlay(addrpnt) ;
+#  "        addrpnt.enableDragging() ;
+
+   "     }
+   "   }
+#  "   initialize();
+   "</script>
+   "</td></table>
+end
+else
+   "<script type="text/javascript">
+   "   function initialize() { }
+   "</script>
+end
+"</td>
+"</table>
+
+if $not_equal ($arg(3) x)
+   #---If we're an organizer, also show a button to remove the person.
+   "<form METHOD=POST NAME="rm" ACTION="rmpeople.cml?$(nch)+$(nxt)+\
+                  $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+   "<INPUT TYPE=HIDDEN NAME=closeme VALUE="1">
+   "<br>
+   if $gt_equal (%access($(cnum)) $priv(instructor))
+      "<table BORDER=0 $(body_fg) CELLPADDING=5 width="100%"><TR><TD>
+      "<B>$(cname) Organizer Options:</B><P>
+      "<INPUT TYPE=hidden NAME=rmpeople VALUE="$arg(9)">
+      "<INPUT TYPE=SUBMIT NAME=submit   VALUE="Remove"> this person
+      " from the conference.
+      "<P>
+      "<UL>
+      " (Note: if you wish to prevent a removed user from re-joining,
+      "  you must specifically exclude the user, from the
+      " <A HREF=%to_parent(groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+CONF+_+$arg(3))>Access Control</A> page.)
+      "</UL>
+      "</TD></TR></table>
+   end
+   "</form>
+  
+  
+   #---If we're in a conf, and the person is a member, and "who has seen"
+   #   is allowed for the site and the conf, and the user hasn't
+   #   checked 'keep my reading private', then put up buttons
+   #   to list items, so we can see how far they've read.
+   set is_org     $gt_equal (%access($arg(3)) $priv(organizer))
+   set items
+   set disablePrivateReading $equal ($config(disablePrivateReading) true)
+   if $and ($not_empty($(lastin)) \
+            $not(0$site_data (0 - if_$(iface)_hide_whoseen)) \
+            $word (1 $site_data ($arg(3) - enableWhoHasSeen) 1) \
+            $or ($not ($word (1 $user_data ($arg(9) whatIveRead) 0)) \
+                 $(disablePrivateReading) \
+                 $(is_org) \
+                 $not ($word (1 $user_data ($arg(9) whatIveRead) 0)) ))
+      "<form METHOD=POST NAME="isort"
+      "     ACTION="person.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+            $arg(7)+$arg(8)+$arg(9)+$arg(10)#list">
+      set ikey  $word (1 $form(ikey) none)
+      set idata $form(idata)
+      "<table BORDER=0 cellspacing=0 cellpadding=2 width="100%"><TR>
+      "<TD COLSPAN=5 class="itemlist_selector"
+      "  ><A NAME="list"><b>Which items in <u>$(cname)</u>
+      "has %per_name($arg(9)) read?</b></A></TD></TR>
+      include $(main)/iselect.i List
+      "<TD><INPUT TYPE="submit" NAME="submit" VALUE="Display"></TD>
+      "<tr><td colspan=20 class="itemlist_pad"></td>
+      "</table>
+  
+      #---The dirty work of actually listing the items...
+      set iconf $arg(3)
+      include $(main)/itemListOf.i $(iconf) $userid() $(ikey) 0 0 0 $quote($(idata))
+      set items $(itemList)
+
+      if $not_empty ($(items))
+         set isort $word (1 $form(code) 0)
+         "<table width="100%">
+         include $(main)/columns.i
+         include $(main)/ilist.i items 0 $(isort) $quote($(columns)) $arg(9) 1
+         "</table>
+      end
+      "</form>
+   end
+end
+
+#---Display groups that user belongs to.
+"<p/>
+set parity 0
+"<table width="100%" border=0>
+"<tr class="userface$(parity)">
+"<td colspan=2><b>Which conferences and groups
+"   does <u>%per_name($arg(9))</u> belong to?</b></td>
+
+#---Manager groups
+set header Manager:&nbsp;
+set q SELECT name FROM groups WHERE owner='MGR' \
+      AND userid='$arg(9)' AND access >= $priv(minimum) ORDER BY name
+set h $sql_query_open ($(q))
+while $sql_query_row  ($(h))
+   set parity $minus (1 $(parity))
+   "<tr class="userface$(parity)">
+   "<td>$(header)</td> <td>&nbsp;$(name)&nbsp;</td>
+   set header
+end
+eval $sql_query_close($(h))
+
+
+#---Managers can see all group memberships; otherwise you can only
+#   see memberships of conference groups you belong to.
+set is_mgr $mgr_in_group ($userid() conferenceChange conferenceAllPrivileges \
+             groupEditNonManager groupEditAll userReports systemAllPrivileges)
+
+#---Conferences
+set confLevels primary    $priv(primary) \
+               organizer  $priv(organizer) \
+               instructor $priv(instructor) \
+               include    $priv(include) \
+               readonly   $priv(readonly) \
+               writeonly  $priv(writeonly)
+for type accessCode in $(confLevels)
+   if $(is_mgr)
+      set q SELECT c.name FROM confs c, groups g \
+             WHERE g.userid = '$arg(9)' AND g.access = $(accessCode) \
+               AND g.active = 1 \
+               AND c.deleted = 0 \
+               AND g.owner = 'CONF' AND g.name = c.cnum \
+             ORDER BY c.name
+   end
+   else
+      set q SELECT c.name FROM confs c, groups g, groups h \
+             WHERE g.userid = '$arg(9)'   AND g.access = $(accessCode) \
+               AND h.userid = '$userid()' AND h.access >= $priv(minimum) \
+               AND g.owner = 'CONF'  AND  g.name = c.cnum  AND  g.active = 1 \
+               AND h.owner = 'CONF'  AND  h.name = c.cnum  AND  h.active = 1 \
+               AND c.deleted = 0 \
+               AND c.name NOT LIKE 'interface_storage%' \
+             ORDER BY c.name
+   end
+
+   set h $sql_query_open ($(q))
+   set header $upper1($(type)):
+   while $sql_query_row  ($(h))
+      set parity $minus (1 $(parity))
+      "<tr class="userface$(parity)"><td>$(header)</td>
+      "<td>&nbsp;$replace(_ 32 $(name))&nbsp;</td>
+      set header
+   end
+   eval  $sql_query_close($(h))
+end
+
+if $(is_mgr)
+   set q SELECT owner, name FROM groups g \
+          WHERE owner='Caucus4' \
+            AND userid='$arg(9)' \
+            AND access >= $priv(minimum)  AND active=1 \
+          ORDER BY owner, name
+end
+else
+   set q SELECT g.owner, g.name FROM groups g, groups h \
+          WHERE g.userid='$arg(9)'   AND g.access >= $priv(minimum)  AND g.active = 1 \
+            AND h.userid='$userid()' AND h.access >= $priv(minimum)  AND h.active = 1 \
+            AND g.owner='Caucus4'  AND h.owner='Caucus4' AND g.name = h.name \
+            AND g.name NOT LIKE 'interface_%' \
+          ORDER BY owner, name
+end
+
+set header Belongs to:
+set h $sql_query_open ($(q))
+#"<tr><td colspan=3>h=$(h), q=$(q)</td>
+while $sql_query_row  ($(h))
+   set parity $minus (1 $(parity))
+   "<tr class="userface$(parity)"><td>$(header)</td>
+   "<td>&nbsp;System -&gt; $(name)</td>
+   set header
+end
+eval  $sql_query_close($(h))
+
+
+"</table>
+
+
+"</div>
+"</body>
+"</HTML>
+set target_switch 0
+#-------------------------------------------------------------------------

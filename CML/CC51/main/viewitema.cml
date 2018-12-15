@@ -1,0 +1,146 @@
+#
+#---VIEWITEMA.CML.  Display a "stripped" item
+#      Copied View item.cml and changed/stripped it by Gabor
+#
+#   Invoked as:
+#      .../viewitema.cml ? nch nxt cn in rn rs ix il # here
+#
+#   Argument (aka) what
+#      (1)    nch  unique # (defeat caching)
+#      (2)    nxt  saved page index of "calling" page
+#      (3)    cn   conf #                  ("x" to use list of items in IL)
+#      (4)    in   item #                  ("x" ...)
+#      (5)    rn   resp #                  ("x" ...)
+#      (6)    rs   starting resp # in page ("x" to figure automatically)
+#      (7)    ix   index into IL           ("x" to use value from last instance)
+#      (8)    il   name of list of items   ("x" if none)
+#    [ (9)    rt   variable contains response text (optional) ]
+#   [ (10)    rl   list of response numbers to print.  If empty, print all. ]
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/13/01 21:31 Add print-entire-conf button (based on Gabor's work)
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  5/14/03 Add arg(10) to allow printing only selected responses.
+#: CR 11/29/03 Handle "copied by" information correctly.
+#: CR 12/20/03 Add timezonehrs, timezonename interface variables.
+#: CR 10/07/04 Apply stylesheet classes.
+#: CR 02/28/06 Add favicons, users' thumbnails.
+#==========================================================================
+#   SECTION A:
+#   Get or deduce the exact cnum, inum, rnum, and item list information
+#   from the arguments.
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viewitem.cml +$arg(9)+$arg(10)
+end
+ 
+include $(main)/confaccess.i    $arg(3)
+include $(main)/secure.i member $arg(3)
+
+set nch    $unique()
+
+#---Fetch all the general information about this item:
+#   title, frozen, lastresp, seen, forgot, hidden, parent item & resp.
+set q SELECT title, frozen, lastresp FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set q SELECT hidden, items_parent, resps_parent, deleted FROM conf_has_items \
+       WHERE cnum=$arg(3) AND items_id=$arg(4)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+#---Response number -1 is a special code for "last response".
+if $equal ($arg(5) -1)
+   set arg(5) $(lastresp)
+end
+
+#---When in doubt, index into item list is always 1 (first item).
+if $equal ($arg(7) x)
+   set arg(7) 1
+end
+
+#---Conf/item/resp number supplied for a single item request, but no
+#   itemlist: make up our own itemlist.
+if $and ($not_equal ($arg(3) x)  $equal ($arg(8) x) )
+   set ilist $plusmod ($(ilist) 1 $(ilistmax))
+   set ilist$(ilist)  $arg(3) $arg(4) $arg(5) $arg(2)
+   set arg(8) ilist$(ilist)
+   set vi_markseen 1
+end
+
+set vi_cnum $arg(3)
+set vi_inum $arg(4)
+set vi_rnum $arg(5)
+
+#---If we got here w/o explicit cnum/inum/rnum's, reload this page
+#   with them in place.  (This is essential for bookmarking to work.)
+if $equal ($arg(3) x)
+   set vi_temp $rest( $arg(7)  $($arg(8)) )
+   set vi_cnum $word( 1 $(vi_temp) )
+   set vi_inum $word( 2 $(vi_temp) )
+   set vi_rnum $word( 3 $(vi_temp) )
+   "%location($(mainurl)/viewitema.cml?$(nch)+$arg(2)+\
+              $(vi_cnum)+$(vi_inum)+$(vi_rnum)+x+$arg(7)+$arg(8)#here)
+   return
+end
+
+#---At this point, we have effectively visited this page, so save it and
+#   get NXT, the index to it (to pass on to anything *we* call).
+set cname %displayed_conf_name ($(vi_cnum))
+set nxt   $page_save (1 viewitema.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      #here $(cname) Item $item_label($(vi_cnum) $(vi_inum)))
+
+#---If we got here and the item was deleted or hidden (and user is
+#   not an organizer), treat it as a "pass", and go
+#   on to the next item (via viewf.cml).
+#set access %access($(vi_cnum))
+#set is_org $gt_equal ($(access) $priv(instructor))
+#set is_inc $gt_equal ($(access) $priv(include))
+include $(main)/computeItemAccess.i $(vi_cnum) $(vi_inum)
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+
+if $or ($(deleted)  $empty($(hidden))   $and ($not($(is_org))  $equal ($(hidden) 1)) )
+   "</head>
+   "<body>
+   "Odd, this item should not be visible in the first place!
+   "</body>
+   "</html>
+   quit
+end
+
+
+#==========================================================================
+#  SECTION C:  Actually display the (current page of the) item.
+
+set pagename
+
+"<TITLE>$(cname) Item $(itemlabel) $t2hbr($(title))</TITLE>
+"<link rel="icon"          href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+"<link rel="shortcut icon" href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+include $(main)/css.i 1
+"</HEAD>
+
+"<BODY BGCOLOR="#FFFFFF">
+
+include $(main)/viewitema.i $(vi_cnum) $(vi_inum)
+  
+#"</div>
+"</body>
+"</HTML>
+
+set cur_pageresps $(pageresps)
+set pagename
+#==========================================================================

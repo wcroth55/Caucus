@@ -1,0 +1,406 @@
+#
+#---ME.CML.   View & Change my own personal information
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/30/00 Add textbox field type "_x".
+#: CR 05/07/00 Add space for urc macro field.
+#: CR 01/21/01 Changes for interface-based new user reg page.
+#: CR 09/20/02 Call $pw_can_change() with $pw_source().
+#: MH 10/16/02 Add "Show dates" option.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/12/03 Add ebox choices.
+#: CR 03/28/04 Add "insist on required fields" explanatory text.
+#: CR 04/05/04 Allow manager override to escape "required fields" condition.
+#: CR 04/20/04 Only show form fields in me3options.
+#: CR 10/13/04 Add user control of fonts, sizes; add bozofilter.
+#: CR 11/09/04 Add trailerbar option.
+#: CR 02/28/05 Rewrite to use SQL.
+#: CR 09/21/05 Take out most conf list options for now.
+#: CR 02/28/06 Add show/don't show thumbnails option.
+#: CR 05/16/08 Add map display.
+#: CR 07/11/08 Add "keep my reading private" option.
+#: CR 01/03/11 Allow cml-box & cml-line to appear on edit-my-self page.
+#=============================================================================
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i me.cml
+end
+
+include $(main)/secure.i open
+
+include $(main)/urcbase.i
+
+set nch   $unique()
+set cname %displayed_conf_name ($arg(3))
+set nxt   $page_save (1 me.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+               # %per_name($userid()) )
+
+include $(main)/head.i $arg(3)  $quote(%per_name($userid()))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');closeEditWin();"
+
+include $(main)/header.i me %per_name($userid())
+
+"<script language="javascript">
+"   var editWin;
+"   function closeEditWin() {
+"      if (editWin)  editWin.close();
+"   }
+"</script>
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td><H2>Personal Information & Settings for %per_name($userid())</H2></td>
+"<td align=right
+"   ><NOBR>%person(\$userid() $quote(See How I Look To Others)</NOBR>)</td>
+"</table>
+
+"<p/>
+"Use this page to change any of the information Caucus knows about
+"you: your name, personal information, password, settings, and so on.&nbsp;
+"It is divided up into three sections of related information.&nbsp;
+"<FONT COLOR=RED>Asterisks</FONT> mean
+"a field is required.
+
+if $and ($not_equal (x$(iface) x$(_requiredinfo)) \
+         %mgr_in_group ($userid() userReports))
+   "<tr><td colspan=2></td>
+   "<td>&nbsp;<a href="$(mainurl)/requiredover.cml?$(nch)+$(nxt)+x+x+x+x+x+x"
+   "    >Manager override</a></td>
+end
+"</table>
+
+#-------------------------------------------------------------
+# General Information
+
+"<P>
+"<form METHOD=POST ENCTYPE="multipart/form-data" name="register"
+"      ACTION="me1f.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"<p/>
+"<span class="bigger"><B>Section I:&nbsp; Your Personal Information<B></span>
+
+if $not_empty ($(regerrs))
+   "<blockquote>
+   "<table BORDER>
+   "<TR><TD>
+   "   <table border=0>
+       if 0$site_data (0 - $(urcbase)insistreq)
+          "<tr><td colspan=2>
+          "$site_data (0 - $(urcbase)insistexp)
+          "&nbsp;<br>&nbsp;
+          "</td>
+       end
+   "   <TR VALIGN=top><TD>
+   "   <B><BLINK>Error:</BLINK></B></TD>
+   "   <TD>$(regerrs)</TD>
+   "   </table></TD>
+   "</table>
+   "</blockquote>
+end
+
+set is_mgr  %mgr_in_group ($userid() passwordChangeUsers \
+               passwordChangeManagers passwordChangeAnyone)
+
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND (on_self > 0  $ifthen ($(is_mgr)  OR on_mgr  > 0) ) \
+           ORDER BY position
+set skipnames {none} {Password} {Verify-PW} {Error-msg} {Toolbar} userid laston registered
+include $(main)/reguser.i $userid() 0 $quote($(query)) $quote($(skipnames))
+
+"<TR><TD>&nbsp;</TD>
+"<TR><TD></TD>
+"<TD COLSPAN=2><INPUT TYPE="submit" VALUE="Change My Information"></TD>
+"</table>
+"</blockquote>
+
+"<BR>
+
+"</FORM>
+
+#-------------------------------------------------------------
+# Password Changing
+
+if $and ($(change_password) $pw_can_change($pw_source()) $(chguid))
+   "<P>
+   "<A NAME="ii">
+   "<HR>
+   "</A>
+   "<FORM METHOD=POST ACTION="me2f.cml?$(nch)+$arg(2)+\
+          $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+   "<table>
+   "<TR>
+   "<TD><span class="bigger"><B>Section II:</B></span></TD>
+   "<TD><span class="bigger"><B>Your Password</B>.</span></TD>
+   "<TD></TD>
+   "<TD>
+      if $not_empty($(bad_pw))
+         "<FONT COLOR=RED><B>$(bad_pw)</B></FONT><BR>
+         "Please try again.
+      end
+      set bad_pw
+   "</TD>
+
+   "<TR>
+   "<TD>Old Password:</TD>
+   "<TD><INPUT TYPE="password" NAME="oldpw" SIZE=20></TD>
+   "<TD width=10></TD>
+   "<TD ROWSPAN=3 width="50%">
+   if $equal ($auth_method() 1)
+   "  <table BORDER>
+   "  <TR><TD>
+   "     <B>Note:</B> your browser will complain AUTHORIZATION FAILED
+   "     after you change your password.&nbsp;
+   "     <BLINK><B>This is perfectly normal</B>.&nbsp;</BLINK>
+   "     Just choose RETRY and enter your userid and your
+   "     <B>new</B> password.</TD>
+   "  </TD>
+   "  </table>
+   end
+   "</TD>
+
+   "<TR>
+   "<TD>New Password:</TD>
+   "<TD><INPUT TYPE="password" NAME="newpw1" SIZE=20></TD>
+
+   "<TR>
+   "<TD>(again)</TD>
+   "<TD><INPUT TYPE="password" NAME="newpw2" SIZE=20></TD>
+
+   "<TR>
+   "<TD></TD>
+   "<TD><INPUT TYPE="submit" VALUE="Change My Password"></TD>
+
+   "</table>
+   "</FORM>
+end
+#-------------------------------------------------------------
+# Personal Switches
+
+"<P>
+"<A NAME="iii">
+"<HR>
+"</A>
+
+"<FORM METHOD=POST ACTION="me3f.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+"<table CELLSPACING=0 CELLPADDING=0 border=0>
+"<TR>
+"<TD><span class="bigger"><B>Section&nbsp;III:&nbsp;</B></span></TD>
+"<TD COLSPAN=2><span class="bigger"><B>Your Settings</B></span></TD>
+
+#"<TR>
+#"<TD>Icons in:</TD>
+#"<TD><INPUT TYPE="text" NAME="icons" SIZE=25
+#"          VALUE="$user_var($userid() icons)">
+#"  (<A HREF="icons.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+#             $arg(7)+$arg(8)+$arg(9)">About the Icons field</A>)</TD>
+
+
+if $tablefind (ebox $(me3options))
+   "<tr valign=top>
+   "<td>Editor?</td>
+   "<td><SELECT NAME="ebox">
+   "    <option $if ($equal (x$(ebox) x(default)) SELECTED)>(default)
+   "    <option $if ($equal (x$(ebox) xRichtext)  SELECTED)>Richtext
+   "    <option $if ($equal (x$(ebox) xTextbox)   SELECTED)>Plaintext
+   "    </select>&nbsp;</td>
+   #"<td>Choose "WYSWYG" editing, or old-style Textbox editing.</td>
+   "<td>Choose your editor: 
+   " <b>Richtext</b> (WYSWYG editing)
+   " or <nobr>old-style <b>plaintext</b> (textbox).</nobr>
+   "</td>
+end
+
+if $tablefind (detail $(me3options))
+#  "<TR>
+#  "<TD>Detail New?</TD>
+#  "<TD ALIGN=left>
+#  "<INPUT TYPE="checkbox" VALUE="1" NAME=detail
+#  "$if($not_empty ($user_data ($userid() item_detail)) CHECKED)></TD>
+#  "<TD>Show detailed breakdown of new items & responses in $(center_name)?</TD>
+end
+
+if $tablefind (sort_all $(me3options))
+#  "<TR>
+#  "<TD>Sort conferences?</TD>
+#  "<TD ALIGN=left>
+#  "<INPUT TYPE="checkbox" VALUE="1" NAME=sort_all
+#  "$if ($not_empty ($user_data ($userid() sort_all)) CHECKED)></TD>
+#  "<TD>Keep your list of conferences alphabetized?</TD></TR>
+end
+   
+if $tablefind (sort_new $(me3options))
+#  "<TR>
+#  "<TD>Sort by activity?</TD>
+#  "<TD ALIGN=left>
+#  "<INPUT TYPE="checkbox" VALUE="1" NAME=sort_new
+#  "$if($not_empty ($user_data ($userid() sort_new)) CHECKED)></TD>
+#  "<TD>List conferences with new material first in $(center_name)?</TD></TR>
+end
+   
+if $tablefind (dates $(me3options))
+   "<TR>
+   "<TD>Show dates?</TD>
+   "<TD ALIGN=left>
+   "<INPUT TYPE="checkbox" VALUE="1" NAME=dates
+   "$if($not_empty ($user_data ($userid() conf_dates)) CHECKED)></TD>
+   "<TD>Show conference modification dates in $(center_name)?</TD></TR>
+end
+   
+if $tablefind (whativeread $(me3options))
+   "<TR valign="top">
+   "<TD>Keep my reading private?</TD>
+   "<TD ALIGN=left>
+   "<INPUT TYPE="checkbox" VALUE="1" NAME="whatIveRead"
+      "$if($not_empty ($user_data ($userid() whatIveRead)) CHECKED)></TD>
+   "<td><i>Only conference organizers</i> can know what I've read.&nbsp;
+   "    No-one else can tell.&nbsp;
+   "  (Unchecked means 'make my reading public'.) </TD></TR>
+end
+   
+if $tablefind (boxwide $(me3options))
+   "<TR>
+   "<TD>Textbox width:</TD>
+   "<TD><INPUT TYPE=text NAME=boxwide SIZE=4 MAXLENGTH=4 VALUE="$(cols)"></TD>
+   "<TD>(Width of text-entry box in characters)</TD>
+end
+   
+if $tablefind (boxhigh $(me3options))
+   "<TR>
+   "<TD>Textbox height:</TD>
+   "<TD><INPUT TYPE=text NAME=boxhigh SIZE=4 MAXLENGTH=4 VALUE="$(rows)"></TD>
+   "<TD>(Height of text-entry box in characters)</TD>
+end
+   
+
+if $tablefind (wordwide $(me3options))
+   "<tr valign=top>
+   "<td><nobr>Word-processor width:&nbsp;</nobr></td>
+   "<td><input type="text" name="wordwide" size=4 maxlength=4 
+   "          value="$(wordwide)"></td>
+   "<td>(Width of wordprocessor box in pixels)</td>
+end
+   
+if $tablefind (wordhigh $(me3options))
+   "<tr valign=top>
+   "<td><nobr>Word-processor height:&nbsp;</nobr></td>
+   "<td><input type="text" name="wordhigh" size=4 maxlength=4 
+   "          value="$(wordhigh)"></td>
+   "<td>(Height of wordprocessor box in pixels)</td>
+end
+
+if $tablefind (pageresps $(me3options))
+   "<TR>
+   "<TD>Responses / Page:&nbsp;</TD>
+   "<TD><INPUT TYPE=text NAME=pageresps SIZE=4 MAXLENGTH=4
+   "          VALUE="$(pageresps)">&nbsp;</TD>
+   "<TD>(Number of responses shown per page)</TD>
+end
+   
+if $tablefind (context $(me3options))
+   "<TR>
+   "<TD>Context:</TD>
+   "<TD><INPUT TYPE=text NAME=context SIZE=4 MAXLENGTH=4 VALUE="$(context)"></TD>
+   "<TD>(Number of responses loaded <B>before</B> desired response.)</TD>
+end
+
+if $tablefind (lmargin $(me3options))
+   "<TR>
+   "<TD>Left Margin:</TD>
+   "<TD><INPUT TYPE=text NAME=lmargin SIZE=4 MAXLENGTH=4 VALUE="$(lmargin)"></TD>
+   "<TD>(Space to left of response text)</TD>
+end
+   
+if $tablefind (rmargin $(me3options))
+   "<TR>
+   "<TD>Right Margin:</TD>
+   "<TD><INPUT TYPE=text NAME=rmargin SIZE=4 MAXLENGTH=4 VALUE="$(rmargin)"></TD>
+   "<TD>(Space to right of response text)</TD>
+end
+
+if $tablefind (cssfont $(me3options))
+   "<TR>
+   "<TD>Font family:</TD>
+   "<TD><INPUT TYPE=text NAME=cssfont SIZE=14 VALUE="$(ucss_font)">&nbsp;</TD>
+   "<TD>(Preferred font)</TD>
+end
+
+if $tablefind (csssize $(me3options))
+   "<TR>
+   "<TD>Font size:</TD>
+   "<TD><INPUT TYPE=text NAME=csssize SIZE=14 VALUE="$(ucss_size)"></TD>
+   "<TD>(Preferred font size)</TD>
+end
+
+if $word (1 $(siteBozoFilter) 1)
+   if $tablefind (bozofilter $(me3options))
+      "<TR valign=top>
+      "<TD>User Filter:</TD>
+      "<td><textarea name="bozos" rows=5 cols=14
+      "   >$user_data ($userid() bozos)</textarea>&nbsp;</td>
+      "<TD>Filter out (do not show) responses by these userids.&nbsp;
+      "  Enter one userid per line in the box.&nbsp;
+      "  Please use this only in extreme circumstances.&nbsp;
+      "  Note that conference organizers can selectively disable this
+      "  feature for specific conferences.
+      "</td>
+   end
+end
+   
+if $tablefind (trailerbar $(me3options))
+   "<TR>
+   "<TD>Bottom Toolbar?</TD>
+   "<TD ALIGN=left>
+   "<INPUT TYPE="checkbox" VALUE="1" NAME=trailerbar
+   "$if(0$user_data ($userid() trailerbar) CHECKED)></TD>
+   "<TD>Show the Toolbar and navigation links at the bottom of the page?</td>
+end
+   
+if $tablefind (thumbnails $(me3options))
+   "<TR valign=top>
+   "<TD>Member Thumbnails?</TD>
+   "<TD ALIGN=left>
+   "<INPUT TYPE="checkbox" VALUE="1" NAME="showThumbNails"
+       set showThumbNails $word (1 $user_data ($userid() showThumbNails) 1)
+   "   $ifthen ($(showThumbNails) checked)></td>
+   "<TD>Some conferences show members' thumbnail images with
+   "    their responses.&nbsp; Do you want to see them?</td>
+end
+   
+if $tablefind (cmlerr $(me3options))
+   set cmlerr $word (1 $user_data($userid() cmlerr) $(cmlerr_def) yes)
+   "<TR>
+   "<TD>CML errors:</TD>
+   "<TD><SELECT NAME=cmlerr>
+   "    <OPTION VALUE="pop" $if ($equal ($(cmlerr) pop) SELECTED) >pop-up
+   "    <OPTION VALUE="yes" $if ($equal ($(cmlerr) yes) SELECTED) >Yes
+   "    <OPTION VALUE="no"  $if ($equal ($(cmlerr) no)  SELECTED) >No
+   "    </SELECT>&nbsp;</TD>
+   "<TD>(Report on CML errors?)</TD>
+end
+
+"<TR>
+#"<TD></TD>
+"<TD COLSPAN=2>&nbsp;
+"    <BR>&nbsp;&nbsp;<INPUT TYPE="submit" VALUE="Change My Settings"></TD>
+"</table>
+
+"</FORM>
+
+if $(trailerbar)
+   include $(main)/trailer.i    me %per_name($arg(9))
+end
+
+"</div>
+"</body>
+"</HTML>

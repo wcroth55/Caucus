@@ -1,0 +1,58 @@
+#
+#---H_PEOPLE.I   Help about "people" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_people.cml $quote(Help on People)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The People Page is designed to let you search for conference
+"participants by their names.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>People</B> icon.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"From this page you can see a list of all members of the current
+"conference, or you can search for a particular person, 
+"by any part of the person's  name.
+
+"<P>
+"<B>What is on the People Page?</B><P>
+"<OL>
+
+include $(help)/h_pagetop.i
+
+"<P><LI>
+   "<B>See a list of all members...</B>&nbsp;
+   "Click on <U>all members</U> to see a list of
+   "everyone who has joined this conference.&nbsp;
+   "The list appears in alphabetical order (by last name).&nbsp;
+   "Each name is a live link; click on a name to see the personal
+   "information about that person.
+
+"<P><LI>
+   "<B>Find a Person:</B>&nbsp;
+   "You may search for a specific person by name.&nbsp;
+   "Click in the one-line text box, and type 
+   "either a full name or some consecutive letters of the name&#151;as
+   "much as you know.&nbsp;  
+   "Caucus will display a list of matching names.&nbsp;  
+   "(If there is a only a single match, Caucus immediately shows you 
+   "the page about that person.)
+   "<P>
+   "You may restrict your search to people who are members of the
+   "the current conference by clicking in the checkbox below the
+   "text box.&nbsp;
+   "In that case you will only be told about people in the current
+   "conference.&nbsp;
+   "(Otherwise, Caucus looks for anyone in any conference
+   "in this Caucus workspace.)
+"</OL>
+include $(help)/hb.i

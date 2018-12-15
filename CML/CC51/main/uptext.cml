@@ -1,0 +1,86 @@
+#
+#---UPTEXT.CML   Complain to the user about a bad upload/type mismatch.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i upload.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 uptype.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Attach Text? )
+
+include $(main)/head.i $arg(3)  $quote(Attach Text?)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     upload  Attach Text?
+
+"<B>Problem:</B> you appear to be trying to attach
+"a non-text file as text.
+"<P>
+"You've told Caucus to treat your attached file as
+if $equal ($(ul_type) text)
+   "plain text.&nbsp;
+end
+else
+   "HTML text.&nbsp;
+end
+"But your file is <B>not</B> a plain text file.
+"<P>
+"This situation is often caused by trying to attach a
+"Word (or other word-processor) file directly as text.
+"If this is the case now, you should choose one of the options
+"below:
+
+"<P>
+"<BLOCKQUOTE><OL>
+"<LI>Save your file as text.&nbsp;
+"In your word processor, select <B>Save As</B>, choose a new file
+"name, and from the file-type menu, choose "Text" or "Text-only".
+"Then 
+"<A HREF="$(mainurl)/upload.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                    $arg(6)+$arg(7)+$arg(8)">go back
+"   to the attach page</A> and attach this new text file.
+"<P>
+
+"<LI>If your document contains special layout or formatting that is lost
+"when you convert to text, you may be able to save it as HTML&#151;most 
+"recent versions of popular word processors offer this feature.  Follow
+"the instructions given about, but look for an "HTML" option instead of
+""Text".
+"Then
+"<A HREF="$(mainurl)/upload.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                    $arg(6)+$arg(7)+$arg(8)">go back
+"   to the attach page</A> and attach this new file, specifying that
+" it should be displayed as <B>HTML</B>.
+"<P>
+
+"<LI>If you can't save as text or HTML, you can attach your document
+"as a downloadable file.  Caucus won't display the contents of the 
+"document, but it will allow others to download it and view it with 
+"their own word processor. 
+"<A HREF="$(mainurl)/upload.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                    $arg(6)+$arg(7)+$arg(8)">Go back
+"   to the attach page</A> and attach your file again, but specify
+"that it should be displayed as a <B>Link</B> or <B>URL</B>.
+
+
+"</OL></BLOCKQUOTE>
+
+ include $(main)/trailer.i   upload   Attach File
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

@@ -1,0 +1,165 @@
+#
+#---MAN_USERFACE.CML.   Manager controlling user info fields for an interface.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  2/18/05 New file.
+#: CR 12/19/05 Add forceRequired checkbox.
+#: CR 02/08/06 Add sendto email address field (notify about new registrant)
+#: CR 02/17/06 Move sendto to new page man_userfollow.cml.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_userface.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_userface.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: User Info Fields )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : User Info Fields)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_userface </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+   Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   User Info Fields</a>
+
+"<script type="text/javascript" language="javascript">
+"   function deleterow(name) {   /* (delete) must always be last option!! */
+#      name.value = "{delete}";
+"      name.selectedIndex = name.options.length - 1;
+"      document.reg.submit();
+"      return false;
+"   }
+"   function shiftrow(pos, delta) {
+"      pos.value = (pos.value - 0) + delta;
+"      document.reg.submit();
+"      return false;
+"   }
+"</script>
+
+"<form NAME="reg" METHOD=POST
+"    ACTION="man_userfacef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x">
+"<input type="hidden" name="insert" value="">
+"<BLOCKQUOTE>
+
+"Use this page to control which user information fields appear 
+"(in the <b>$(iface)</b> interface), on:
+"<ul>
+"<li><b>Mgr:</b> the manager's change-another-user page.
+"<li><b>Self:</b> the change-my-own-information page (click on yourself).
+"<li><b>Pub:</b> the public user-display page (click on a person's name).
+"<li><b>Reg:</b> the new-user registration page.
+"</ul>
+"To add new fields, see 
+   "<A HREF="man_fields.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+             $arg(6)+$arg(7)+$arg(8)">Add user fields</a>.&nbsp;
+"To control what happens when a new user registers, see
+   "<A HREF="man_userfollow.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+             $arg(6)+$arg(7)+$arg(8)">User registration follow-up</a>.&nbsp;
+
+
+"<P>
+"</BLOCKQUOTE>
+
+#---%selected (name)
+eval $mac_define (selected \$ifthen (\$equal (\$(x) @1) selected))
+
+set fieldNames $sql_query_select (SELECT name FROM user_columns ORDER BY name)
+
+set maxpos $sql_query_select (SELECT MAX(position) FROM user_iface \
+                               WHERE iface='$(iface)')
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+           ORDER BY position
+set h $sql_query_open ($(query))
+"<p/>
+set pos 0
+set name
+"<table border=0 cellspacing=0 cellpadding=0>
+   "<tr><td colspan=9></td>
+   "<td colspan=4 align=center> <b>Appears on</b></td>
+   "<tr>
+   "<td colspan=3></td><td>&nbsp;<b>Field</b></td>  <td>&nbsp;<b>Type</b></td>
+   "<td><b>Req'd</b>&nbsp;</td>
+   "<td>&nbsp;<b>Width</b>&nbsp;</td>
+   "<td>&nbsp;<b>Label or Text</b></td>
+   "<td>&nbsp;<b>Macro</b></td>
+   "<td><b>Mgr</b></td>
+   "<td><b>Self</b></td> 
+   "<td><b>Pub</b></td>
+   "<td><b>Reg</b></td>
+
+   set p 1
+   while $sql_query_row ($(h))
+      set p $minus (1 $(p))
+      set pos $plus ($(pos) 1)
+      set width $word (1 $(width) 20)
+      set width $if ($equal ($(width) 0) 20 $(width))
+      "<tr>
+      if $and ($equal ($(name) {none})  $equal ($(position) $(maxpos)))
+         "<td colspan=3 class="userface$(p)"></td>
+      end
+      else
+         "<td class="userface$(p)"><a href="#" 
+         "       onClick="document.reg.insert.value = '$(pos)';  \
+                          document.reg.submit();   return false;"
+         "   ><img $(src_newrow)></td>
+         "<td class="userface$(p)"><a href="#" 
+         "       onClick="return deleterow(document.reg.name$(pos));"
+         "   ><img $(src_trash)></a></td>
+         "<td class="userface$(p)"><a href="#" 
+         "       onClick="return shiftrow(document.reg.position$(pos), -1.5);"
+         "   ><img $(src_uparrow)></a><br
+         "   ><a href="#"
+         "       onClick="return shiftrow(document.reg.position$(pos),  1.5);"
+         "   ><img $(src_dnarrow)></a></td>
+      end
+      include $(main)/man_userface.i
+      "<tr><td><img $(src_clear) width=1 height=2></td>
+   end
+   eval $sql_query_close($(h))
+
+   if $not_equal (x$(name) x{none})
+      set pos $plus ($(pos) 1)
+      "<tr><td colspan=3 class="userface$(p)"></td>
+      set name {none}
+      set format x
+      set label
+      include $(main)/man_userface.i
+   end
+
+"<tr><td><img $(src_clear) width=1 height=4></td>
+"<tr>
+"<td colspan=3></td>
+"<td colspan=2><input type="submit" name="submitit" value="Make Changes"></td>
+#<td></td>
+"<td colspan=4>Insist that users fill in required fields?&nbsp;<input 
+"    type="checkbox" name="forceRequired" 
+"   value="1" $ifthen(0$site_data(0 - forceRequired_$(iface)) checked)></td>
+
+"</table>
+
+
+"<p/>
+"$errors()
+
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

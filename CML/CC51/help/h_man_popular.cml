@@ -1,0 +1,42 @@
+#
+#---H_MAN_POPULAR.I    Help about "Manage the Popular Conferences" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_popular.cml $quote(Help on Manage the \
+         Popular Conferences)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Popular Conferences page allows authorized managers to change the list of 
+""popular conferences" presented to users in the $(center_name).<P>
+
+"The popular conference list is often used to present new users with a 
+"brief list of conferences that they should definitely participate in.  If
+"you do not designate any popular conferences, no list will be presented to
+"the user.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Edit the Popular Conference List</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"This page contains a text field displaying the current popular conference
+"list, and a list of conferences on this host.  Type new conference names
+"in the text field (one per line) to add them to the list. Select and delete
+"conferences that you do not wish to appear on the list.<P>
+
+"When your list is complete, press the <B>Make these Changes</B> button to 
+"save the new list.<P>
+
+"<B>Note:</B> When adding popular conferences, be sure that they are either
+"open for everyone to join, or set so that they are invisible to non-members.
+"It's disconcerting for people to see "popular" conferences that they
+"aren't allowed to join.<P>
+include $(help)/hb.i

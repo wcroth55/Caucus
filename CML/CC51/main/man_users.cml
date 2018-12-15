@@ -1,0 +1,104 @@
+#
+#---MAN_USERS.CML.   Manager managing users
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userDelete passwordChangeUsers \
+                         passwordChangeManagers passwordChangeAnyone
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_users.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: User Management )
+
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : User Management)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_users </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">User Management</A>
+
+"<BLOCKQUOTE>
+
+"Use this page to delete a user, or
+"change a user's password,
+"depending on the privileges you have been granted.&nbsp;
+"<I>
+"(To change a user's personal information, click on their name,
+"and then the "Edit" button in window that appears.)</I>
+
+"<form METHOD=POST ACTION="man_usersf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x"
+"     autocomplete="off">
+
+"<TABLE>
+   "<TR><TD COLSPAN=3>&nbsp;</TD>
+
+if $and ($pw_can_change() \
+         %mgr_in_group ($userid() passwordChangeUsers passwordChangeManagers \
+                                  passwordChangeAnyone))
+   set onehit password
+   "<TR><TD></TD><TD COLSPAN=2>
+   "<A NAME="password"><H2>Change a Password</H2></A>
+   "Note: Only the primary Caucus manager can change<BR> other managers' 
+   "passwords.<P>
+
+   if $not_empty($(password_error))
+      "<B><FONT COLOR=RED>$(password_error)</FONT></B><P>
+      set password_error
+   end
+   "</TD>
+
+   "<TR><TD></TD><TD><B>Userid:</B></TD>
+   "<TD><INPUT TYPE=TEXT NAME=password_userid SIZE=30 
+   "          VALUE="$(save_password_userid)"></TD>
+   "<TR><TD></TD><TD><B>Password:</B></TD>
+   "<TD><INPUT TYPE=PASSWORD NAME=password_password SIZE=14></TD>
+   "<TR><TD></TD><TD><B>Verification:</B></TD>
+   "<TD><INPUT TYPE=PASSWORD NAME=password_verify SIZE=14></TD>
+   "<TR><TD></TD>
+   "<TD><TD><INPUT NAME=password TYPE=SUBMIT VALUE="Change Password"></TD>
+   "<TR><TD COLSPAN=3>&nbsp;<BR><HR></TD>
+end
+
+if %mgr_in_group ($userid() userDelete)
+   set onehit delete
+   "<tr><td>&nbsp;</td>
+   "<TR><TD></TD><TD COLSPAN=2><H2>Delete userid(s)</H2></TD>
+
+   if $not_empty($(delete_error))
+      "<TR><TD></TD><TD COLSPAN=2>
+      "<B><FONT COLOR=RED>$(delete_error)</FONT></B><P>
+      set delete_error
+      "</TD>
+   end
+
+   "<TR valign="top"><TD></TD><TD><B>Userid(s) to delete:</B></TD>
+   "<td><TEXTAREA WRAP=virtual COLS=30 ROWS=8
+   "        NAME="delete_userid"></TEXTAREA></td>
+   "<TD></TD><TD>(One per line.)</TD>
+
+   "<TR><TD></TD><TD></TD>
+   "<TD><INPUT NAME=delete TYPE=SUBMIT VALUE="Delete these users"></TD>
+end
+
+
+"</TABLE>
+"</form>
+"</BLOCKQUOTE>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,112 @@
+#
+#---MYFILESAFE.CML     List of "my" visible filesafes -- Filesafe button
+#
+#   Invoked as:
+#      myfilesafe.cml ? nch nxt 
+#
+#   Argument (aka) what
+#      (1)    nch    unique # (defeat caching)
+#      (2)    nxt    saved page index of "calling" page
+#      (3)    cn     conf #                  (carried from caller)
+#      (4)    in     item #                  (ditto)
+#      (5)    rn     resp #                  (ditto)
+#      (6)    rs     starting resp # in page (ditto)
+#      (7)    ix     index into IL           ("x" to use value from last)
+#      (8)    il     name of list of items   ("x" if none)
+#
+#   Purpose:
+#
+#   How it works
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/10/02 New file for new button.
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#: CR 10/02/05 Use new group model.
+#==========================================================================
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i myfilesafe.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 myfilesafe.cml \
+         $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) # \
+                    My&nbsp;$(filesafe_name)(s))
+set last_conf x
+
+include $(main)/head.i $arg(3)  $quote(My $(filesafe_name)(s))
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+set pagename My $(filesafe_name)(s)
+
+include $(main)/header.i mysafe My $(filesafe_name)(s)
+
+"<blockquote>
+"<p>
+"The $(filesafe_name) is a central "file library" -- a place where Caucus 
+"users can store and retrieve arbitrary files or URLs.&nbsp;  
+"The $(filesafe_name) is not part of any conference; it belongs to the entire 
+"Caucus site, and is visible throughout Caucus by clicking on 
+"the "$(filesafe_name)" button.&nbsp;
+"For more information, click on 
+"<A HREF="#" onClick="pop_up('help', '$(helpurl)/h_filesafe.cml?x+x');  \
+     return false;"
+"    %help(h_help)>Help</a>.
+
+
+"<p>
+"The $(filesafe_name)(s) you can use are shown below.&nbsp;
+"Click on a $lower($(filesafe_name)) to see what's inside it.
+
+
+set is_mgr 0
+if %mgr_in_group ($userid() filesafeManage)
+   set is_mgr 1
+   "<p>
+   "You can also 
+   "<A HREF=man_safe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)+everyone>manage</A>
+   "the $(filesafe_name)(s).
+end
+
+"<ul>
+"<table border=0>
+"<tr>
+"<td><b>$(filesafe_name)</b>&nbsp;&nbsp;&nbsp;</td>  <td><b>Description</b></td>
+set none 1
+set fs    $list_site_data (0 - FN_)
+set fsdex $gen_sort (1 $(fs))
+for fsi in $(fsdex)
+   set fsn $str_sub (3 1000 $word ($(fsi) $(fs)))
+   set is_visible $(is_mgr)
+   if $not ($(is_mgr))
+      set is_visible $gt_equal ($group_access ($userid() Filesafe $(fsn)) $priv(minimum))
+   end
+   if $(is_visible)
+      "<tr><td><a href="$(mainurl)/filesafe.cml?$unique()+$(nxt)+$arg(3)+\
+                        $arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$(fsn)"
+      "  >$upper1 ($replace (_ 32 $(fsn)))</a>&nbsp;&nbsp;</td>
+      "  <td>$site_data (0 - FN_$(fsn))</td>
+      set none 0
+   end
+end
+"</table>
+
+if $(none)
+   "<p>(There are no $(filesafe_name)(s) on this host, or none that are
+   "available to you.<br>
+   "A manager may create new $(filesafe_name)(s) from the manager page.)
+end
+"</ul>
+
+"</blockquote>
+"<hr>
+"</div>
+"</body>
+"</html>

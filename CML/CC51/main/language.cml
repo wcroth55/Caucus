@@ -1,0 +1,79 @@
+#
+#---LANGUAGE.CML.   Choose Browser_Format for English, SJIS, or EUC.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i dfbutton.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 language.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Browser Language)
+
+include $(main)/head.i $arg(3)  $quote(Browser Language)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i   language Browser Language
+
+"Use this page to choose the proper language encoding for 
+"your browser.&nbsp;
+"(If you are not sure, check your browser's "Document Encoding"
+"type.&nbsp;  For Netscape, this is under the "Options" menu.)
+
+"<P>
+"Then click on the appropriate radio button below:
+
+"<P>
+"<FORM METHOD=POST 
+"      ACTION="langf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x">
+"<TABLE>
+"<TR VALIGN=top>
+"<TD WIDTH=20>&nbsp;</TD>
+"<TD><INPUT TYPE="radio" NAME="browlang" VALUE="0"
+   "$if ($equal ($browser_format() 0) CHECKED)>&nbsp; </TD>
+"<TD>English (document encoding: Western/Latin1).&nbsp;
+   " Displays Japanese characters as <B>[]</B>'s.<SUB> </SUB></TD>
+
+#"<TR><TD>&nbsp;</TD>
+"<TR VALIGN=top>
+"<TD></TD>
+"<TD><INPUT TYPE="radio" NAME="browlang" VALUE="2"
+   "$if ($equal ($browser_format() 2) CHECKED)></TD>
+"<TD>Japanese (EUC).<SUB> </SUB></TD>
+
+"<TR VALIGN=top>
+"<TD></TD>
+"<TD><INPUT TYPE="radio" NAME="browlang" VALUE="3"
+   "$if ($equal ($browser_format() 3) CHECKED)></TD>
+"<TD>Japanese (SJIS).<SUB> </SUB></TD>
+
+"<TR VALIGN=top>
+"<TD></TD>
+"<TD COLSPAN=2><INPUT 
+"    TYPE="submit" NAME="submit" VALUE="Make This Change"></TD>
+
+"</TABLE>
+"</FORM>
+
+
+
+"<P>
+"<HR>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

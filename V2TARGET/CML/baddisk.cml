@@ -1,0 +1,28 @@
+#
+#---BADDISK.CML.   Insufficient disk space to run Caucus
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/09/02 14:00 Update for 4.4.
+#--------------------------------------------------------------------
+
+eval $goodbye()
+
+"Content-type: text/html
+"
+"<html>
+
+"<BODY BGCOLOR="#FFFFFF">
+"<H2>Insufficent Disk Space</H2>
+
+"<P>
+"There is insufficient free disk space on the server
+"to run Caucus.&nbsp;
+"Please contact the administrator for this host
+"for further information.
+"<P>
+"<HR>
+"</BODY>
+"</HTML>

@@ -1,0 +1,125 @@
+#
+#---h_quiz_answers.  Help about editing/adding answer rows to a quiz problem.
+#
+#  arg(1)  nch to defeat caching
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  2/13/06 New file.
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_quiz_answers.cml \
+        $quote(Quiz Problem Answers) $arg(3)
+"<p/>
+
+"<B>What Is This?</B><BR>
+"When you are writing or editing a quiz problem, 
+"you will be supplying answers for the quiz-takers to choose from, 
+"or place(s) for them to enter an answer.&nbsp;
+"Each "row" in the <b>Answers</b> section is one possible
+"answer (or place to answer).
+
+"<p/>
+"<B>What Types of Questions and Answers can I have?</b><br>
+"Your quiz problem can have one or more of the types
+"of answers shown below.&nbsp; Each type corresponds to
+"one of the choices in the pull-down menu under the "Answer Field" column.
+"<ul>
+"<li class="liTight">True/False.
+"<li class="liTight">1 of Many.&nbsp; (aka multiple choice)
+"<li class="liTight">N of Many.&nbsp; (choose <b>all</b> that are correct)
+"<li class="liTight">Number.&nbsp; (enter a number in the box)
+"<li class="liTight">Text-line.  (very short answer: a word or two)
+"<li class="liTight">Text-box.  (short essay)
+"</ul>
+
+"<p/>
+"<b>How Do I Put in the Answers?</b><br>
+"Each "row" in the <b>Answers</b> section is a single answer.&nbsp;
+"For each possible answer,
+"you enter or select the necessary values in the fields in 
+"a row, and then press the "Add" button.
+"<p/>
+"For example, suppose you had written the problem text:
+"<blockquote><i>Which recent US President won the electoral vote,
+"but lost the popular vote?</i></blockquote>
+"<p/>
+"Your answer rows might look like:
+"<p/>
+"<img src="$(img)/answerrows.gif">
+"<p/>
+"which would result in:
+"<form>
+"<ul>
+"<table cellspacing=0 cellpadding=0>
+"<tr><td>Jack Kennedy</td> <td><input type="radio"></td>
+"<tr><td>Rutherford Hayes</td> <td><input type="radio"></td>
+"<tr><td>George W Bush</td> <td><input type="radio"></td>
+"</table>
+"</ul>
+
+"Each column in the blue bar has a specific meaning or action:
+"<ul>
+"<li>"New Row" means "does this answer actually start on a new row
+"when it is displayed?".&nbsp;
+"When checked, it forces the answer to be displayed on a separate row.&nbsp;
+"If unchecked, the answers "wrap" together on the screen.
+"<li>"Left text" is simply the text that appears to the left 
+"of the answer field.
+"<li>The answer field is the clickable element -- radio button, checkbox,
+"input box, etc., depending on which type of answer you chose.
+"<li>"Right text" is the text that appears to the right of the answer field
+"(right as in "hand", not as in "correct").
+"<li>"Answer" is the value of the answer.&nbsp;
+"This is only used for "True/False", "Number" or "Text-line" 
+"answer fields.&nbsp; (For True/False, enter a T or an F into the Answer
+"field to specify the correct answer.)
+"<li>"Points" is the number of points assigned to this question or answer.&nbsp;
+"In the example above, if the user clicks on Jack Kennedy, they get 0
+"points; if Rutherford Hayes, they get 1 point (since he did lose the
+"electoral vote, albeit many years ago), and if George W Bush, they get
+"the full 5 points.
+"</ul>
+
+"<p/>
+"Here's another example, that uses the "Number" type, and a specified
+"answer.&nbsp; The text of the problem is:
+"<blockquote><i>At what temperature does water freeze?</i></blockquote>
+"and the answer row looks like:
+"<img src="$(img)/quiztemp.gif">
+"<p/>
+"which would result in:
+"<ul>
+"<input type="text" size="5">&nbsp; degrees Fahrenheit
+"</ul>
+"The quiz taker should click in the input box, and type "32".&nbsp;
+"If they do, they get the full 10 points.&nbsp;
+"Any other answer, or none at all, gets 0 points.
+
+"<p/>
+"<b>What Else Can I Do Here?</b><br>
+"<ul>
+"<li>Any time you change the fields in an answer row, you should click
+"on "Save Changes".
+"<li>You can delete an answer row by clicking on the garbage can
+"at the right of the row.
+"<li>The maximum possible points for the problem always appears at the 
+"bottom of the "Points" column.
+"<li>The text of your problem (the part inside the blue-bordered box)
+"can include links to other web pages (just type the URLs, starting
+"with the "http://"), or even images or documents
+"that you can attach to the problem (click on the paperclip icon).
+"</ul>
+
+"<p/>
+"In particular, note that by using the problem text, left text,
+"and right text fields, you can construct a wide variety of types
+"of questions.&nbsp;
+"A single problem can have many "questions" within it, using different
+"types of answers (true/false, multiple choice, short text, etc.)
+
+
+include $(help)/hb.i $arg(3)
+#-----------------------------------------------------------------------

@@ -1,0 +1,173 @@
+#
+#---XUP-UPLOADPOP.CML   Upload a file to a response.
+#
+#   arg(3)   cnum
+#   arg(4)   inum
+#   arg(5)   rnum
+#   arg(6)   0=new text, 1=old text
+#   arg(7)   base for uploaded files
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/21/04 New file, based loosely on old upload.cml
+#: CR 10/13/04 Use CSS, slight wording changes.
+#: CR 12/16/04 Major rewrite, put file type choices on first pop-up page.
+#: CR 02/10/06 Add arg(7) for generic (not just item/resp) file uploads.
+#: CR 04/25/06 Add ability to upload multiple files.
+#: CR 04/10/11 Replace old Caucus upload with Xupload w progress meter.
+#------------------------------------------------------------------------
+
+set nch $unique()
+set upload_failed 0
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<title>Attach a file to your $if ($arg(5) response item)</title>
+include $(main)/css.i 1
+"<script type="text/javascript" language="javascript">
+
+"var exts = ".*"; //Use this to accept all Extensions
+
+"function StartUpload(f1) {
+"    if(f1.file_1.value==""){alert('Select at least one file to upload');return false;};
+#    if(!checkExt(f1.file_1.value))return false;
+"    var UID = Math.round(10000*Math.random())+'0'+Math.round(10000*Math.random());
+"    f1.action = f1.action.split('?')[0]+'?upload_id='+UID;
+"    if(f1.popup.checked) {
+#      win1 = window.open(f1.action.split('upload.cgi')[0]+'upload_status.cgi?upload_id='+UID,'win1','width=320,height=240,resizable=1');
+
+"    var meterFrame = document.getElementById('meterFrame');
+"    if (meterFrame != null)  meterFrame.style.display = 'block';
+
+"      win1 = window.frames[0];
+#      confirm(f1.action.split('upload.cgi')[0]+'upload_status.cgi?upload_id='+UID);
+"      win1.location.href = f1.action.split('upload.cgi')[0]+'upload_status.cgi?upload_id='+UID;
+"      win1.window.focus();
+"    }
+"    return true;
+"}
+
+"function showname() {
+"   var fslash = document.popform.file_1.value.lastIndexOf("/");
+"   var bslash = document.popform.file_1.value.lastIndexOf("\\");
+"   var slash  = Math.max (bslash, fslash);
+"   document.popform.linkname.value = 
+"      document.popform.file_1.value.substring(slash+1);
+"}
+
+"function handleMany() {
+"   var dh = document.popform.howmany;
+"   if (dh.options[dh.selectedIndex].value == "10") {
+"      location.href = "xup-uploadpop10.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)\
+                          +$arg(6)+$arg(7)";
+"   }
+"}
+"</script>
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+"<form enctype="multipart/form-data" action="/reg/upload.cgi?upload_id=" 
+"      name="popform"  method="post" onSubmit="return StartUpload(this);" target="xupload">
+
+
+
+"<table cellspacing=0 cellpadding=0 border="0">
+"<tr valign="middle"><td><b>1.&nbsp;</b></td>
+"<td colspan="3"><nobr>
+"<input name="file_1" type="file" size="20" onChange="showname();">
+"&nbsp;to select 
+"<select name="howmany" onChange="handleMany();">
+"   <option value="1" selected>a file</option>
+"   <option value="10">10 files</option>
+"</select>
+"</nobr></td>
+
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr valign="middle">
+"<td><b>2.&nbsp;</td>
+"<td colspan=3><table cellspacing=0 cellpadding=0 border=0>
+"   <tr valign="middle">
+"   <td>Display upload progress meter?&nbsp;</td>
+"   <td><Input type="checkbox" name="popup" id="popup" checked></td>
+"   <td style="font-size: 80%;">
+"      &nbsp;&nbsp;&nbsp;<i>(powered by 
+"      <a href="http://sibsoft.net/xupload.html" target="_blank">SibSoft's XUpload</a>)</i></td>
+"   </table>
+"</td>
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr>
+"<td><b>3.&nbsp;</td>
+"<td colspan=3>Show my attached file as:</td>
+
+"<tr><td>&nbsp;</td>
+"<td colspan="5" class="vertSpacer" >
+"   <div style="position: relative;   width: 100%;">
+"      <iframe name="meter" width="100%" height="150" frameborder="0" id="meterFrame"
+"             scrolling="no"
+"             class="uploadpopOverlay" style="display: none;"></iframe>
+"   </div>
+"</td>
+"<tr valign=top><td></td>
+"<td><input type="radio" name="utype" value="link" checked>&nbsp;</td>
+"<td colspan=2>A link named
+"    <input type="text" name="linkname" size=20 value=""></td>
+
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="url">&nbsp;</td>
+"<td colspan=2>The full, absolute URL</td>
+
+"<tr><td class="vertSpacer">&nbsp;</td><td></td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="img">&nbsp;</td>
+"<td colspan=2>An image</td>
+
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="imgr">&nbsp;</td>
+"<td colspan=2>An image (right-justified)</td>
+
+if $not_empty ($config(convertDir))
+   "<tr><td></td>
+   "<td><input type="radio" name="utype" value="imgg">&nbsp;</td>
+   "<td colspan=2>A thumbnail image in a gallery
+   "       <input type="text" name="gwidth"  size="3" value="150"> x 
+   "       <input type="text" name="gheight" size="3" value="100"></td>
+end
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="text">&nbsp;</td>
+"<td colspan=2>Plain text (.txt files only)</td>
+
+#if $not_equal (x$site_data($arg(3) - allowhtml) x0) )
+   "<tr><td></td>
+   "<td><input type="radio" name="utype" value="html">&nbsp;</td>
+   "<td colspan=2>HTML text (.html files only)</td>
+#end
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="zip">&nbsp;</td>
+"<td colspan=2>A zip file (unzip it)</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="iframe">&nbsp;</td>
+"<td>In an iframe</td>
+"<td align=right><input type="submit" name="submitter" value="Continue"></td>
+
+"</table>
+"</ul>
+"<input type="hidden" name="url_post" 
+"      value="$(mainurl)/xuploadpop.cml?$unique()+x+$arg(3)+$arg(4)+$arg(5)" />
+"</form>
+
+"</div>
+"<iframe src="about:blank" name="xupload" style="position:absolute;left:-9999px;"></iframe>
+"</body>
+"</html>
+#------------------------------------------------------------------

@@ -1,0 +1,273 @@
+#
+#---H_CUSTOMU.I    Help about "Customize: Users" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_customu.cml $quote(Help on Customize Users)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize Users page provides a conference 
+"organizer with control over who may participate in this conference
+"and what they may do there.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).&nbsp;
+"Click on <U>Users</U>.
+
+"<P>
+
+"<P>
+"<B>What is on the Customize Users Page?</B><P>
+"<UL>
+
+include $(help)/h_pagetop.i
+
+"</UL>
+
+"In the rest of the page you can control who may join this conference
+"and exactly what they may or may not do in this conference.&nbsp;
+"<P>
+"You may also want to see the <U>Guide for Conference Organizers</U>
+"and the <U>Conference Organizer How-To</U>.&nbsp;
+"Both of these documents are linked from the main Customize page.
+
+
+"<P>
+"<FONT SIZE=+1><P><B>Conference Membership</B><BR></FONT>
+"This section of the Users page is a series of scrollable 
+"text boxes that define the "user list" for this conference, i.e.
+"who can participate and what kind of access they have.&nbsp;
+"You can click in each text box and enter user IDs. Each text box has a 
+"menu above it which controls how the user IDs in each box are treated.
+"Note that the User List contains <B>user IDs</B>, not user names.
+"<P>
+"There are five possible settings for each textbox menu:
+
+"<DL>
+   "<DT><B>(not used)</B>
+   "<DD>This setting indicates a textbox that is not currently being used.
+   "Anything you type in the textbox will be ignored unless you select
+   "another setting.
+
+   "<P>
+   "<DT><B>include</B>
+   "<DD>Choose this setting to list the user IDs of the people who should
+   "be allowed to join this conference.&nbsp;
+   "Type exactly one user ID per line.&nbsp;
+   "<P>
+   "You may use an asterisk ("*") as a <I>wild card</I> in the list 
+   "of user IDs.&nbsp;
+   "For example, the line "man*" means "any user ID that begins
+   "with <B>man</B>", including "manuel", "mandel", "mantis", etc.&nbsp;
+   "A "*" by itself on a line matches <B>any</B> user ID, meaning
+   "that anyone can join the conference.&nbsp;
+   ""*smith" matches any user ID that ends with <b>smith</b>,
+   "such as "johnsmith" or "tsmith".&nbsp;
+   "(Combinations such as "j*smith" do not work.)
+
+   "<P>
+   "<DT><B>readonly</B>
+   "<DD>Choose this setting to list user IDs of people who can join the
+   "conference&#151;but may only read the items and responses.&nbsp;
+   "They are not allowed to add their own responses.
+
+   "<P>
+   "<DT><B>exclude</B>
+   "<DD>Choose this setting to explicitly exclude people who may <B>not</B>
+   "join the conference.&nbsp;
+   "This will only be necessary if you have used wild cards in a previous
+   "<B>include</B> textbox to include a group of people&#151;one of whom
+   "you might wish to exclude.
+
+   "<P>
+   "<DT><B>organizer</B>
+   "<DD>Choose this setting to list the user IDs of the organizers of the
+   "this conference.&nbsp;
+   "Remember that organizers can do <B>anything</B> in the conference,
+   "so you must be able to trust your fellow organizers.
+
+"</DL>
+   "<P>
+   "<B>Multiple Listings:</B> if a user ID appears in more than one
+   "list, the <B>last</B> (rightmost and lowest) list the user appears
+   "in controls what they can do in the conference.&nbsp;
+   "A person listed under both <B>include</B> and <B>exclude</B>,
+   "in that order, for example, is excluded from the conference.
+
+   "<P>
+   "<B>User Groups:</B> Caucus Managers can define groups of users that you can
+   "add or exclude from your conference with a single entry in a user list. For
+   "instance, if there is a group called "clients", you can give everyone in 
+   "the group access to your conference by adding the line "&lt;clients" to an
+   "<B>include</B> field. The <A HREF=$(help)/h_groups.cml?x+x+User_Groups>
+   "User groups on this system</A> link in this section will allow you to 
+   "browse the groups (if any) that your Caucus Manager has created.
+
+   "<P>
+   "<B># Comments:</B>&nbsp;
+   "Any line that begins with a "<B>#</B>" is a comment and is ignored.&nbsp;
+   "You can use comments, for example, to note why you included or 
+   "excluded certain groups of people.
+
+"<P>
+"<B>Add Additional Fields:</B>&nbsp;
+"Below the textboxes is the instruction "(If you need more fields to design 
+"your conference security, you can <U>add additional fields.</U>)"
+"If you choose this link, the page will be reloaded with four additional 
+"textboxes, which you can use to add additional lists of users.
+
+"<P><HR>
+"<FONT SIZE=+1><B>User Capabilities</B></FONT><BR>
+
+"The next section allows you to define what conference members can do in a
+"conference:<P>
+"<DL>
+
+   "<DT><B>Allow users to edit their own responses?</B>&nbsp;
+   "<DD>How long after a participant has 
+   "posted a response (or created an item), is he or she allowed to return 
+   "and edit their response or item?&nbsp;
+   "From the pull-down menu, select the desired choice for this
+   "conference.&nbsp;
+   "(An organizer can always edit anyone's items or responses.)
+
+   "<P>
+   "<DT><B>Allow users to add new items?</B>&nbsp;
+   "<DD>In every conference most users can 
+   "<B>add responses</B> to items of discussion.&nbsp;  
+   "A check in this box also allows participants 
+   "to create <B>new items</B> for others to respond to.&nbsp;
+   "(Otherwise all items of discussion must be created by 
+   "conference organizers.)
+
+   "<P>
+   "<DT><B>Allow item creator to Freeze, Delete, Rename?</B>&nbsp;
+   "<DD>A check in this box means that the person who created an item
+   "has special organizer-like abilities <B>for that item only</B>.&nbsp;
+   "He or she can freeze the item, delete it (and all of its responses),
+   "or rename it (change its title).
+
+   "<P>
+   "<DT><B>Make the conference visible to non-members?</B>&nbsp;
+   "<DD>Can non-members see that the conference exists?&nbsp;
+   "More precisely, should people
+   "who are <B>not</B> allowed to be members of this conference
+   "see it in any list of conferences (such as the list of
+   "all conferences at the $(center_name))?
+   "<P>
+   "A check in this box means that everyone can see that the
+   "conference exists.&nbsp;
+   "Otherwise, only members (or potential members) can see it.&nbsp;
+   "Often a conference center will host conferences which are 
+   "private, not only in the sense of restricting membership, but in the 
+   "sense that non-members should not be aware of them at all.
+
+   "<P>
+   "<DT><B>Allow HTML text in items?</B>&nbsp;
+   "<DD>A check in this box allows users to create responses
+   "containing HTML codes.&nbsp;
+   "Unless you have some special reason to <B>not</B> allow
+   "HTML in items and responses, leave this box checked.&nbsp;
+   "(Changing this box will not affect any existing responses;
+   "it just controls whether users can enter <B>new</B>
+   "HTML responses.)
+
+   "<P>
+   "<DT><B>Allow CML text in items?</B>&nbsp;
+   "<DD>CML is an advanced form of HTML that includes
+   "the normal HTML tags and many additional special functions.&nbsp;
+   "A check in this box lets users create items and responses
+   "containing CML (by including the "CML" choice in the
+   "pull-down menu that appears above an item or response
+   "text box.)&nbsp;  
+   "See the CaucusCare site 
+   "(<A HREF="http://caucuscare.com">http://caucuscare.com</A>)
+   "for more information about CML.
+
+   "<P>
+   "<DT><B>Allow copying responses in (and into) this conference?</B>&nbsp; 
+   "<DD>A check in this box allows users to copy responses from one 
+   "location to another within this conference, and to copy responses into
+   "this conference from other conferences.
+
+   "<P>
+   "<DT><B>Allow selected items to have anonymous responses?</B>&nbsp; 
+   "<DD>Normally, items and responses are automatically "signed" with
+   "the name of the author.&nbsp;
+   "Checking this box allows for anonymous responses to an item.&nbsp;
+   "(Whether anonymous responses are allowed on a particular item is
+   "then up to the creator of that item, or the organizer.&nbsp;
+   "Each item is handled separately.)
+
+   "<P>
+   "<DT><B>Allow members to set their own e-mail notification
+   "       schedules?</B>&nbsp; 
+   "<DD>If you have turned E-mail notification <B>on</B>, you
+   "may also, by checking this box, allow individual members to
+   "set their own, personal, e-mail notification schedules.
+
+"</DL>
+"<P><HR>
+"<FONT SIZE=+1><B>Primary Organizer</B><BR></FONT>
+"The primary organizer is the person who is primarily responsible for the
+"conference, and whose name appears on the conference home page.  There
+"can be only one primary organizer of a conference at a time. If you are
+"the primary organizer, you will see an option here to change the primary
+"organizer of this conference.  Enter a username in the blank and press the
+"button at the bottom of the page to make the change. It's always a good
+"idea to ask someone before making them the primary organizer of your 
+"conference.<P>
+
+"<P><HR>
+"<FONT SIZE=+1><B>Prohibited Tags</B></FONT><BR>
+"Even when you have allowed HTML to be used in responses, Caucus filters
+"out certain tags so that they do not disrupt the display of a response if
+"a user includes them.  For instance, &lt;BODY&gt; tags are filtered out so
+"that a user can't inadvertantly change page characteristics by including the
+"tag.<P>
+"Caucus allows some tags to be filtered optionally for users and for 
+"organizers, and this section allows you to set which tags are disallowed, and
+"how they are disallowed.  There are four columns:<P>
+"<DL>
+"<DT><B>Tag:</B>
+"<DD>These are the tags that can be filtered.  Your Caucus manager can expand
+"this list if you need to filter additional tags.<P>
+"<DT><B>Allowed for Users:</B>
+"<DD>For each tag, a check in this column allows users to include it in 
+"their responses.<P>
+"<DT><B>Allowed for Organizers:</B>
+"<DD>For each tag, a check in this column allows conference organizers to
+"use the tag, but not other users.<P>
+"<DT><B>Hide Contents:</B>
+"<DD>This column only applies if you have disallowed a tag in a previous
+"column.  Caucus can filter disallowed tags in two ways: it can remove the
+"tags and everything included between them (this is appropriate behavior for
+"&lt;TITLE&gt; tags, for example) 
+"or it can just remove the tags and leave the contents
+"intact (this is appropriate behavior for &lt;BLINK&gt; tags, if you're so
+"inclined). For each tag, a check in this column causes the tags and
+"contents to be hidden from view.<P>
+"<P></DL>
+"<HR>
+"<B>Undo Changes button:</B>&nbsp; 
+"At the bottom of the page is an "Undo Changes" button.&nbsp;
+"If, after changing any of the settings
+"on this page, you think you have made some errors,
+"click on this button to reset everything to its
+"original state.
+
+"<P>
+"<B>Make All Changes button:</B>&nbsp;
+"Once you have made changes on this page,
+"you <B>must press this button</B>
+"to save them.&nbsp;
+
+
+include $(help)/hb.i

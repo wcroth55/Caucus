@@ -1,0 +1,154 @@
+#!/bin/sh
+#
+#---STOPCAUCUS.  Stop all Caucus web processes, and clean up.
+#
+#   Invoked as:
+#      stopcaucus  pass  restart homedir
+#
+#   Parameters:
+#      pass      which pass to execute (0=sighup, 1=sigkill, 2=final/cleanup)
+#      restart   1 if caucus should be restarted, else 0
+#      homedir   caucus home directory
+#
+#   Purpose:
+#      Stop all web-related Caucus processes (swebd, swebs, and swebsock)
+#      safely.  Cleanup any relevant files.  Offer the possibility
+#      to restart Caucus (from the same id).
+#
+#   How it works:
+#      Should always be run from the shell or the web with pass 0.
+#      The script must be located in the caucus home directory.
+#
+#      Sends a SIGHUP to all Caucus processes.  Waits, and exec's itself
+#      in pass 1 to send SIGKILL to any remaining Caucus processes.   Waits
+#      again and exec's itself again for pass 2; if there are processes left,
+#      give up.
+#
+#      Otherwise continue on with file (socket) cleanup and the optional
+#      restart.
+#
+#   Warnings:
+#      Some sites start Caucus from root (so as to make use
+#      of the Real_ID and Real_Group parameters.  If your site needs
+#      these, then don't use the restart option to this script, but
+#      explicitly restart Caucus from root.
+#
+#      Nothing is done if stopcaucus doesn't recognize your os.
+#      This should have been checked by the person doing the
+#      port to each os.  (Perhaps this should get logged somewhere.)
+#
+#   Known bugs:
+#
+#   History of revisions:
+#: CR 11/04/97 17:27 New script, based on old swebstop
+#----------------------------------------------------------------------------
+
+#---Check arguments
+if test "x$3" = "x"; then
+   exit
+fi
+if test ! -d $3; then
+   exit
+fi
+
+#---Get list of processes owned by this userid.
+sleep 10
+tmp=/tmp/stopc$$.$1
+rm -f $tmp
+
+system=`uname -a | (read a b; echo $a)`
+
+if test $system = "Linux"; then
+   ps -x >$tmp 2>/dev/null
+fi
+
+if test $system = "OSF1"; then
+   ps -u `whoami` >$tmp
+fi
+
+if test $system = "SunOS"; then
+   if ps -x 2>/dev/null >$tmp; then
+      :
+   else
+      ps -u $LOGNAME >$tmp
+   fi
+fi
+
+if test $system = "HP-UX"; then
+   ps -u `whoami` >$tmp
+fi
+
+if test $system = "IRIX"; then
+   ps -u `whoami` >$tmp
+fi
+
+if test $system = "SCO_SV"; then
+   ps -e >$tmp
+fi
+
+if test $system = "AIX"; then
+   ps -o "pid comm" -u `whoami` >$tmp
+fi
+
+if test $system = "BSD/OS"; then
+   ps -x >$tmp
+fi
+
+if test $system = "FreeBSD"; then
+   ps -x >$tmp
+fi
+
+if test ! -s $tmp; then
+   exit
+fi
+
+
+#---Pass 0; send SIGHUP to all web caucus processes.
+if test "$1" = "0"; then
+   grep swebd $tmp | (
+      while read a b; do
+         kill -1 $a
+      done
+   )
+   grep swebs $tmp | (
+      while read a b; do
+         kill -1 $a
+      done
+   )
+
+   exec $3/stopcaucus 1 $2 $3
+fi
+
+
+#---Pass 1; any remaining Caucus processes?  Send SIGKILL.
+if test "$1" = "1"; then
+   grep swebd $tmp | (
+      while read a b; do
+         kill -9 $a
+      done
+   )
+   grep swebs $tmp | (
+      while read a b; do
+         kill -9 $a
+      done
+   )
+
+   exec $3/stopcaucus 2 $2 $3
+fi
+
+
+#---Pass 2, final; any remaining Caucus processes => error.
+alive=`(grep swebd $tmp; grep swebs $tmp) | wc | (read a b; echo $a)`
+if test "x$alive" != "x0"; then
+   exit
+fi
+
+#---Cleanup
+rm -f $3/SOCKET/sweb0*
+rm -f $3/SOCKET/sweb
+
+#---Restart?
+if test "$2" = "1"; then
+   $3/SWEB/swebd $3/SWEB/swebd.conf
+fi
+#----------------------------------------------------------------------------

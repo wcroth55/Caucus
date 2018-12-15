@@ -1,0 +1,76 @@
+#
+#---H_ANON.CML.   Help about Anonymous responses
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_anon.cml $quote(Help on Anonymous Responses)
+"<P>
+
+"<B>What Are They?</B><BR>
+"Caucus normally "signs" your responses for you -- your name appears
+"at the top of your response, and people can click on your name
+"to learn more about you.
+
+"<P>
+"The conference <A HREF="h_organ.cml?x+x">organizer</A> may
+"choose to allow "anonymous" responses -- responses that are
+"not signed and are truly anonymous.&nbsp;
+"Even then, it is up to the person who started a particular
+"item to decide if anonymous responses are allowed on
+"<B>that</B> item.&nbsp;
+"(The organizer may also do this.)
+
+"<P>
+"An anonymous response is truly anonymous.&nbsp;
+"<B>No-one</B> can learn who wrote an anonymous response -- Caucus
+"simply never records that information.
+
+
+"<P>
+"<B>How Do I Write an Anonymous Response?</B><BR>
+"If the item author has selected anonymous responses, you will
+"see "Your response will be <B>anonymous</B>" above the
+"<A HREF="$(helpurl)/i_resp.cml?x+x">response box</A>.&nbsp;
+"Anything you write at that point will be anonymous.
+
+"<P>
+"If you <B>don't</B> see that phrase, your response will be signed.&nbsp;
+"The item author may switch the item back and forth between signed
+"and anonymous responses, so do not assume anything without looking
+"for the phrase.
+
+"<P>
+"<B>How Do I Make an Anonymous Item?</B><BR>
+"The item text (what you enter when you create a new item) is
+"always signed.&nbsp;
+"When you create an item, you have the choice of using signed or
+"anonymous responses.&nbsp;
+"You can always go back and edit the item (click on the
+"item number on the conference home page, or on the edit button
+"next to the item text) and change your choice of signed vs.
+"anonymous responses.&nbsp;
+"This only changes what happens to <B>new</B> responses; previously
+"entered anonymous responses <B>stay</B> anonymous.
+
+"<P>
+"<B>Why Use Anonymous Responses?</B><BR>
+"Sometimes it is helpful to have a period of item when 
+"comments on an item are anonymous.&nbsp;
+"This can be particularly useful during a brain-storming process,
+"or when gathering questions or suggestions for a particular project.&nbsp;
+"<P>
+"It is <B>not</B> usually a good idea to have anonymous back-and-forth
+"discussion about something; rather, use anonymity to gather input,
+"and once that phase is done, you may want to switch back to 
+"signed responses for further analysis.&nbsp;
+"If you switch the state of an item from anonymous back to signed,
+"it's a good idea to put in a (signed) response noting you've done that.
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

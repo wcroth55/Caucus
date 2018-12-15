@@ -1,0 +1,705 @@
+#
+#---VIEWITEM.CML.  View a (page of an) item, with an optional list of "next"
+#                  items.
+#
+#   Copyright (C) 1996-2002 CaucusCare.   All rights reserved.
+#
+#   Invoked as:
+#      .../viewitem.cml ? nch nxt cn in rn rs ix il # here
+#
+#   Argument (aka) what
+#      (1)    nch  unique # (defeat caching)
+#      (2)    nxt  saved page index of "calling" page
+#      (3)    cn   conf #                  ("x" to use list of items in IL)
+#      (4)    in   item #                  ("x" ...)
+#      (5)    rn   resp #                  ("x" ...)
+#      (6)    rs   starting resp # in page ("x" to figure automatically)
+#      (7)    ix   index into IL           ("x" to use value from last instance)
+#      (8)    il   name of list of items   ("x" if none)
+#    [ (9)    rt   variable contains response text (optional) ]
+#    [(10)    ty   type of response text in arg(9): 'format', 'html',
+#                                                   or 'literal'. ]
+#    [(11)    ??? ]
+#    [(12)    used by uploadf to force IE to scroll to #textbox. ]
+#
+#   Purpose:
+#      Display a selected "page" of an item (or list of items).  Handle
+#      all user interaction with the item (navigating between pages,
+#      adding a response, marking things new or old, etc.)
+#
+#   Usage:
+#      Viewitem can be used to display a single item, or a list of items.
+#
+#      There are two ways to display a page of a single item (CN IN RN):
+#
+#      (1) viewitem decides exactly which responses to load in the page,
+#          and positions the page at response RN.
+#            viewitem?nch+nxt+CN+IN+RN+x+1+x#here
+#
+#      (2) or, the caller can specify both the position and RS, the 1st
+#          response in the page:
+#            viewitem?nch+nxt+CN+IN+RN+RS+1+x#here
+# 
+#      To display a list of items (and start on the first item in the list)
+#         set itemlist      (triplet list of items to be displayed)
+#         viewitem?nch+nxt+x+x+x+x+1+itemlist#here
+#
+#      A triplet list may be (optionally) terminated by a saved page index;
+#      in that case, when viewitem reaches the end of a triplet list, the
+#      "pass" and "post & go" buttons will go to that saved page.
+#
+#      The optional 9th argument (usually empty) is used to supply the
+#      name of a variable containing response text.  This is useful
+#      when the caller needs to somehow supply (or restore) text
+#      for a (proposed) response.  (See upload.cml for an example.)
+#
+#   Global variables (supplied by caller)
+#      vi_markseen  should viewitem mark everything in this page as seen?
+#                   Set by a previously-called page to 1.
+#
+#   Internal State variables:
+#
+#   How it works
+#      Viewitem is "called" from a page; it then re-invokes itself,
+#      via viewf.cml, as many times as necessary to perform all of
+#      its functions.  When it is finally finished, it generates a
+#      "Location:" to the original calling page.
+# 
+#      For each call:
+#
+#      If only the CN, IN, and RN arguments are supplied, build ITEMLIST
+#      out of them.
+# 
+#      If they're not already in $arg(3-5), get the
+#      IX'th CNUM, INUM, and RNUM values from ITEMLIST.
+#
+#      Start loading the item at response RNUM - CONTEXT (unless RS has been
+#      supplied, in which case use that value).  Position the page at
+#      response RNUM.
+#
+#      Load up to CUR_PAGERESPS responses (which is usually derived from
+#      PAGERESPS).  If there's more on either side (before or after)
+#      the page, put in the appropriate "previous page" or
+#      "next page" buttons.
+#
+#      The response entry form will only appear in the very last page of
+#      an item.
+#
+#   Layout: the CML code is broken up into lettered sections:
+#
+#     (A) Determine or set up an item list, depending on the arguments.
+#
+#     (B) Figure out exactly where we are in the item.
+#
+#     (C) Display the current item and responses.
+#
+#     (D) Put up the buttons and forms for navigation and adding
+#         a response.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  6/03/96 21:43 add index-to-item-list argument
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 10/18/07 Adapt to new announcedef.i calling format.
+#: CR 03/21/08 Put "#here" scroll at bottom of response for IE (only).
+#: CR 03/22/08 Fix nasty rstart calculation bug when user's context=0
+#: CR 08/19/09 Extract access calculation to computeItemAccess.i
+#: CR 09/26/09 Add call to updateConfLastAccess.i
+#: CR 03/03/10 *Use* result of computeItemAccess to determine if item visible!
+#: CR 12/20/10 checkItemVis
+#: CR 06/24/12 Improve speed of queries to select list of responses
+#==============================================================================
+#   SECTION A:
+#   Get or deduce the exact cnum, inum, rnum, and item list information
+#   from the arguments.
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viewitem.cml +$arg(9)+$arg(10)
+end
+set itemMapCount 0
+
+include $(main)/confaccess.i           $arg(3)
+include $(main)/secure.i member        $arg(3)
+include $(main)/updateConfLastAccess.i $arg(3)
+include $(main)/checkItemVis.i         $arg(3)
+
+set nch    $unique()
+#set submit $word (1 $form(submit))
+
+#---Fetch all the general information about this item:
+#   title, frozen, lastresp, seen, forgot, hidden, parent item & resp.
+set hidden
+set q SELECT title, frozen, lastresp, qkey, type, userid itemOwner FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isBlog $tablefind ($(type) freeblog modblog)
+
+if $not_empty($(qkey))
+   "%location($(mainurl)/quiz_take.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+              $arg(5)+$arg(6)+$arg(7)+$arg(8))
+   quit
+end
+
+set save_seen -1
+set forgot     0
+set q SELECT seen save_seen, forgot FROM resps_seen  \
+       WHERE userid='$userid()' AND items_id=$arg(4)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+#set q SELECT c.hidden, c.items_parent, c.resps_parent, i.qkey \
+#        FROM conf_has_items c, items i \
+#       WHERE c.cnum=$arg(3) AND c.items_id=$arg(4) \
+#         AND i.id = c.items_parent
+
+set q SELECT c.hidden, c.items_parent, c.resps_parent, c.deleted, i.qkey \
+        FROM conf_has_items c \
+        LEFT JOIN items i \
+          ON (i.id = c.items_parent) \
+       WHERE c.cnum=$arg(3) AND c.items_id=$arg(4) \
+        ORDER BY deleted ASC LIMIT 1
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set co_change $site_data ($arg(3) - co_change)
+
+#---Response number -1 is a special code for "last response".
+if $or ($equal ($arg(5) -1) $equal ($arg(5) last))
+   set arg(5) $(lastresp)
+end
+
+include $(main)/confpartic.i $arg(3)
+
+#---Verify that the user is a member -- if not, go straight to "join" page.
+#if $not ($it_member($arg(3)))
+#   "%location($(mainurl)/join.cml?$(nch)+$arg(2)+x+$arg(3)+$arg(4)+$arg(5)+x+x)
+#   "
+#   return
+#end
+
+#---When in doubt, index into item list is always 1 (first item).
+if $equal ($arg(7) x)
+   set arg(7) 1
+end
+
+#---Conf/item/resp number supplied for a single item request, but no
+#   itemlist: make up our own itemlist.
+if $and ($not_equal ($arg(3) x)  $equal ($arg(8) x) )
+   set ilist $plusmod ($(ilist) 1 $(ilistmax))
+   set ilist$(ilist)  $arg(3) $arg(4) $arg(5) $arg(2)
+   set arg(8) ilist$(ilist)
+   set vi_markseen 1
+end
+
+set vi_cnum $arg(3)
+set vi_inum $arg(4)
+set vi_rnum $arg(5)
+
+#---If we got here w/o explicit cnum/inum/rnum's, reload this page
+#   with them in place.  (This is essential for bookmarking to work.)
+if $equal ($arg(3) x)
+   set vi_temp $rest( $arg(7)  $($arg(8)) )
+   set vi_cnum $word( 1 $(vi_temp) )
+   set vi_inum $word( 2 $(vi_temp) )
+   set vi_rnum $word( 3 $(vi_temp) )
+   "%location($(mainurl)/viewitem.cml?$(nch)+$arg(2)+\
+              $(vi_cnum)+$(vi_inum)+$(vi_rnum)+x+$arg(7)+$arg(8)#here)
+   return
+end
+
+#---At this point, we have effectively visited this page, so save it and
+#   get NXT, the index to it (to pass on to anything *we* call).
+set cname %displayed_conf_name ($(vi_cnum))
+set nxt   $page_save (1 viewitem.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      #here $(cname) Item $item_label($(vi_cnum) $(vi_inum)) )
+include $(main)/requiredinfo.i
+
+
+include $(main)/computeItemAccess.i $(vi_cnum) $(vi_inum)
+
+#---If we got here and the item was deleted or not accessible
+#   or hidden (and user is not an organizer), treat it as a "pass", and go
+#   on to the next item (via viewf.cml).
+if $or ($empty($(hidden))   \
+        $(deleted) \
+        $equal($(itemAccess) 0) \
+        $and ($not($(is_org))  $equal ($(hidden) 1)) )
+   "%location($(mainurl)/viewf.cml?$(nch)+$arg(2)+\
+              $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8))
+   return
+
+end
+
+
+#==========================================================================
+#  SECTION B:  Figure out exactly where we are *in* the item.
+
+#---Figure out where (what response) to position the page.  (That's
+#   where the "#here" anchor will go.)
+set rpos $arg(5)
+if $equal (x $(rpos))
+   set rpos $(vi_rnum)
+end
+if $equal (x $(rpos))
+   set rpos 1
+end
+
+#---Figure out where to start loading responses... unless specified,
+#   "go back" CONTEXT undeleted responses.
+set rstart $arg(6)
+if $equal (x $arg(6))
+   set rfound 0
+   set rstart 0
+
+   if $less($(context) 1)
+      set rstart $(rpos)
+   end
+   else
+
+      #---Calculate the starting response ('rstart'), which is rpos minus 'context' *undeleted* responses.
+      #   So we start by going back 5 * 'context' responses from 'rpos', hoping that at least 'context'
+      #   responses will be undeleted.  If we don't get enough, then we try the query *again*,
+      #   doubling the guess ('rSpan'), until we get what we need (or get to the very first response.)
+
+      set rSpan $mult($(context) 5)
+
+      set keepLooping 1
+      set loopCount 0
+      while $(keepLooping)
+         set rBottom $max (0 $minus ($(rpos) $(rSpan)))
+         set q SELECT r.rnum FROM resps r WHERE r.items_id=$(vi_inum)  \
+                  AND r.rnum < $(rpos)  AND  r.rnum >= $(rBottom) AND r.deleted=0  AND r.version= \
+                    (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+                ORDER BY r.rnum DESC LIMIT $(context)
+#        eval $append(/tmp/goback 1 $(q)$newline())
+         set contextResponses 0 $sql_query_select($(q))
+
+         set keepLooping $and ($less ($sizeof($(contextResponses)) $(context)) \
+                               $greater ($(rBottom) 0) )
+         set rSpan $plus ($(rSpan) $(rSpan))
+         set loopCount $plus ($(loopCount) 1)
+         if $greater($(loopCount) 20)
+            set keepLooping 0
+            eval $append (/tmp/loop.$caucus_id() LOOP1 $arg(1) $arg(2) $arg(3) $arg(4) $arg(5) $arg(6) $arg(7) $arg(8)$newline())
+         end
+      end
+
+      set rstart $word ($sizeof($(contextResponses)) $(contextResponses))
+   end
+end
+
+
+#---Figure out where to stop loading responses.  Use the user's preference
+#   for  page size, unless (a) the EXPAND button was pushed, in which case
+#   load the entire item, or (b) response text was supplied through arg(9)
+#   and arg(10), in which case make sure we get to the end of the item.
+set cur_pageresps $word (1 $(cur_pageresps) $(pageresps))
+#set rlast $it_resps($(vi_cnum) $(vi_inum))
+set rlast $(lastresp)
+set rstop $min ($(rlast) $plus($(rstart) $(cur_pageresps) -1) )
+if $not_empty ($arg(9))
+   set rstop $(rlast)
+end
+set rfound 0
+if $less ($(rstop) $(rlast))
+#  set rstop $(rlast)
+#  count rtest $(rstart) $(rlast)
+#     if $re_exists($(vi_cnum) $(vi_inum) $(rtest))
+#        set rfound $plus ($(rfound) 1)
+#        if $gt_equal ($(rfound) $(cur_pageresps))
+#           set rstop $(rtest)
+#           break
+#        end
+#     end
+#  end
+
+   # another limiting heuristic
+
+
+   #---Calculate the last response in a page ('rlast'), which is rpos plus up to 'cur_pageresps'
+   #   *undeleted* responses.  Start by examining 2 * cur_pageresps responses after rpos,
+   #   in the hope that at least half of them will be undeleted.  If we don't get enough,
+   #   double the guess (rSpan) size and keep trying.  Make sure to stop if we hit the
+   #   very last (lastresp) response in the item!
+
+   set rSpan $plus ($(cur_pageresps) $(cur_pageresps))
+   set keepLooping 1
+   set loopCount 0
+
+   while $(keepLooping)
+      set rtop $plus ($(rpos) $(rSpan))
+      set q SELECT r.rnum FROM resps r WHERE r.items_id=$(vi_inum)  \
+               AND r.rnum > $(rpos)  AND  r.rnum < $(rtop)  AND  r.deleted=0  AND r.version= \
+                 (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+             ORDER BY r.rnum LIMIT $(cur_pageresps)
+      set responses $sql_query_select($(q))
+#     eval $append(/tmp/goback 2 $(q)$newline())
+      set keepLooping $and ($less ($sizeof($(responses)) $(cur_pageresps)) \
+                            $less ($(rtop) $(lastresp)))
+      set rSpan $plus ($(rSpan) $(rSpan))
+      set loopCount $plus ($(loopCount) 1)
+      if $greater($(loopCount) 20)
+         set keepLooping 0
+         eval $append (/tmp/loop.$caucus_id() LOOP2 $arg(1) $arg(2) $arg(3) $arg(4) $arg(5) $arg(6) $arg(7) $arg(8)$newline())
+      end
+   end
+
+   set rlast $word ($sizeof($(responses)) $(responses))
+end
+
+
+#==========================================================================
+#  SECTION C:  Actually display the (current page of the) item.
+
+#---Conference system_announcements gets special treatment:
+set ann_cnum $word (1 $cl_num (system_announcements) 0)
+if $equal ($(ann_cnum) $(vi_cnum))
+   include $(main)/announcedef.i 1 $(itemOwner)
+end
+
+
+set pagename
+
+include $(main)/local_viewitem_title.i
+
+#---IE 4,5 & NN 6 have bugs regarding how anchors are handled ("#" in URLs
+#   with "?" query strings).  Force work-arounds...
+set onload onLoad="ebox_onload('');"
+if $and ($not_empty ($arg(12)) $(is_explorer5))
+   set onload onLoad="document.all.textbox.scrollIntoView();  ebox_onload('');"
+end
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');" $(onload)
+include $(main)/leftconf.i $arg(3) $arg(4)
+
+#---Warn about upload failure (that was set by uploadf.cml but couldn't
+#   be displayed there).
+if $(use_javascript)
+   if 0$(upload_failed)
+      "<script type="text/javascript" language="javascript">
+      "   confirm ("File upload may have failed.  Please check your file.\n\
+               If this recurs, contact your administrator.");
+      "</script>
+   end
+  
+   "<script type="text/javascript" language="javascript">
+   "function deleter (prompt, loc) {
+   "   if (confirm (prompt))  location.href = loc;
+   "   return false;
+   "}
+   "</script>
+
+   include $(main)/openEditMap.i
+end
+
+
+#---Not sure if we need this, but keeping it for a while just in case.
+#set visible   $or (        $it_visib  ($(vi_cnum) $(vi_inum)) \
+#                   $equal ($it_hidden ($(vi_cnum) $(vi_inum)) 2) )
+set visible 1
+
+#---...and then mark this item as seen even as we display it...
+if $empty($(vi_markseen))
+   set vi_markseen 1
+end
+if $and ($(vi_markseen) $greater ($(rstop) $(save_seen)))
+   if $(visible)
+      eval $item_set_seen ($(vi_cnum) $(vi_inum) $userid() $(rstop))
+   end
+end
+
+set dividedItem $word (1 $site_data ($arg(3) $(vi_inum) dividedItem) 0)
+if $(dividedItem)
+   "<div style="height: $(dividedItem)%;  overflow: auto;">
+end
+
+#---Item header, logo, and help button
+if $equal ( $(rpos) 0)
+   if $and ($(is_explorer4) $not ($(is_explorer55)))
+      "<SPAN ID="here1"></SPAN>
+   end
+   else
+      "<A NAME="here"><font size=1>&nbsp;</font></A>
+   end
+end
+
+set cnum     $(vi_cnum)
+
+#---Are there pages before and after this one?
+set page_before  $greater   ($(rstart) 0)
+set page_after   $not_equal ($(rstop)  $(lastresp))
+
+#---Show the toolbar and navigation bar!
+include $(main)/header.i  viewitem
+
+#---Item header info.
+set itemcolor $site_data ($(vi_cnum) - confitem)
+if $not_empty ($(itemcolor))
+   set itemcolor bgcolor="$(itemcolor)"
+end
+#"access=$(access)<br>
+#"group=$group_access ($userid() Item $(vi_inum))<br>
+
+"<TABLE CELLSPACING=0  CELLPADDING=0 width="100%" border=0 \
+      $if ($equal ($(rstart) 0) $(itemcolor)) >
+"<TR><TD COLSPAN=2><IMG SRC="$(img)/clearpix.gif" width=1 HEIGHT=2></TD>
+
+"<TR valign=bottom>
+   "<TD><span class="item_title">$t2hbr($(title))</span>
+   if $not ($(visible))
+      "$(for_tag)
+   end
+
+   if $greater ($(items_parent) 0)
+      set itemLabel $item_label ($(vi_cnum) $(vi_inum))
+
+      if $(isBlog)
+         set parentTitle $unquote($sql_query_select (SELECT title FROM items WHERE id=$(items_parent)))
+         set parentTitle %rtrim($(parentTitle))
+         "<div class="blogUrl"><br/>
+            if $equal ($(type) modblog)
+               include $(main)/getApprovedValue.i $(vi_inum)
+               "<b><i>$word($plus(2 $(approved)) REJECTED WAITING APPROVED)</i></b>&nbsp;
+            end
+         " $site_data($arg(3) - blogBaseUrl)/$replace(32 _ $(parentTitle))/$(vi_inum).html</div>
+      end
+
+      set itemLabel $item_label ($(vi_cnum) $(items_parent))
+      "<table border="0" cellspacing="1" cellpadding="4"
+      "   bgcolor="#C10000"
+      "   style="margin-top: 5px;">
+      "<tr><td bgcolor="#FFD0D0"
+      "><font face="Arial,Helvetica,sans-serif"
+      " style="font-family: Arial, Helvetica, sans-serif; font-size: 8pt;"
+      ">Parent: see
+      if $empty ($(qkey))
+         "<A HREF="viewitem.cml?$(nch)+$(nxt)+$(vi_cnum)+\
+                         $(items_parent)+$(resps_parent)+x+x+x"
+      end
+      else
+         "<a href="quiz_take.cml?$(nch)+$(nxt)+$(vi_cnum)+\
+                         $(items_parent)+$(resps_parent)+x+x+x"
+      end
+      "  >$(itemLabel) : $(resps_parent) %item_title($(items_parent))</a>
+      "</font></td>
+      "</table>
+   end
+   else
+      if $(isBlog)
+         "<div class="blogUrl">
+         "   $site_data($arg(3) - blogBaseUrl)/$replace(32 _ $(title))</div>
+      end
+   end
+   "</td>
+
+#---...and within-item navigation buttons, if needed...
+    set all5 $and ($(page_before) $(page_after))
+    "<TD ALIGN=RIGHT VALIGN=TOP>
+    include $(main)/nav_item.i
+    "</TD>
+"</TABLE>
+
+#---Determine margins LM and RM, if any
+set margin $not_empty ($(lmargin) $(rmargin))
+set lm
+set mm <TD>
+if $(lmargin)
+   set lmargin2 $replace (% . $(lmargin))
+   if $equal ($(lmargin2) $(lmargin))
+      set lm <TD><IMG SRC="$(img)/clearpix.gif" width="$(lmargin)" HEIGHT=1 ALT=""></TD>
+      set mm <TD width="100%">
+   end
+   else
+      set lm <TD width="$(lmargin)">&nbsp;</TD>
+   end
+end
+set rm
+if $(rmargin)
+   set rmargin2 $replace (% . $(rmargin))
+   if $equal ($(rmargin2) $(rmargin))
+      set rm <TD><IMG SRC="$(img)/clearpix.gif" width="$(rmargin)" HEIGHT=1 ALT=""></TD>
+   end
+   else
+      set rm <TD width="$(rmargin)">&nbsp;</TD>
+   end
+end
+
+set breakouts $word (1 $site_data ($arg(3) - breakouts) 1)
+set allow_breakouts $or (      $equal($(breakouts) 1)  \
+                         $and ($equal($(breakouts) S) $(is_org)))
+
+
+#---OK!  Let's display the item!  Count across the responses...
+set uid
+set m_cnum $(cnum)
+set m_inum $(vi_inum)
+set reverse 0$site_data ($arg(3) $arg(4) reverse)
+set filter_bozos $and ($word (1 $(siteBozoFilter) 1) \
+                       $word (1 $site_data ($(vi_cnum) - confBozoFilter) 1))
+set showThumbNails $and ( \
+      $word (1 $site_data ($arg(3) - showThumbNails) $(cc_thumbnail)) \
+      $word (1 $user_data ($userid() showThumbNails) 1) )
+
+set showGeoLoc $word (1 $site_data ($arg(3) - showGeoLoc) $(cc_geoLoc) 0)
+
+#---Get list of response numbers in this range that have linked tasks.
+set query SELECT rnum rn FROM task_links \
+           WHERE cnum=$(vi_cnum)    AND inum=$(vi_inum)  \
+             AND rnum >= $(rstart)  AND rnum <= $(rstop)
+
+set task_resps $sql_query_select ($(query))
+set arglist    $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set itemLabel $item_label ($(vi_cnum) $(vi_inum))
+
+#---Build query to actually *get* the responses.
+set rnumClause AND r.rnum >= $(rstart)  AND r.rnum <= $(rstop)
+if $and ($(dividedItem) $greater ($(rstart) 0))
+   set rnumClause AND (r.rnum=0 OR (r.rnum >= $(rstart)  AND r.rnum <= $(rstop)))
+end
+set writeOnlyClause
+if $equal ($(itemAccess) $priv(writeonly))
+   set writeOnlyClause AND (r.rnum = 0  OR  r.userid='$userid()')
+end
+set rquery SELECT r.rnum, r.userid owner, r.text, r.time, r.prop, r.bits, \
+                  r.copy_rnum, r.copy_item, r.copier, r.copy_time, r.lat_long respLatLong, \
+                  r.location respLocation, \
+                  r.copy_show, r.copy_cnum, r.author_shows_as, r.deleted, u.fname, u.lname, \
+                  (SELECT count(*) FROM conf_has_items h \
+                    WHERE h.items_parent=$(vi_inum) AND h.cnum=$(vi_cnum) \
+                      AND h.resps_parent=r.rnum) breakouts \
+             FROM resps r \
+             LEFT JOIN user_info u ON (r.userid = u.userid) \
+            WHERE r.items_id=$(vi_inum) $(rnumClause)  $(writeOnlyClause) \
+              AND r.version = \
+                 (SELECT MAX(q.version) FROM resps q WHERE q.items_id=$(vi_inum) AND q.rnum = r.rnum) \
+            ORDER BY rnum $ifthen ($(reverse) DESC)
+set rh $sql_query_open($(rquery))
+set RespSeenList
+
+include $(main)/calculateProhibitedTagLists.i $(vi_cnum)
+
+if 0$(directResponseLink)
+   "<script language="javascript">
+   "   function addResponseLink(rnum, name) {
+   "      if (ebox_addtext) {
+   "         ebox_addtext(name + ', re: your \%response(' + rnum + '):');
+   "         ebox_addnewline();
+   "      }
+   "      else {
+   "      }
+   "   }
+   "</script>
+end
+
+if $(dividedItem)
+      if $sql_query_row ($(rh))
+         include $(main)/viewitemResp.i
+      end
+   "</div>
+   "<hr>
+#  include $(main)/mathsym.i 0
+
+   "<div style="height: $minus(95 $(dividedItem))%;  overflow: auto">
+      while  $sql_query_row ($(rh))
+         include $(main)/viewitemResp.i
+      end
+end
+else
+   while  $sql_query_row ($(rh))
+      include $(main)/viewitemResp.i
+   end
+#  include $(main)/mathsym.i 0
+end
+eval $sql_query_close($(rh))
+  
+
+#==========================================================================
+#   SECTION D: Put up buttons and forms for navigation and adding response.
+
+#---At the last page, put up the response entry box and buttons.
+if $equal ($(rstop) $(lastresp))
+   "<p/>
+   include $(main)/viewitem.i
+end
+
+#---At an intermediate page, say there are more responses, and put
+#   up within-item navigation buttons (again).
+else
+   "$(between_responses)
+#  include $(main)/manipulate.i 0
+   "<P>
+   "<TABLE width="100%" CELLPADDING=0 CELLSPACING=0>
+   "<TR>
+   "<TD COLSPAN=4>
+      "<B>There are more responses to this item on the next page</B>
+   "</TD>
+   "<TD ALIGN=RIGHT>
+   include $(main)/nav_item.i
+   "</TD>
+
+   "</TABLE>
+   "<script type="text/javascript" language="javascript">
+   "   function ebox_onload() {}
+   "</script>
+end
+
+if $(trailerbar)
+   include $(main)/trailer.i  viewitem
+end
+
+include $(main)/errors.i
+
+
+
+set cur_pageresps $(pageresps)
+set pagename
+
+#---If system_announcements conference, complete action & clear macro.
+if $equal ($(ann_cnum) $(vi_cnum))
+   eval $set_site_data ($(ann_cnum) - ann$(m_inum) $(ann_set_var))
+
+   set  ann_set_var
+   include $(main)/announcedef.i 0
+end
+
+"</div>
+"</div>
+"</body>
+"</HTML>
+
+#---Write out a separate log 'read' event for each block of contiguous
+#   responses that were displayed.
+set r0 $word (1 $(RespSeenList))
+set r1 $(r0)
+for r in $rest(2 $(RespSeenList))
+   if $greater ($(r) $plus($(r1) 1))
+      eval $logevent (read $(iface) 0 0 $(vi_cnum) $(vi_inum) $(r0) $(r1))
+      set r0 $(r)
+      set r1 $(r)
+   end
+   else
+      set r1 $(r)
+   end
+end
+if $not_empty($(r0))
+   eval $logevent (read $(iface) 0 0 $(vi_cnum) $(vi_inum) $(r0) $(r1))
+end
+
+#---Record time viewed (if this wasn't a revisit
+#   after uploading a file) in case it is needed by $logevent(addresp).
+if $empty ($arg(9))
+   set  time_read $time()
+end
+
+#---Clear upload failed flag.
+set upload_failed 0
+set itemMapCount 0
+
+#==========================================================================

@@ -1,0 +1,217 @@
+#
+#---conflistorder.cml   Reorder "my conferences"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/17/05 New file.
+#: CR 10/24/05 Fix sorting problems with new average() function.
+#: CR 10/25/05 More sorting problems fixes.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i conflisteditorder.cml
+end
+
+include $(main)/requiredinfo.i
+
+set pagename Reorder&nbsp;My&nbsp;Conferences
+
+set args37 $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)
+set nch   $unique()
+set nxt   $page_save (1 conflistorder.cml \
+                      $arg(2)+$(args37)+$arg(8) \
+                      # Reorder&nbsp;My&nbsp;Conferences)
+
+include $(main)/head.i $arg(3)  $quote(Reorder&nbsp;My&nbsp;Conferences)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i      manage  Reorder&nbsp;My&nbsp;Conferences
+
+"<script type="text/javascript" language="javascript">
+"   var toA = new Array();   /* to base-67 alpha listing */
+"   var toC = new Array();   /* from base-67 alpha back to ascii chars */
+"   for (i= 32;   i<= 38;   ++i) { toA[i] = i - 32;      toC[i - 32]      = i; }
+"   toA[39] =  6;   /* single quote */
+"   for (i= 40;   i<= 91;   ++i) { toA[i] = i - 33;      toC[i - 33]      = i; }
+"   toA[92] = 58;   /* backslash */
+"   for (i= 93;   i<= 96;   ++i) { toA[i] = i - 93 + 59; toC[i - 93 + 59] = i; }
+"   for (i= 97;   i<=122;   ++i)   toA[i] = i - 97 + 32;
+"   for (i=123;   i<=126;   ++i) { toA[i] = i -123 + 63; toC[i -123 + 63] = i; }
+
+"   function moveIt (n) {
+"      var dc = document.reorder.confs;
+"      var s  = dc.selectedIndex;
+"      if (n > 0  &&  s >= 0  &&  s < dc.options.length-1) {
+"         swap (s, s+1);
+"         dc.selectedIndex = s + 1;
+"      }
+"      if (n < 0  &&  s >  0) {
+"         swap (s, s-1);
+"         dc.selectedIndex = s - 1;
+"      }
+"      var cnum = dc.options[dc.selectedIndex].value;
+"      changed[cnum] = 1;
+"      alpha  [cnum] = average(orderText(dc.selectedIndex-1),
+"                              orderText(dc.selectedIndex+1));
+"      return false;
+"   }
+
+"   function orderText(i) {
+"      var dc = document.reorder.confs;
+"      if      (i <  0)                  return "!";
+"      else if (i >= dc.options.length)  return "~~~~~~~~~";
+"      var cnum = dc.options[i].value;
+"      var result = (alpha[cnum] ? alpha[cnum] : dc.options[i].text);
+"      return (result.toLowerCase());
+"   }
+
+"   function swap(a, b) {
+"      var dc = document.reorder.confs;
+"      var v  = dc.options[b].value;
+"      var t  = dc.options[b].text;
+"      dc.options[b].value = dc.options[a].value;
+"      dc.options[b].text  = dc.options[a].text;
+"      dc.options[a].value = v;
+"      dc.options[a].text  = t;
+"   }
+
+"   function saveOrder() {
+"      var count = 1000;
+"      for (x in changed) {
+"         digits = "a" + count;
+"         var dr = document.reorder['order' + digits.substring(2)]
+"         dr.value = x + " " + alpha[x];
+"         count += 1;
+"      }
+"   }
+
+"   function average (a, b) {
+"      while (a.length < b.length)  a = a + " ";
+"      while (b.length < a.length)  b = b + " ";
+"      a = a + " ";
+"      b = b + " ";
+"      for (i=0;   i<a.length;  ++i) {
+"         if (a.charAt(i) != b.charAt(i)) {
+"            var low  = alphaBase(a.charCodeAt(i), a.charCodeAt(i+1)) + 66;
+"            var high = alphaBase(b.charCodeAt(i), b.charCodeAt(i+1));
+"            var avg  = Math.floor ((low + high) / 2);
+"            var res  = new Array();
+"            for (j=0;   j<3;   ++j) {
+"               res[j] = avg % 67;
+"               avg    = Math.floor(avg/67);
+"            }
+"            return (a.substring(0,i) + String.fromCharCode(toC[res[2]]) +
+"                                       String.fromCharCode(toC[res[1]]) +
+"                                       String.fromCharCode(toC[res[0]]));
+"         }
+"      }
+"   }
+"   function alphaBase(c0, c1) {
+"      return ((toA[c0] * 67) + toA[c1]) * 67;
+"   }
+
+"</script>
+
+"<p/>
+   set query  \
+      SELECT a.name, a.cnum, a.access, o.alpha FROM \
+         (SELECT c.name, c.cnum, g.access FROM (confs c, groups g) \
+            LEFT JOIN confhidden h \
+              ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+           WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+             AND  c.deleted = 0 \
+             AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+             AND  h.hidden IS NULL) a \
+        LEFT JOIN conforder o \
+          ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+       ORDER BY ifnull(o.alpha, a.name)
+
+   set ismgr %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges \
+                            interfaceManage)
+   
+   "<script type="text/javascript" language="javascript">
+   "var alpha   = new Array();
+   "var changed = new Array();
+   set pairs
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+
+      #---Skip interface_storage confs, unless appropriate manager or organizer.
+      if $or ($equal ($str_index (interface_storage $lower($(name))) 0) \
+              $equal (system_announcements          $lower($(name))))
+         if $and ($not($(ismgr))  $less ($(access) $priv(instructor)))
+            continue
+         end
+      end
+
+      set pairs $(pairs) $(cnum) $(name)
+      if $not_empty ($(alpha))
+         "   alpha[$(cnum)] = '$(alpha)';
+      end
+   end
+   eval $sql_query_close($(h))
+   "</script>
+
+"<form method="post" name="reorder"
+"      action="conflistedit.cml?$(nch)+$(nxt)+x+x+x+x+x+m">
+
+if $greater ($(mozilla_version) 0)
+   "<div style="position: fixed;  left: 20px;">
+   "<input type="button" onClick="return moveIt(-1);" value="Up"><p/>
+   "<input type="button" onClick="return moveIt( 1);" value="Down"></p>
+   "<input type="submit" name="submit" value="Save" 
+   "    onClick="return saveOrder();"><p/>
+   "<input type="submit" name="submit" value="Cancel">
+   "</div>
+end
+
+"<table border=0 width="80%">
+"<tr valign=top>
+"<td width="40">&nbsp;</td>
+"<td width="40">&nbsp;<br>
+if $less (0$(mozilla_version) 1)
+   "<input type="button" onClick="return moveIt(-1);" value="Up"><p/>
+   "<input type="button" onClick="return moveIt( 1);" value="Down"></p>
+   "<input type="submit" name="submit" value="Save" 
+   "    onClick="return saveOrder();"><p/>
+   "<input type="submit" name="submit" value="Cancel">
+end
+"</td>
+
+"<td width="15">&nbsp;</td>
+
+"<td>
+set size $if ($greater ($(mozilla_version) 0) $divide($sizeof($(pairs)) 2) 15)
+"<select name="confs" size="$(size)">
+   for cnum name in $(pairs)
+      "<option value="$(cnum)">$replace(_ 32 $(name))
+   end
+"</select>
+"</td>
+"<td>&nbsp;&nbsp;</td>
+"<td>Click on the conference you wish to move, 
+"and then press <b>Up</b> or <b>Down</b> to move it.
+"<p/>
+"When you are finished rearranging your conferences,
+"click on <b>Save</b>.&nbsp;
+"Or click on <b>Cancel</b> to cancel your changes
+"and return to "My Conferences".
+"</td>
+
+"</table>
+   set count 1000
+   for cnum name in $(pairs)
+      "<input type="hidden" name="order$str_sub(1 3 $(count))">
+      set count $plus ($(count) 1)
+   end
+"</form>
+
+
+"</div>
+"</body>
+"</HTML>

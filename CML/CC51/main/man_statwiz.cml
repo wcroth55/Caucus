@@ -1,0 +1,331 @@
+#
+#---MAN_STATWIZ.CML.   Manager, usage statistics wizard
+#
+#   arg(9)  starting time (epoch) or "x"
+#   arg(10) ending   time (epoch) or "x"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  7/18/03 New script.
+#: CR  8/11/03 If called with a conf num in $arg(3), skip the conf select step
+#: CR 04/20/04 Show path as "customize" or "control panel".
+#: CR 09/11/04 Add "per week" option.
+#: CR 10/13/04 Make sure SQL works.
+#: CR 04/25/05 Add "activity report".
+#: CR 05/15/05 Add "posts/reads" report.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_statwiz.cml
+end
+
+#include $(main)/secure.i manage 512
+include $(main)/secure.i open
+set is_course $equal (x$conf_var($arg(3) confType) xCourse)
+set title1 Customize
+
+set title Manager Options: Usage Statistics Wizard
+set is_conf $not_equal ($arg(3) x)
+if $(is_conf)
+   set one_conference
+   set cname %displayed_conf_name ($arg(3))
+   set title $(title1): Usage Statistics Wizard
+end
+else
+   set one_conference One conference only.
+end
+
+set nch   $unique()
+set nxt   $page_save (2 man_statwiz.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title))
+
+include $(main)/head.i $arg(3)  $quote($(title))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+if $not($(is_conf))
+   include $(main)/header.i   man_stat  </A><A HREF="manage.cml?\
+      $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+      Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+      Usage&nbsp;Statistics&nbsp;Wizard
+end
+else
+   set custompage custom.cml
+   include $(main)/header.i man_statwiz </A><A HREF="$(custompage)?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">$(title1)\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Usage Statistics Wizard
+end
+
+#---Display-reports buttons call show_results() to copy data into 2ndary
+#   form, and submit *it* into a pop-up window.
+"<script type="text/javascript" language="javascript">
+"   function show_results (resType) {
+"      var dres = document.statres;
+"      var dwiz = document.statwiz;
+"      dres.restype.value = resType;
+"      dres.d0day.value   = dwiz.d0day.value;
+"      dres.d0month.value = dwiz.d0month.value;
+"      dres.d0year.value  = dwiz.d0year.value;
+"      dres.d1day.value   = dwiz.d1day.value;
+"      dres.d1month.value = dwiz.d1month.value;
+"      dres.d1year.value  = dwiz.d1year.value;
+#      dres.who.value     = dwiz.who.value;
+"      dres.users.value   = dwiz.users.value;
+"      dres.period.value  = dwiz.period.value;
+"      dres.skip0.value   = (dwiz.skip0.checked ? '1' : '0');
+"      dres.report.value  = "";
+"      for (var i=0;   i<dwiz.report.length;   ++i) {
+"         if (dwiz.report[i].checked)  {
+"            dres.report.value = dwiz.report[i].value;
+"            break;
+"         }
+"      }
+"      if (dres.report.value == "") {
+"         alert ("Please choose by Posts, by Conference, or by Day.");
+"         return;
+"      }
+
+       if $equal ($arg(3) x)
+   "      dres.confs.value = "";
+   "      for (var i=0;   i<dwiz.confs.length;   ++i) {
+   "         if (dwiz.confs.options[i].selected)
+   "            dres.confs.value += dwiz.confs.options[i].value + " ";
+   "      }
+       end
+       else
+   "      dres.confs.value = "$arg(3)";
+       end
+
+"      dres.users.value = "";
+"      for (var i=0;   i<dwiz.users.length;   ++i) {
+"         if (dwiz.users.options[i].selected)
+"            dres.users.value += dwiz.users.options[i].value + " ";
+"      }
+"      %js_open_sub (query)
+"      dres.submit();
+"      return;
+"   }
+"</script>
+
+"<BLOCKQUOTE>
+"Use this page to display standard usage reports about 
+if $(is_conf)
+   "the members of this conference.
+end
+else
+   "groups of users over a range of dates.
+end
+"<p>
+
+#"<p>
+#"arg(9)='$arg(9)'<br>
+#"arg(10)='$arg(10)'<br>
+#"arg(11)='$arg(11)'<br>
+#"<p>
+
+set step 0
+"<table cellspacing=0 cellpadding=0 border=0>
+
+#---Step 1: Select group -------------------------------------
+if $not($(is_conf))
+   "<form METHOD=POST  name="eg"
+   "   ACTION="man_statwiz.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+               $arg(7)+$arg(8)+$arg(9)+$arg(10)">
+   "<script type="text/javascript" language="javascript">
+   "   function submitMe() {  document.eg.submit(); }
+   "</script>
+   
+   set step $plus ($(step) 1)
+   "<tr valign=top>
+   "<td><b>Step&nbsp;$(step):</b>&nbsp; </td>
+   "<td colspan=1>Select a group:&nbsp;</td>
+   include $(main)/groupselector.i eg eg
+   
+   set egName $word (1 $(egName) _)
+   
+   if $equal ($(egName) _)
+      "</table>
+      "</form>
+      "</blockquote>
+      "</div>
+"</body>
+      "</html>
+      quit
+   end
+   "</form>
+end
+else
+   set egType CONF
+   set egName $arg(3)
+end
+
+"<form METHOD=POST  name="statwiz"
+"   ACTION="man_statwizf.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+            $arg(7)+$arg(8)">
+#---Step 2a: Select users --------------------------------------------
+"<tr><td><img $(src_clear) width=1 height=4></td>
+"<tr valign=top>
+if $(is_conf)
+   set step $plus($(step) 1)
+   "<td><b>Step&nbsp;$(step):</b>&nbsp; </td>
+end
+else
+   "<td><b>&nbsp;</b>&nbsp; </td>
+end
+"<td colspan=2 width="20%">
+if $(is_conf)
+   "Select
+end
+else
+   "From that group, select
+end
+"the desired user or users.&nbsp; (You may select more
+"than one by holding down the "control" key
+"and clicking.)
+"</td>
+#<td>&nbsp;&nbsp;</td>
+"<td colspan=4 rowspan=1><nobr>
+"&nbsp;&nbsp;<select multiple name="users" size=6>
+   "<option value="-" SELECTED>(all those users)
+
+   set query \
+      SELECT DISTINCT g.userid, u.lname, u.fname \
+        FROM groups g, user_info u \
+       WHERE g.userid = u.userid \
+         AND g.owner  = '$(egType)'  AND  g.name='$(egName)'  \
+         AND g.access >= 10 \
+         AND g.active >   0       AND  u.active >= 10 \
+       ORDER BY u.lname, u.fname
+
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+      "<option value="$(userid)">$(lname), $(fname) ($(userid))
+   end
+   eval  $sql_query_close($(h))
+"</select></nobr></td>
+
+
+#---Step 3: Choose conferences --------------------------------------------
+set step 2
+if $equal ($arg(3) x)
+   set step 3
+   "<tr><td>&nbsp;</td>
+   "<tr valign=top>
+   "<td><b>Step&nbsp;3:</b>&nbsp; </td>
+   "<td colspan=2><b>&nbsp;</b>Select conferences (one or more):</td>
+  
+   "<td colspan=3><nobr>&nbsp;&nbsp;<select multiple name="confs" size=6>
+      set query SELECT cnum, name FROM confs WHERE cnum > 0 AND deleted=0 ORDER BY name
+      set h $sql_query_open ($(query))
+      while $sql_query_row  ($(h))
+         "   <option value="$(cnum)"  >$replace (_ 32 $(name))
+      end
+      eval $sql_query_close ($(h))
+   "</select></nobr></td>
+end
+else
+   "<input type="hidden" name="confs" value="$arg(3)">
+end
+
+#---Step 1: Select date range --------------------------------------------
+"<tr valign=top><td>&nbsp;</td>
+"<tr valign=top>
+"<td><b>Step&nbsp;$(step):</b>&nbsp;&nbsp;</td>
+"<td><b>&nbsp;</b>Select&nbsp;a&nbsp;date&nbsp;range:\
+     &nbsp;from&nbsp;</td>
+
+set t0 $if ($equal($arg(9)  x) $minus ($time() 2505000) $arg(9))
+"<td colspan=6><table cellspacing=0 cellpadding=0>
+include $(main)/datefield.i $(t0) d0
+
+   "<td>&nbsp;through&nbsp;&nbsp;</td>
+
+   set t1 $if ($equal($arg(10) x) $plus  ($time()   86400) $arg(10))
+   include $(main)/datefield.i  $(t1) d1
+"</table>
+"</td>
+
+#---Step 4: Choose report --------------------------------------------
+"<tr><td>&nbsp;</td>
+"<tr valign=top>
+set step $plus ($(step) 1)
+"<td><b>Step&nbsp;$(step):</b>&nbsp; </td>
+"<td colspan=4><b>&nbsp;</b>Choose which report you wish to see:</td>
+
+"<tr valign=top><td></td>
+"<td>&nbsp;&nbsp;&nbsp;<input type="radio" name="report" value="r">&nbsp;Reads/Posts</td>
+"<td colspan=7>Reads &amp; posts,
+"  <select name="period">
+"  <option value="1 day">per day
+"  <option value="7 day">per week
+"  <option value="1 month">per month
+"  <option value="total">total
+"  </select>
+"  $(one_conference)&nbsp;
+"  Reading the same response twice counts as <b>two</b> "reads".
+"</td>
+
+"<tr valign=top><td></td>
+"<td>&nbsp;&nbsp;&nbsp;<input type="radio" name="report" value="a">&nbsp;Activity</td>
+"<td colspan=7>Activity report (time in conf, # items, # responses).&nbsp;
+"  $(one_conference)&nbsp;
+"  Reading the same response twice counts as <b>one</b> read.
+"</td>
+
+if $(mod_stat)
+   include $(main)/man_statwizextras.i
+end
+
+#---Step 5: HTML or Spreadsheet? --------------------------------------------
+"<tr><td>&nbsp;</td>
+"<tr valign=top>
+set step $plus ($(step) 1)
+"<td><b>Step&nbsp;$(step):</b>&nbsp; </td>
+"<td><b>&nbsp;</b>Display reports:&nbsp;</td>
+"<td colspan=2      ><input type="button" name="sub" value="As web page"
+"                        onClick="show_results('w');"
+" >&nbsp;&nbsp;&nbsp;<input type="button" name="sub" value="As spreadsheet"
+"                        onClick="show_results('s');"
+" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td colspan=3>Skip zero rows?&nbsp;<input type="checkbox" name="skip0" value="1"
+">&nbsp;(Reads/Posts &amp; Activity only)</td>
+
+
+"</table>
+
+"</form>
+
+
+
+
+"</BLOCKQUOTE>
+
+"<HR>
+"<form METHOD=POST  name="statres" target="query"
+"   ACTION="man_statwizf.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+            $arg(7)+$arg(8)">
+"<input type="hidden" name="restype" value="">
+"<input type="hidden" name="d0day"   value="">
+"<input type="hidden" name="d0month" value="">
+"<input type="hidden" name="d0year"  value="">
+"<input type="hidden" name="d1day"   value="">
+"<input type="hidden" name="d1month" value="">
+"<input type="hidden" name="d1year"  value="">
+"<input type="hidden" name="who"     value="">
+"<input type="hidden" name="users"   value="">
+"<input type="hidden" name="confs"   value="">
+"<input type="hidden" name="report"  value="">
+"<input type="hidden" name="period"  value="">
+"<input type="hidden" name="skip0"   value="">
+"</form>
+
+"</div>
+"</body>
+"</HTML>
+
+set error
+#------------------------------------------------------------------------

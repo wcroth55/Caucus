@@ -1,0 +1,127 @@
+
+.SUFFIXES:     .c .o
+
+#: CR 10/31/05 Caucus 5 release.
+
+RANLIB=ranlib
+CCFLAGS=-O3
+
+OBJK = swebsock.o envvar.o \
+       newsub.o shakesub.o pipewrite.o hoseopen.o \
+       hosewrite.o hoseread.o hoseclose.o ../str/str.a
+
+OBJD = swebd.o syssubse.o loadconf.o   \
+       fixfull.o swebdscr.o funcshell.o tojix.o
+
+OBJA = sweba.o loadconf.o hosewrite.o hoseread.o hoseclose.o \
+       sysfdopen.o sysfdclose.o ldapverify.o
+
+OBJS = swebs.o loadconf.o process.o \
+       hosewrite.o hoseread.o hoseclose.o  \
+       sysfdopen.o sysfdclose.o displice.o ldapverify.o
+
+OBJC = cmlglobals.o loadcml.o parsecml.o \
+ skipcml.o    reloadc.o   makecml.o  freecml.o \
+ readform.o   readflin.o  formsing.o formmult.o formtemp.o \
+ funcscan.o   funcvalue.o funcshell.o funccl.o funcco.o \
+ funct2hbr.o  funcrhtml.o funct2html.o funct2url.o funct2esc.o \
+ funct2mail.o funcstack.o funcpage.o caucusurl.o funcw2html.o \
+ funcper.o    funcpeo.o   funcit.o  touchit.o funcre.o funcmy.o funcad.o \
+ funcstr.o    funcescq.o  funcescs.o funcob.o  fixhref.o \
+ itparse.o  itpack.o wraptext.o      funch2url.o  urlwindow.o \
+ fixquery.o   funcvar.o   nexttag.o fixfull.o \
+ modmarkp.o   include.o   tojix.o   writefrom.o pipewrite.o \
+ searchit.o   searchfilter.o        envvar.o    funcaddtar.o \
+ readcml.o strnamva.o    strtrim.o clean.o ishtml.o \
+ fixdollar.o itemcache.o copy2lib.o unique.o saynofile.o cmlcopyf.o \
+ hoseacce.o  bufwrite.o  epochof.o funcchtml.o funcbit.o funcmgr.o \
+ createco.o  gensort.o tripsort.o dirlist.o \
+ numsort.o   itemsort.o  funcpw.o  pwactions.o pwextern.o xorstr.o \
+ funclice.o  filedata.o  funcsetp.o  setlaston.o \
+ obnew.o     obset.o     obvalue.o   findin.o  cencode.o  \
+ macdefine.o macexpand.o funcmac.o wrap2html.o quoter.o   varshow.o \
+ funcar.o    target.o    parsenext.o  prot.o  funclogevent.o \
+ funcsql.o   funcunhtml.o encode64.o  c5tablecheck.o asciibuf.o \
+ groupupdate.o groupuprule.o groupaccess.o buildnamecas.o \
+ itemadd.o   respadd.o   respdel.o    itemdel.o  itemtuplet.o \
+ itemset.o   itemsetseen.o respset.o  itemid.o   itemlabel.o \
+ commalist.o epochofyyyy.o pullparens.o itemparse.o funcxmlesc.o \
+ emailparser.o funcpriv.o  urlEncode.o
+
+LIBS= \
+../sql/sql.a     \
+../obj/obj.a     \
+../api/api.a     \
+../attach/attach.a \
+../conf/conf.a   \
+../chg/chg.a     \
+../db/db.a       \
+../subj/subj.a   \
+../db/db.a       \
+../xaction/xaction.a \
+../gen/gen.a     \
+../subj/subj.a   \
+../db/db.a       \
+../people/people.a \
+../chg/chg.a     \
+../resp/resp.a   \
+../attach/attach.a \
+../inout/inout.a \
+../unit/unit.a   \
+../sys1/sys1.a     \
+../sys2/sys2.a     \
+../inout/inout.a \
+../gen/gen.a     \
+../conf/conf.a   \
+../unit/unit.a   \
+../glyph/glyph.a \
+../str/str.a     \
+../chx/chx.a     \
+../people/people.a \
+../api/api.a      \
+../sys1/sys1.a    \
+../sys2/sys2.a   \
+../db/db.a       \
+../xaction/xaction.a \
+../unit/unit.a   \
+../sys2/sys2.a   \
+../sys1/sys1.a
+
+all: cmllint wpwcopy swebd swebs swebsock sweba
+
+swebd: $(OBJD)  $(LIBS) $(NTLIB)
+	cc $(LDFLAGS) -o swebd $(OBJD) $(LIBS) $(NTLIB) $(OPTS)
+
+swebs: $(OBJS)  $(OBJC) $(LIBS) $(NTLIB)
+	cc $(LDFLAGS) -o swebs $(OBJS) $(OBJC) $(LIBS) $(NTLIB) \
+           $(SQLLIBS) $(OTHERLIBS) $(OPTS)
+
+sweba: $(OBJA)  $(OBJC)  $(LIBS)
+	cc $(LDFLAGS) -o sweba $(OBJA) $(OBJC) $(LIBS) $(NTLIB) \
+           $(SQLLIBS) $(OTHERLIBS) $(OPTS)
+
+ldaptest: ldaptest.o ldapverify.o
+	cc $(LDFLAGS) -o ldaptest ldaptest.o ldapverify.o $(OTHERLIBS) $(OPTS)
+
+swebsock: $(OBJK)
+	cc $(LDFLAGS) -o swebsock $(OBJK) ../gen/gen.a ../sys2/sys2.a \
+                         ../unit/unit.a ../sys1/sys1.a ../sys2/sys2.a $(OPTS)
+
+cpw2: cpw2.o
+	cc $(LDFLAGS) -o cpw2 cpw2.o pwactions.o xorstr.o ../gen/getent.o
+
+wpwcopy: wpwcopy.o
+	cc $(LDFLAGS) -o wpwcopy wpwcopy.o
+
+cmllint: cmllint.o
+	cc $(LDFLAGS) -o cmllint cmllint.o $(LIBS)
+
+clean:
+	rm -f *.o
+
+clobber:
+	rm -f *.o swebd swebd.exe swebs swebs.exe swebsock swebsock.exe
+	rm -f     sweba cmllint wpwcopy cpw2 listallu ldaptest
+
+.c.o:
+	cc $(CCFLAGS) -I../include -c -I../../libs/include $*.c

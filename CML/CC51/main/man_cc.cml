@@ -1,0 +1,738 @@
+#
+#---MAN_CC.CML.   Manager controlling Caucus Center page layout
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: RL 02/15/00 Repaired cclogo -> allogo
+#: CR 01/12/01 Added quiturl processing.
+#: CR 01/13/02 added "v" (caucus version), "h" (browser version),
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#                    "q" (caucus toolbar) options
+#: CR 10/09/02 Support center bkg colors, png images.
+#: CR 03/02/03 Rearrange to support all pages, item page, center page, etc.
+#: CR 12/20/03 Add timezonehrs, timezonename interface variables,
+#              item_title_width.
+#: CR  3/27/04 Add bgradbk, gradebook button.
+#: CR  7/11/04 Allow turning off Help, Quit buttons.
+#: CR 10/13/04 Allow manager control of CSS fonts and sizes.
+#: CR 03/30/05 Add button display controls.
+#: CR 04/13/05 C5 code merge.
+#: CR 10/19/05 Remove "no blks" code.
+#: CR 03/13/06 Add top banner capability.
+#: CR 08/24/09 Interface-specific showUserid controls "(userid)" display instead of show_id.
+#: CR 09/24/09 Add top banner center image option.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_cc.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_cc.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Modify $(iface) Interface )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Modify $(iface) Interface)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+include $(main)/header.i man_cc </A><A HREF="manage.cml?$(nch)+$(arglist)"\
+   >Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top"\
+   >Modify $(iface) Interface</A>
+
+"<script type="text/javascript" language="javascript">
+"function reset_fonts() {
+"   document.cc.css_font.value = 'Arial, Helvetica, sans-serif';
+"   document.cc.css_size.value= '80%';
+"   return false;
+"}
+"</script>
+
+"<form NAME="cc" METHOD=POST
+"    ACTION="man_ccf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+"<BLOCKQUOTE>
+
+#---Find out if Interface_Storage_DIR conference exists (yet).
+set cnum $word (1 $cl_list(interface_storage_$(iface)))
+
+#---Does it exist?
+if $empty ($(cnum))
+  "It appears that the <B>Interface Storage $upper($(iface))</B>
+  "conference does not exist, or you do not have access to it.&nbsp;
+  "Please create the conference and allow everyone "readonly" access,
+  "or contact the organizer of that conference.
+  quit
+end
+
+#---Is it accessible?
+if $less (%access($(cnum)) 1)
+  "It appears that you do not have access to the 
+  "<B>Interface Storage $upper($(iface))</B> conference.&nbsp;
+  "Please allow everyone "readonly" access to this conference,
+  "or ask the organizer to do so.
+  quit
+end
+
+
+#---Are you a member?
+
+
+"Use this page to modify the look and feel of the '$(iface)'
+"Caucus interface.
+
+#---%ccsel(varname letter) returns SELECTED if 1st word of VARNAME is LETTER.
+eval $mac_define (ccsel \
+   \$ifthen (\$equal (\$word (1 \$site_data(0 - if_\$(iface)_@1)) @2) SELECTED))
+
+#---Get number of items in the Interface_Storage_DIR conference.
+set ifitems
+if $(cnum)
+   set ifQuery \
+       SELECT h.items_id, h.item0, h.item1, h.item2, h.item3, h.item4, h.item5 \
+         FROM conf_has_items h \
+        WHERE h.cnum=$(cnum) AND h.hidden=0 AND h.retired=0 \
+        ORDER BY h.item0, h.item1, h.item2, h.item3, h.item4, h.item5
+   set hi $sql_query_open ($(ifQuery))
+   while  $sql_query_row  ($(hi))
+      set ifitems $(ifitems) $(items_id) \
+          $item_tuplet($(item0) $(item1) $(item2) $(item3) $(item4) $(item5))
+   end
+   eval   $sql_query_close($(hi))
+end
+
+"<p/>
+"<dl>
+
+#----Section I: toolbar buttons---------------------------------------------
+
+#---Scan once per session (per style) for any "other" (non-original) buttons 
+#   of this 'tbstyle' that were dropped in.  If found, add them to 
+#   'hidden' list.
+if $empty ($(buttons_other_checked))
+   set buttons_other_checked 1
+   set buttons_other
+   for x in $dirlist(0 $caucus_path()/public_html/GIF50)
+      if $equal ($str_index (tb_ $(x)) 0)
+         if $greater ($str_index (_$(tbstyle).gif $(x)) 0)
+            set x $word (2 $replace (_ 32 $(x)))
+            if $not ($tablefind ($(x) $(buttons_shown) $(buttons_hidden)))
+               set buttons_other $(buttons_other) $(x)
+            end
+         end
+      end
+   end
+   if $not_empty ($(buttons_other))
+      set buttons_hidden $(buttons_hidden) $(buttons_other)
+      eval $set_site_data (0 - if_$(iface)_buttons_hidden $(buttons_hidden))
+   end
+   set buttons_all $(buttons_original) $(buttons_other)
+end
+
+#---Handle clicks on this page that change button order or style choice.
+if $not_empty ($arg(9))
+   set action $str_sub (0   1 $arg(9))
+   set button $str_sub (1 100 $arg(9))
+
+   if $tablematch ($(action) u d l r)
+      set sho    $tablefind ($(button) $(buttons_shown))
+      set hid    $tablefind ($(button) $(buttons_hidden))
+   
+      if $greater ($(sho) 0)
+         set sho0 $minus ($(sho) 1)
+         set sho1 $plus  ($(sho) 1)
+         if   $equal ($(action) d)
+            set buttons_shown  %word_remove ($(sho)            $(buttons_shown))
+            set buttons_hidden %word_insert (1       $(button) $(buttons_hidden))
+         end
+         elif $equal ($(action) l)
+            set buttons_shown  %word_remove ($(sho)            $(buttons_shown))
+            set buttons_shown  %word_insert ($(sho0) $(button) $(buttons_shown))
+         end
+         elif $equal ($(action) r)
+            set buttons_shown  %word_remove ($(sho)            $(buttons_shown))
+            set buttons_shown  %word_insert ($(sho1) $(button) $(buttons_shown))
+         end
+      end
+   
+      elif $greater ($(hid) 0)
+         if   $equal ($(action) u)
+            set buttons_hidden %word_remove ($(hid)      $(buttons_hidden))
+            set buttons_shown  %word_insert (1 $(button) $(buttons_shown))
+         end
+      end
+
+      elif $equal ($arg(9) dlogo)
+         set logo_shown 0
+      end
+      elif $equal ($arg(9) ulogo)
+         set logo_shown 1
+      end
+   end
+
+   elif $equal ($(action) m)
+      set tbstyle $(button)
+      set buttons_other_checked
+   end
+
+   elif $equal ($(action) R)
+      set buttons_shown $(buttons_original)
+      set buttons_hidden
+      set buttons_other_checked
+   end
+end
+   
+
+"<p/>
+"<dt><b><a name="buttons">Section I: all pages (toolbar buttons).</a></b>
+"<p/>
+"<dd><table cellspacing=0 cellpadding=0 border=0>
+"   <tr><td colspan=20>Click on the black arrows to move the toolbar
+"        buttons left or right, or to switch between showing and not
+"        showing them.&nbsp;
+"        Or <a href="man_cc.cml?$(nch)+$(arglist)+R">reset</a> 
+"        the arrangement.&nbsp;
+"        Click on "Make Changes" to save the new button arrangement.&nbsp;
+"   </td>
+"   <tr><td>&nbsp;</td>
+
+"   <tr valign=top>
+   "<td><br>Show:&nbsp;&nbsp;</td>
+   "<td>$ifthen ($(logo_shown) <img $(src_logo)>)</td>
+   for button in $(buttons_shown)
+      "<td><div style="position: relative;"
+      "   ><img src="$(icon)/tb_$(button)_$(tbstyle).$(icon_type)"
+      if $site_data (0 - if_$(iface)_showbuttontext)
+         "><span class="button_label"
+         ">$site_data (0 - if_$(iface)_buttontext_$(button))</span
+      end
+      if $(is_explorer5)
+         "><br><img $(src_clear) width=1 height=7
+      end
+      "   ></div></td>
+   end
+
+   "<tr><td><img $(src_clear) width=1 height=4></td>
+   "<tr><td></td>
+   "<td align=center
+   "  >$ifthen ($(logo_shown) <a href="man_cc.cml?$(nch)+$(arglist)+dlogo">\
+                              <img $(src_dnarrow)></a>)</td>
+   for button in $(buttons_shown)
+      "<td align=center
+      "   ><a href="man_cc.cml?$(nch)+$(arglist)+l$(button)"
+      "   ><img $(src_lfarrow)></a
+      "   ><a href="man_cc.cml?$(nch)+$(arglist)+d$(button)"
+      "   ><img $(src_dnarrow)></a
+      "   ><a href="man_cc.cml?$(nch)+$(arglist)+r$(button)"
+      "   ><img $(src_rtarrow)></a></td>
+   end
+   "<td width="80%">&nbsp;</td>
+
+   "<tr><td>&nbsp;</td>
+   "<tr><td></td>
+   "<td align=center>$ifthen ($not($(logo_shown)) \
+     <a href="man_cc.cml?$(nch)+$(arglist)+ulogo"><img $(src_uparrow)></a>)</td>
+   for button in $(buttons_hidden)
+      "<td align=center
+      "   ><a href="man_cc.cml?$(nch)+$(arglist)+u$(button)"
+      "   ><img $(src_uparrow)></a></td>
+   end
+
+   "<tr>
+   "<td>Don't&nbsp;show:&nbsp;&nbsp;</td>
+   "<td>$ifthen ($not($(logo_shown)) <img $(src_logo)>)</td>
+   for button in $(buttons_hidden)
+      "<td><div style="position: relative;"
+      "   ><img src="$(icon)/tb_$(button)_$(tbstyle).$(icon_type)"
+      if $site_data (0 - if_$(iface)_showbuttontext)
+         "><span class="button_label"
+         ">$site_data (0 - if_$(iface)_buttontext_$(button))</span
+      end
+      if $(is_explorer5)
+         "><br><img $(src_clear) width=1 height=7
+      end
+      "   ></div></td>
+   end
+
+   #---Calculate button styles (once!)
+   if $empty ($(buttonstyles))
+      for x in $dirlist(0 $caucus_path()/public_html/GIF50)
+         if $equal ($str_index (tb_help_ $(x)) 0)
+            if $greater ($str_index (.gif $(x)) 0)
+               set buttonstyles $(buttonstyles) \
+                                $word (1 $replace (. 32 $str_sub (8 1000 $(x))))
+            end
+         end
+      end
+   end
+   if $greater ($sizeof($(buttonstyles)) 1)
+      "<tr><td>&nbsp;</td>
+      "<tr><td>Button style:&nbsp;</td>
+      "<td valign=bottom><img src="$(icon)/tb_help_$(tbstyle).$(icon_type)"></td>
+      "<td colspan=20 valign=bottom>
+         for x in $(buttonstyles)
+            " <a href="man_cc.cml?$(nch)+$(arglist)+m$(x)"
+            "><img src="$(icon)/tb_help_$(x).$(icon_type)" width=38
+            "   border=0></a>&nbsp;
+         end
+      "</td>
+    end
+"   </table>
+    "<input type="hidden" name="tbstyle"        value="$(tbstyle)">
+    "<input type="hidden" name="buttons_shown"  value="$(buttons_shown)">
+    "<input type="hidden" name="buttons_hidden" value="$(buttons_hidden)">
+    "<input type="hidden" name="logo_shown"     value="$(logo_shown)">
+
+   "<p/>
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr><td>Show button text? 
+   "   <input type="checkbox" name="showbuttontext" value=1
+   "      $ifthen(0$site_data (0 - if_$(iface)_showbuttontext) checked)
+   "   >&nbsp;&nbsp;</td>
+
+   set counter -1
+   set newrow
+   for x in $(buttons_all)
+      set counter $plusmod ($(counter) 1 3)
+      "$ifthen ($equal ($(counter) 0) $(newrow))
+      "<td><img src="$(icon)/tb_$(x)_$(tbstyle).gif">&nbsp;</td>
+      "<td><input type="text" size="10" name="buttontext_$(x)"
+      "   value="$site_data (0 - if_$(iface)_buttontext_$(x))">&nbsp;&nbsp;&nbsp;</td>
+      set newrow <tr><td></td>
+   end
+
+   "</table>
+   "<B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"></b>
+
+"<br>&nbsp;<br>
+
+"<dt><b>Section II: all pages (miscellaneous).</b>
+"<dd><table cellspacing=2 cellpadding=0 border=0>
+"   <tr valign=top>
+"   <td>Custom CSS file:&nbsp;</td>
+"   <td><INPUT TYPE=text NAME=css_file SIZE=28
+"      VALUE="$(css_file)"></td>
+"   <td>must be in $caucus_path()/public_html</td>
+
+"   <tr valign=top>
+"   <td><nobr>Font-family:&nbsp;</nobr></td>
+"   <td><INPUT TYPE=text NAME=css_font SIZE=28 
+"      VALUE="$(css_font)"></td>
+"   <td><a href="#" onClick="return reset_fonts();"
+"      >Reset</a> font-family and size</td>
+
+"   <tr valign=top>
+"   <td>Font-size:&nbsp;</td>
+"   <td><INPUT TYPE=text NAME=css_size SIZE=10 
+"      VALUE="$(css_size)"></td>
+
+"   <tr valign=top>
+"   <td>Caucus Center page is called:&nbsp;</td>
+"   <td><INPUT TYPE=text NAME=ccenter SIZE=28 
+"      VALUE="$(center_name)"></td>
+
+"   <tr valign=top>
+"   <td>Filesafe is called:&nbsp;</td>
+"   <td><INPUT TYPE=text NAME=filesafe SIZE=28 
+"      VALUE="$(filesafe_name)"></td>
+
+   #---Override Quit button?
+   "<tr><td>Quit button goes to this URL:</td>
+   "<td colspan=2><INPUT TYPE=text NAME=quiturl SIZE=56
+   "   VALUE="$site_data (0 - if_$(iface)_quiturl)"></td>
+   
+#  #---Allow turning buttons on & off, regardless of button menu.
+#  "<tr valign=top>
+#  "<td>Show buttons?</td>
+#  "<td colspan=2>
+#  "Go-to&nbsp;<input type="checkbox" name="bgoto" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bgoto))   checked)>&nbsp;&nbsp;
+#  "Search&nbsp;<input type="checkbox" name="bsearch" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bsearch)) checked)>&nbsp;&nbsp;
+#  "People&nbsp;<input type="checkbox" name="bpeople" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bpeople)) checked)>&nbsp;&nbsp;
+#  "$(filesafe_name)&nbsp;<input type="checkbox" name="bfsafe" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bfsafe))  checked)>&nbsp;&nbsp;
+#  "Notebook&nbsp;<input type="checkbox" name="bnotebk" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bnotebk)) checked)>&nbsp;&nbsp;
+#  "Gradebook&nbsp;<input type="checkbox" name="bgradbk" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bgradbk)) checked)>&nbsp;&nbsp;
+#  "Assignments&nbsp;<input type="checkbox" name="bassign" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bassign)) checked)>&nbsp;&nbsp;
+#  "Help&nbsp;<input type="checkbox" name="bhelp" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bhelp)) checked)>&nbsp;&nbsp;
+#  "Quit&nbsp;<input type="checkbox" name="bquit" 
+#  "     $if ($not (0$site_data (0 - if_$(iface)_hide_bquit)) checked)>&nbsp;&nbsp;
+#  "</td>
+
+   #---Select menu button bar.
+   "<tr><td>Choose button menu:</td>
+   
+   #---Get value of currently selected button menu.
+   set menu_button $site_data (0 - if_$(iface)_mbutton)
+   if $empty ($(menu_button))
+      set menu_button menu_default.i
+   end
+   
+   #---Create list of menu_* files in main, main.1, main.2
+   set menu_list
+   "<td><font size=-1>
+   "<select name="mbutton">
+      count n 0 2
+         if $equal($(n) 0)
+            set dir $caucus_path()/CML/$(main)
+         end
+         else
+            set dir $caucus_path()/CML/$(main).$(n)
+         end
+         for file in $dirlist (0 $(dir))
+            if $equal ($str_index (menu_ $(file)) 0)
+               if $not ($tablefind ($(file) $(menu_list)))
+                  if $equal ($(file) $(menu_button))
+                     "<option selected>$(file)
+                  end
+                  else
+                     "<option >$(file)
+                  end
+                  set menu_list $(menu_list) $(file)
+               end
+            end
+         end
+      end
+   "</select></font>
+   "</td>
+
+   #---Timezone display control
+"  <tr><td>Timezone (hours +/- local)</td>
+"  <td colspan=2><INPUT TYPE=text NAME=timezonehrs SIZE=6
+"       VALUE="$(timezonehrs)">&nbsp;&nbsp;
+"      Abbrev: 
+"      <INPUT TYPE=text NAME=timezonename SIZE=6
+"       VALUE="$(timezonename)"></td>
+
+   #---Show (userid) after name?
+   include $(main)/calculateShowUserid.i
+   "<tr><td>Show "(userid)" after names?</td>
+   "<td><input type="checkbox" value="1" name="showUserid"
+   "       $ifthen ($(showUserid) checked)></td>
+
+   #---All (non-center) pages Logo
+   "<tr VALIGN=top><td><A NAME="allother">Page logo (top-left):</a>
+   " <NOBR>(See <A HREF="#note2">note 2</A>.)</NOBR></td>
+   "<td>
+   "<SELECT NAME=allogo>
+   "  <OPTION VALUE=0      %ccsel (allogo 0)     >(none)
+   "  <OPTION VALUE=t      %ccsel (allogo t)     >CML text -&gt;
+   for id ilabel in $(ifitems)
+   "  <OPTION VALUE=i$(id) %ccsel (allogo i$(id))>Interface Storage 
+   "        $(iface) Item $(ilabel)
+   end
+   "</SELECT>
+   "</td>
+
+   "<td><TEXTAREA NAME=cclogo.t COLS=28 ROWS=2 WRAP=virtual>
+   if $not_empty (%ccsel(cclogo t))
+      "$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_cclogo))))
+   end
+   "</TEXTAREA></td>
+
+   "<tr>
+   "<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"
+    "    ></B></td>
+
+"   </table>
+
+"<br>&nbsp;<br>
+
+"<dt><b>Section III: all pages (Top Banner).</b>
+"<dd><table cellspacing=2 cellpadding=0 border=0>
+"   <tr valign=top>
+"   <td>Background image: (full URL)&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_bg" SIZE=50
+"      VALUE="$(banner_bg)"></td>
+"   <tr valign=top>
+"   <td>Left image:&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_left" SIZE=50
+"      VALUE="$(banner_left)"></td>
+"   <tr valign=top>
+"   <td>Left width:&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_leftwidth" SIZE=5
+"      VALUE="$(banner_leftwidth)"></td>
+"   <tr valign=top>
+"   <td>Center image: (full URL):&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_center" SIZE=50
+"      VALUE="$(banner_center)"></td>
+"   <tr valign=top>
+"   <td>Right image: (full URL):&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_right" SIZE=50
+"      VALUE="$(banner_right)"></td>
+"   <tr valign=top>
+"   <td>Banner height:&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE=text NAME="banner_height" SIZE=5
+"      VALUE="$(banner_height)"></td>
+   "<tr>
+   "<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"
+    "    ></B></td>
+"   </table>
+
+
+"<br>&nbsp;
+"<dt><b>Section IV: all pages (Left Bar).</b>
+"<dd><table cellspacing=2 cellpadding=0 border=0>
+"   <tr valign=top>
+"   <td>Enable fixed left bar?&nbsp;</td>
+"   <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"   <td><input type="checkbox" name="leftBox"  value="1"
+"        $ifthen (0$site_data (0 - if_$(iface)_leftBox)  checked)></td>
+
+"   <tr valign=top>
+"   <td colspan=2>Width:&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE="text" NAME="leftBoxWidth" SIZE="8"
+"      VALUE="$site_data(0 - if_$(iface)_leftBoxWidth)"></td>
+"   <td>(e.g. 20%, 16em, or 150px)</td>
+
+"   <tr valign=top>
+"   <td colspan=2>Background color:&nbsp;&nbsp;</td>
+"   <td><INPUT TYPE="text" NAME="leftBoxColor" SIZE="8"
+"      VALUE="$site_data(0 - if_$(iface)_leftBoxColor)"></td>
+
+"   <tr valign=top><td colspan=2>Left bar content:</td>
+
+   "<td>
+   "<SELECT NAME="leftBoxContent">
+   "  <OPTION VALUE=0      %ccsel (leftBoxContent 0)     >(none)
+   "  <OPTION VALUE=t      %ccsel (leftBoxContent t)     >CML text -&gt;
+   for id ilabel in $(ifitems)
+   "  <OPTION VALUE="i$(ilabel)" %ccsel (leftBoxContent i$(ilabel))>Interface 
+   "              Storage $(iface) Item $(ilabel)
+   end
+   "</SELECT>
+   "</td>
+   "<td><TEXTAREA NAME="leftBoxText" COLS=28 ROWS=2 WRAP=virtual
+   ">$escquote($t2esc ($site_data (0 - if_$(iface)_leftBoxText)))</TEXTAREA>
+   "</td>
+
+   "<tr>
+   "<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"
+    "    ></B></td>
+
+"   </table>
+
+"<br>
+"<p>
+"<dt><b>Section V: item page.</b>
+"<dd><table cellspacing=0 cellpadding=0 border=0>
+"   <tr valign=top>
+"   <td>Show "Select" checkbox for responses?&nbsp;</td>
+"   <td><input type="checkbox" name="acton" 
+"        $if ($not (0$site_data (0 - if_$(iface)_hide_acton))   checked)></td>
+"   <tr valign=top>
+"   <td>Show "who has seen this item"?&nbsp;</td>
+"   <td><input type="checkbox" name="whoseen" 
+"        $if ($not (0$site_data (0 - if_$(iface)_hide_whoseen)) checked)></td>
+"   <td>&nbsp;&nbsp;&nbsp;&nbsp;Also controls whether item list appears in 
+"        person pop-up windows</td>
+"   <tr valign=top>
+"   <td>Show "forget this item"?&nbsp;</td>
+"   <td><input type="checkbox" name="forget" 
+"        $if ($not (0$site_data (0 - if_$(iface)_hide_forget))  checked)></td>
+"   <tr valign=top>
+"   <td>Show item title in compass bar?&nbsp;</td>
+"   <td><input type="checkbox" name="show_item_title" 
+#        $if (0$site_data (0 - if_$(iface)_item_title_width)  checked)></td>
+"        $if (0$(item_title_width)  checked)></td>
+"   <td>&nbsp;&nbsp;&nbsp;&nbsp;Width in chars:&nbsp;
+"       <input type=text name="item_title_width" size=4
+#             value="$site_data (0 - if_$(iface)_item_title_width)"></td>
+"             value="$(item_title_width)"></td>
+   "<tr>
+   "<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"
+    "    ></B></td>
+"</table>
+
+"<p>
+"<dt><b>Section VI: conference home page.</b>
+"<dd><table cellspacing=0 cellpadding=0 border=0>
+   "<tr valign=top>
+   "<td>Show "resign from this conference" link?&nbsp;</td>
+   "<td><input type="checkbox" name="resign" 
+   "     $if ($not (0$site_data (0 - if_$(iface)_hide_resign))   checked)></td>
+   "<tr>
+   "<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"
+    "    ></B></td>
+"   </table>
+
+"<p>
+"<dt><b>Section VII: $(center_name) page.</b>
+"<dd>
+"Use this section to control the precise choice and layout of
+"elements on the $(center_name) page.&nbsp;
+"For each numbered block, you may select one of:
+"<UL>
+"<LI>a pre-defined object
+"(such as the personal conference list), or
+"<LI>a short string of CML text, or 
+"<LI>an item number from the 
+if $(cnum)
+   "<A HREF="confhome.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x"
+   "  >Interface Storage $(iface)</A>
+end
+else
+   "<B>Interface Storage $upper($(iface))</B> 
+end
+"$if ($(cnum) conference. conference (once it has been created!).)
+
+"</UL>
+
+"<P>
+"<TABLE CELLSPACING=2 CELLPADDING=0 BORDER=0>
+
+#---Name of "Caucus Center"
+
+#---Show CC name on CC page?
+"<tr VALIGN=top><td COLSPAN=3>Show 
+" <B>"$(center_name)"</B> label on the center page?</td>
+"<td><INPUT TYPE=CHECKBOX NAME=cchide VALUE="1"
+"     $ifthen ($not(0$site_data (0 - if_$(iface)_cchide)) CHECKED)></td>
+
+   
+
+#---CC Logo
+"<tr VALIGN=top><td>$(center_name) page logo:</td>
+"<td>&nbsp;&nbsp;</td>
+"<td>
+"<SELECT NAME=cclogo>
+"  <OPTION VALUE=0      %ccsel (cclogo 0)     >(none)
+"  <OPTION VALUE=t      %ccsel (cclogo t)     >CML text -&gt;
+for id ilabel in $(ifitems)
+"  <OPTION VALUE=i$(ilabel) %ccsel (cclogo i$(ilabel))>Interface 
+"          Storage $(iface) Item $(ilabel)
+end
+"</SELECT>
+"</td>
+
+#"<td><FONT SIZE=-1><INPUT TYPE=text NAME=cclogo.t SIZE=28
+#if $not_empty (%ccsel(cclogo t))
+#"     VALUE="$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_cclogo))))"
+#end
+#"></FONT></td>
+
+
+
+"<td><TEXTAREA NAME=allogo.t COLS=28 ROWS=2 WRAP=virtual>
+if $not_empty (%ccsel(allogo t))
+   "$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_allogo))))
+end
+"</TEXTAREA></td>
+
+#---Center & management page background color/image?
+"<tr valign=top><td COLSPAN=2>Center page color or background:</td>
+"<td COLSPAN=2><INPUT TYPE=text NAME=cencolor SIZE=56
+"   VALUE="$site_data (0 - if_$(iface)_cencolor)"></td>
+
+
+#---Rest of 'blocks' on the page.
+set blocks $site_data (0 - if_$(iface)_blks)
+count ib 1 $(blocks)
+   "<tr VALIGN=top><td>Block $(ib): </td>
+
+   "<td></td>
+   "<td>
+   "<SELECT NAME=blk$(ib)>
+   "  <OPTION VALUE=0      %ccsel (blk$(ib) 0)     >(none)
+   "  <OPTION VALUE=t      %ccsel (blk$(ib) t)     >CML text -&gt;
+#  "  <OPTION VALUE=p      %ccsel (blk$(ib) p)     >Personal Conf List
+#  "  <OPTION VALUE=a      %ccsel (blk$(ib) a)     >Link to "All Confs"
+#  "  <OPTION VALUE=j      %ccsel (blk$(ib) j)     >Join Conf by Name
+   "  <OPTION VALUE=y      %ccsel (blk$(ib) y)     >Your conferences
+   "  <OPTION VALUE=o      %ccsel (blk$(ib) o)     >Other conferences
+   "  <OPTION VALUE=b      %ccsel (blk$(ib) b)     >Caucus banner
+#  "  <OPTION VALUE=r      %ccsel (blk$(ib) r)     >Popular Conferences
+   "  <OPTION VALUE=n      %ccsel (blk$(ib) n)     >Notebook Entries
+   "  <OPTION VALUE=v      %ccsel (blk$(ib) v)     >Caucus version
+   "  <OPTION VALUE=h      %ccsel (blk$(ib) h)     >Browser version
+   "  <OPTION VALUE=q      %ccsel (blk$(ib) q)     >Caucus Toolbar
+   for id ilabel in $(ifitems)
+   "  <OPTION VALUE="i$(ilabel)" %ccsel (blk$(ib) i$(ilabel))>Interface 
+   "              Storage $(iface) Item $(ilabel)
+   end
+   "</SELECT>
+   "</td>
+#  "<td><INPUT TYPE=text NAME=blk$(ib).t SIZE=25
+#  set w1 $str_sub (0 1 $site_data (0 - if_$(iface)_blk$(ib)))
+#  if $not ($tablefind ($(w1) 0 i))
+#     "   VALUE="$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_blk$(ib)))))"
+#  end
+#  "></td>
+
+   "<td><TEXTAREA NAME="blk$(ib).t" COLS=28 ROWS=2 WRAP=virtual>
+   set w1 $str_sub (0 1 $site_data (0 - if_$(iface)_blk$(ib)))
+   if $not ($tablefind ($(w1) 0 i))
+      "$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_blk$(ib)))))
+   end
+
+#  if $not_empty (%ccsel(allogo t))
+#     "$escquote($t2esc ($rest (2 $site_data (0 - if_$(iface)_allogo))))
+#  end
+   "</TEXTAREA></td>
+
+end
+"<tr>
+"<td COLSPAN=2><B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"></B>\
+   </td>
+"<td COLSPAN=2><HR SIZE=5></td>
+"</TABLE>
+
+"</dl>
+
+"<P>
+"<B>Notes</B>:
+"<OL>
+"<LI> Use the text fields for blocks 1
+"through $(blocks) to enter bullets or paragraph numbers for 
+"the pre-defined objects (such as the personal conference list,
+"list of all conferences, and so on).
+
+"<A NAME="note2"><P></A>
+"<LI>If at all possible, when setting the 
+""<A HREF="#allother">page logo</A>",
+"please use CML text rather than an item.&nbsp;
+"Using an item for this entry slows down Caucus' internal caching system.
+
+"<P>
+"<LI>There are many useful macros for the purpose of customizing
+" the Center page -- see 
+" <a href="http://caucuscare.com/TLIB/FAQ/macros.html" target="_blank"
+"   >caucuscare.com/TLIB/FAQ/macros.html</a>.&nbsp;
+" They are contained in the file CML/$(main)/macros.i.&nbsp;
+" You may wish to study them.
+"</OL>
+
+"&nbsp;</br>
+"<p/>
+"<dt><b>Section VIII: Registration page.</b>
+"<dd>
+set preventReg 0$site_data (0 - if_$(iface)_preventReg)
+"Prevent self-registration? &nbsp;
+"<input type="checkbox" name="preventReg" $if($(preventReg) checked=1) />
+"<p/>
+"<B><input NAME=submit TYPE=SUBMIT VALUE="Make Changes"></b>
+
+"</BLOCKQUOTE>
+"</FORM>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,30 @@
+#
+#---CUS_ENONF.CML     Handle form in cus_en.cml to turn e-notification
+#                     on or off.
+#
+#   arg(3)   conf num
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/05/03 Force caucus id to be allowed in conf for e-mail notification.
+#: CR 04/20/04 New 'instructor' permissions.
+#---------------------------------------------------------------------------
+
+include $(main)/secure.i ins $arg(3)
+
+eval $set_site_data ($arg(3) - en_on $if ($equal (x$form(submit) xOn) 1 0))
+
+#---If turning e-mail notification on, make sure caucus id is
+#   allowed in the conference!
+if $equal (x$form(submit) xOn)
+   eval $set_co_userlist ($arg(3) $co_userlist ($arg(3))$newline()\
+             :include$newline()\
+             #---Allow e-mail notification:$newline()\
+             $caucus_id()$newline())
+end
+
+"%location($(mainurl)/cus_en.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#---------------------------------------------------------------------------

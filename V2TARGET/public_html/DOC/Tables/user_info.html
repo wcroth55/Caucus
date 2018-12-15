@@ -1,0 +1,134 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>user_info&nbsp;&nbsp;&nbsp;</span>Basic information about users  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ One row per user, one column per user information field.  When a manager defines a new "master" user information field, Caucus  adds a new <b>column</b> to this table.  So this list of columns is  by definition not complete.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(255) </td>
+<td>PK </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>active</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Is this an 'active' user? 10=yes, 0=deleted, other codes reserved.  <br></td>
+<tr valign=top class='row0'>
+<td>lname</td>
+<td>varchar(255) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Last name.  A user must have a last name, at a minimum, to exist.  <br></td>
+<tr valign=top class='row1'>
+<td>fname</td>
+<td>varchar(255) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>prefix</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> e.g. Mr., Dr., etc.  <br></td>
+<tr valign=top class='row1'>
+<td>suffix</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> e.g. "Esq", "III"  <br></td>
+<tr valign=top class='row0'>
+<td>intro</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> personal description aka "introduction"  <br></td>
+<tr valign=top class='row1'>
+<td>phone</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>email</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>homepage</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>picture</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> last part of URL to picture  <br></td>
+<tr valign=top class='row1'>
+<td>registered</td>
+<td>datetime </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>laston</td>
+<td>datetime </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> last on Caucus, automatically maintained  <br></td>
+<tr valign=top class='row1'>
+<td>registeredon</td>
+<td>datetime </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> when registered, automatically maintained   <br></td>
+<tr valign=top class='row0'>
+<td>regface</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> interface used to register user, automatically maintained  <br></td>
+<tr valign=top class='row1'>
+<td>latitude_longitude</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> as determined by calling MaxMind on the IP address, optional  <br></td>
+</table>
+</body>
+</html>

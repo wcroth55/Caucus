@@ -1,0 +1,30 @@
+#
+#---announcef.cml    Handle "don't show again" option from announcement window.
+#
+#   $arg(1)   item number
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 05/16/03 CR New file.
+#:CR 10/24/05 Modify to be run from a tiny pop-up window.
+#-----------------------------------------------------------------
+
+#---Mark item $form(inum) as "never show this to me again",
+#   and close the current (pop-up) announcement window.
+
+eval $set_user_data ($userid() ann_seen \
+         $user_data ($userid() ann_seen) $arg(1))
+
+"Content-type: text/html
+"
+"<html>
+"<body bgcolor="#FFFFFF">
+"<script type="text/javascript" language="javascript">
+"   self.close();
+"</script>
+"</div>
+"</body>
+"</html>
+#-----------------------------------------------------------------

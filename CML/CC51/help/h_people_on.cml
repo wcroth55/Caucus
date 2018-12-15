@@ -1,0 +1,34 @@
+#
+#---H_PEOPLE_ON.I   Help about "who's on" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_people_on.cml $quote(Help on Who's On)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Who's On Page shows you everyone who is currently logged in to
+"Caucus.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>People</B> icon and follow the link. 
+
+
+"<P>
+"<B>What is on the Who's On page?</B><P>
+"<OL>
+
+include $(help)/h_pagetop.i
+
+"<P><LI>
+   "<B>The list of current users</B>&nbsp;
+   "The list of people shows you the full name of each person using Caucus,
+   "their userid, and the time when they most recently logged on.
+   "The full name is a link which you can use to view more information 
+   "about a person.
+"</OL>
+include $(help)/hb.i

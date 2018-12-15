@@ -1,0 +1,101 @@
+#
+#---MAN_FIELDS.CML.   Manager adding to site-wide user info field list.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/18/05 New file.
+#: CR 01/19/06 Complain if field could not be created.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_fields.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_fields.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Add user fields)
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Add user fields)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_fields </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Add User Fields</A>
+
+"<form NAME="cc" METHOD=POST
+"    ACTION="man_fieldsf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+"<BLOCKQUOTE>
+
+"This page shows the user information fields maintained by Caucus.&nbsp;
+"This is the master list of fields, and applies across all interfaces
+"on this site.&nbsp;
+"Each interface uses a subset of these fields.&nbsp;
+"If you need a new field, you must create it here, first.
+
+if $not_empty ($(fields_error))
+   "<script type="text/javascript" language="javascript">
+   "   confirm('$escsingle($(fields_error))');
+   "</script>
+end
+
+"<p/>
+"<form>
+"<table border=0>
+"<tr>
+"<td><b>Field name</b>&nbsp;&nbsp;</td>
+"<td><b>Type</b></td>
+"<td><b>Readonly</b>&nbsp;&nbsp;</td>
+"<td><b>Description</b></td>
+
+set query SELECT name, type, descr, magic FROM user_columns ORDER BY name
+set h $sql_query_open ($(query))
+set parity 1
+while $sql_query_row ($(h))
+   if $not ($tablefind ($(name) userid active))
+      set parity $minus (1 $(parity))
+      "<tr class="itemlist_row$(parity)">
+      "<td>$(name)</td>
+      "<td>$(type)</td>
+      "<td>$ifthen ($(magic) <img $(src_check)>)</td>
+      "<td>$(descr)</td>
+   end
+end
+eval $sql_query_close ($(h))
+
+"<tr>
+"<td><input type="text" name="name" size=15></td>
+"<td><select name="type">
+"    <option value="none"  SELECTED>(choose type)
+"    <option value="string" >String < 255 chars
+"    <option value="text"   >Text   > 255 chars
+"    <option value="int"    >Integer number
+"    <option value="date"   >Date &amp; time
+"    <option value="dollars">Dollars or decimals
+"    <option value="upload" >Upload
+"    </select></td>
+"<td><input type="checkbox" name="magic" value="1"></td>
+"<td><input type="text" name="descr" size=50></td>
+
+"<tr><td colspan=3
+"   ><input type="submit" name="submitit" value="Add New Field"></td>
+"</table>
+"</form>
+
+
+"</BLOCKQUOTE>
+"</FORM>
+
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

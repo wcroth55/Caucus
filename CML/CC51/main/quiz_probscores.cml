@@ -1,0 +1,133 @@
+#
+#---quiz_probscores.cml.   View all quiz scores
+#
+#   arg(9)   problem key
+#   arg(10)   sorting: (name, points, submitted) x (ascending, descending),
+#              represented as na, nd, pa, pd, sa, sd
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/25/06 New file.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_score.cml
+end
+ 
+set pkey $arg(9)
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+
+
+set title
+set query SELECT userid, title, visible0, visible1, onepage \
+            FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+#---Get fields from current problem.
+set title
+set q3 SELECT owner, category, title, text, texttype FROM quizproblems \
+        WHERE pkey=$(pkey) and deleted=0
+set h3 $sql_query_open ($(q3))
+eval   $sql_query_row  ($(h3))
+eval   $sql_query_close($(h3))
+
+set nxt   $page_save (1 quiz_score.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Quiz:&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote(Quiz: $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  </A>\
+   <a href="quiz_prob.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$arg(9)"\
+    >$replace(32 02 $(title))</a>\
+   &nbsp;$(compass_arrow)&nbsp;<a href="#top">Scores
+
+#---Figure out sorting orders...
+set order   $if ($empty ($arg(10)) nd $arg(10))
+set order0  $str_sub(0 1 $(order))
+set order1  $str_sub(1 1 $(order))
+set ascdesc $if ($equal ($(order1) a) ASC DESC)
+if   $equal ($(order0) n)
+   set orderby u.lname $(ascdesc), u.fname $(ascdesc), u.userid $(ascdesc)
+end
+elif $equal ($(order0) p)
+   set orderby stotal $(ascdesc), u.lname, u.fname, u.userid
+end
+else
+   set orderby submitmax $(ascdesc)
+end
+
+"<p/>
+"<ul>
+"List of scores for this problem, for students who have submitted their answers.
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+set q1 SELECT SUM(totalpoints) FROM quizproblems p \
+        WHERE pkey = $(pkey) AND p.deleted=0
+set maxtotal $sql_query_select($(q1))
+
+set updown $if ($equal ($(order) nd) na nd)
+"<tr><td></td>
+"<td><b><a href="quiz_probscores.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+\
+                                         $(pkey)+$(updown)"
+"   >Name</a></b></td> <td>&nbsp;&nbsp;</td>
+"<td></td> <td>&nbsp;&nbsp;</td> 
+
+set updown $if ($equal ($(order) pd) pa pd)
+"<td align=right><b><a 
+" href="quiz_probscores.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)+$(updown)"
+"   >Points: $(maxtotal)</a></b></td>
+"<td>&nbsp;&nbsp;&nbsp;</td> 
+
+set updown $if ($equal ($(order) sd) sa sd)
+"<td><b><a 
+" href="quiz_probscores.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)+$(updown)"
+"   >Date Submitted</a></b></td>
+
+set q2 SELECT u.fname, u.lname, u.userid, SUM(s.points) stotal, \
+              MAX(s.submitted) submitmax \
+         FROM user_info u, quizscore s \
+        WHERE u.userid = s.userid AND s.pkey=$(pkey) AND s.status > 1 \
+        GROUP BY u.userid ORDER BY $(orderby)
+set h2 $sql_query_open ($(q2))
+set counter 0
+set parity  1
+while  $sql_query_row  ($(h2))
+   set counter $plus (1 $(counter))
+   set parity  $minus(1 $(parity))
+   "<tr class="peoplelist$(parity)"><td align=right>$(counter).&nbsp;</td>
+   "<td><a href="javascript: pop_up('person', '$(userid)');" \%help(h_name)
+   "   >$(lname), $(fname)</a></td>  <td></td>
+   "<td>($(userid))</td><td></td>
+   "<td align=right>$(stotal)</td>    <td></td>
+   "<td>%monthDayYearHour($(submitmax))</td>
+   "<td>&nbsp;</td>
+end
+eval   $sql_query_close($(h2))
+"</table>
+
+
+
+"</ul>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

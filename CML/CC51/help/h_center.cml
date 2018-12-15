@@ -1,0 +1,79 @@
+#
+#---H_CENTER.CML      "Help about" the Caucus Center.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_center.cml $quote(Help on $(center_name))
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The $(center_name) is the central (or "root") page 
+"for the conferences at this site.&nbsp;
+"Like ancient Rome, all roads lead to (and from)
+"the $(center_name).&nbsp;
+"It corresponds to the "host" box in the 
+"Caucus structure diagram in the
+"<A HREF="$(helpurl)/h_tutor1.cml?x+x">Caucus Tutorial</A>.&nbsp;
+"You can get to the $(center_name) from <B>any</B> page 
+"by clicking on the link next to the compass icon.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"The purpose of the $(center_name) page is to provide you
+"with several different ways to get to conferences on
+"this host.
+
+"<P>
+"<OL>
+"<LI>
+   "You can <B>see a list of all conferences</B> on this host.&nbsp;
+   "If you're looking for a particular conference, and don't see it
+   "on the $(center_name) page, click on this link and you'll see
+   "every single conference that is available to you.&nbsp;
+   "Then click on the desired conference, and you're in!
+   "<P>
+
+"<LI>
+   "If you have a 
+   "<A HREF="$(helpurl)/h_pers.cml">Personal Conference List</A>, you'll see
+   "a listing of your conferences in that list, with a summary
+   "of the new activity in those conferences.&nbsp;
+   "You can go to any conference in that list just by clicking
+   "on it.&nbsp;
+   "Or you can click on the number next to a conference name
+   "to immediately see the new activity in that conference.&nbsp;
+   "<P>
+   "Or, <B>best of all</B>, you can click on 
+   "<B>Read all new discussion</B> to see all the new activity
+   "in all of those conferences.&nbsp;
+   "It will show you the new material, one item at a time, 
+   "and offer you a chance to respond after each one.
+   "<P>
+
+"<LI>
+   "The Caucus Manager may have created a list of "<B>popular
+   "conferences</B>" that are common to many people.&nbsp;
+   "Again, you can click on any of these to enter that conference.
+   "<P>
+
+"<LI>
+   "<FORM NAME="helpform3">
+   "You can also go to a specific conference by typing
+   "its name in the rectangle next to the 
+   "<INPUT TYPE="button" VALUE="JOIN"> button, and clicking
+   "on the button.
+   "</FORM>
+
+if $bit_and(16 $word (2 $mgr_list($userid())))
+"<LI>
+   "Since you are a Caucus Manager, you have an extra link immediately 
+   "below your name: "You can <u>manage</u> this site." Select that link for a 
+   "menu of management functions that you have access to.
+
+"</OL>
+
+include $(help)/hb.i

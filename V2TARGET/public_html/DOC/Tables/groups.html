@@ -1,0 +1,64 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>groups&nbsp;&nbsp;&nbsp;</span>Groups  
+<p/><b>Categories: </b>
+<a href='_Groups.html'>Groups</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ 	We query groups whenever we need to test access of a specific userid  to a specific group, or (in reverse) for the precise membership of a specific group.  <p/>Note that all userid wildcard rules from grouprules get expanded into one  row in groups per userid that matches the wildcard!  Thus for many reasons,  changing a group is expensive, but checking access (or membership) is very fast.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> userid affected by this entry  <br></td>
+<tr valign=top class='row1'>
+<td>owner</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> identifies group (see <a href='grouprules.html'>grouprules</a>)  <br></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> identifies group  <br></td>
+<tr valign=top class='row1'>
+<td>access</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> access level  <br></td>
+<tr valign=top class='row0'>
+<td>active</td>
+<td>tinyint(4) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> 1 => real rule; 0 => rule being rebuilt; 3 => about to become a real rule  <br></td>
+<tr valign=top class='row1'>
+<td>priority</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td></td>
+</table>
+</body>
+</html>

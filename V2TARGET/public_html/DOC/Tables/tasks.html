@@ -1,0 +1,134 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>tasks&nbsp;&nbsp;&nbsp;</span>Tasks  
+<p/><b>Categories: </b>
+<a href='_Tasks.html'>Tasks</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ The Tasks table keeps not only a list of all tasks on the system,  but a complete history of every version of every task.  <p/> Thus, each task has a unique tid, but each row has a unique primary key,  tkey.  A single task may have many rows with the same tid and different updateds.  Only the most recent row will have current = 1, all others will have a value of 0.  (Seems like there ought to be an SQL way to do this by taking the max() of  updated, but w/o sub-queries that may not be possible or portable.)  (This last statement is probably wrong and should be corrected, 9/18/08.)  <p/> If a task has been deleted, all its rows will have deleted = 1, but the rows  are still maintained and are in theory still visible (although certain UI issues,  like who is allowed to examine deleted tasks, need to be resolved).  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>tkey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>tid</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td> unknown  <br></td>
+<tr valign=top class='row0'>
+<td>title</td>
+<td>varchar(64) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>lead</td>
+<td>varchar(64) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> lead person assigned to task. FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row0'>
+<td>assigner</td>
+<td>varchar(64) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> person who assigned this task. FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row1'>
+<td>towner</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>tgroup</td>
+<td>varchar(255) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> group allowed to see or modify this task  <br></td>
+<tr valign=top class='row1'>
+<td>target</td>
+<td>date </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> proposed target (due) date of task  <br></td>
+<tr valign=top class='row0'>
+<td>priority</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>category</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> General category that class belongs to  <br></td>
+<tr valign=top class='row0'>
+<td>status</td>
+<td>varchar(32) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Description of status -- open, done, etc.  <br></td>
+<tr valign=top class='row1'>
+<td>updated</td>
+<td>datetime </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> When was this task last updated or modified?  <br></td>
+<tr valign=top class='row0'>
+<td>current</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Is this the most current version of this task?  <br></td>
+<tr valign=top class='row1'>
+<td>deleted</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> 1=deleted  <br></td>
+<tr valign=top class='row0'>
+<td>text</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> Actual (probably HTML) text of task  <br></td>
+<tr valign=top class='row1'>
+<td>texttype</td>
+<td>varchar(32) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+</table>
+</body>
+</html>

@@ -1,0 +1,68 @@
+#
+#---RESIGN.CML.   Resign from this conference?
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i confhome.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set cnum $arg(3)
+
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 resign.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Resign from $(cname)? )
+
+include $(main)/head.i $arg(3)  $quote(Resign from $(cname)?)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  resign  Resign from $(cname)?
+
+"<blockquote>
+"Resigning from a conference means removing yourself as a member.&nbsp;
+"The conference will no longer appear under "My Conferences",
+"and you will not appear in the list of conference members.&nbsp;
+"(But any items or responses you have written will remain in the
+"conference.)
+
+"<P>
+"If you resign, you can join the conference again later, but  it
+"will be as if you were joining for the  first time.
+
+"<P>
+"Do you wish to resign from $(cname)?
+
+"<BR>
+"<form METHOD=POST ACTION="resignf.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x">
+"<TABLE >
+"<TR VALIGN=top>
+"<TD><INPUT TYPE="submit" NAME="submit" VALUE="Yes"></TD>
+"<TD><IMG SRC="$(img)/clearpix.gif" WIDTH=1 HEIGHT=5><BR>
+"    Remove me from the conference, and go to the
+"    $(center_name).</TD>
+
+"<TD>&nbsp;&nbsp;</TD>
+
+"<TD><INPUT TYPE="submit" NAME="submit" VALUE="No"></TD>
+"<TD><IMG SRC="$(img)/clearpix.gif" WIDTH=1 HEIGHT=5><BR>
+"  Take me back to the $(cname) Home Page.</TD>
+"</TABLE>
+"</FORM>
+
+
+"</blockquote>
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------

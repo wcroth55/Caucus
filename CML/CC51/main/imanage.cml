@@ -1,0 +1,631 @@
+#
+#---IMANAGE.  Item "Management".
+#
+# Copyright (C) 1995-2006 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  3/20/00 20:31 Allow organizers to change author.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/12/03 Add ebox stuff (lots).
+#: CR 05/21/03 ebox.sconf must be conference number, not name.
+#: CR 08/10/03 Only warn about announcements in system_announcements conf.
+#: CR 08/26/03 Add "assignment item" code to show/edit dates & group/confs.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  7/11/04 Add "reverse item" feature.
+#: CR  7/27/04 Use $escquote() instead of $t2hbr() to edit title.
+#: CR  8/08/04 Add restricted date range for responding.
+#: CR  9/01/04 Add ebox_submit() call.
+#: CR 10/13/04 Add "delete range" of responses.
+#: CR 12/04/05 Use query to get list of confs for move/copy.
+#: CR 01/17/06 Check if item creator is allowed to manage (delete) item!
+#: CR 01/22/06 But let  item creator edit it!
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 05/13/08 Add word, responses limits.
+#: CR 07/15/08 Correct overloaded use of 'access', replace with 'myaccess'.
+#: CR 10/10/08 Add handling for individual item perms.
+#: CR 08/19/09 Clean up display/tables.
+#: CR 04/22/10 Temporarily disable 'move' with '#?'.
+#--------------------------------------------------------------------------
+ 
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i imanage.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch    $unique()
+
+#---Fetch all the needed info about this item:
+set q SELECT title, userid owner, frozen, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set forgot $sql_query_select (\
+            SELECT forgot FROM resps_seen \
+             WHERE userid='$userid()' AND items_id=$arg(4))
+
+set vi_cnum  $arg(3)
+set myaccess $max (%access($(vi_cnum)) $group_access ($userid() Item $arg(4)))
+set is_org     $gt_equal ($(myaccess) $priv(instructor))
+set is_owner   $equal ($(owner) $userid() )
+set safe       0
+set creator_privileged  $not_equal (x$site_data($arg(3) - icreator) x0)
+set can_manage $or ($(is_org) \
+                    $and ($(is_owner) \
+                          $gt_equal ($(myaccess) $priv(include)) \
+                          $(creator_privileged)) )
+#set can_manage 1
+
+#---Enforce that this page is only for the item owner or conference organizer.
+#if $and ($not_equal ($re_owner ($arg(3) $arg(4) 0) $userid()) \
+#         $not_equal (%access($arg(3)) 3))
+#   "%location($(mainurl)/confhome.cml?$(nch)+$arg(3)+x+x+x+x+x)
+#   "
+#   return
+#end
+
+set ilabel $item_label ($arg(3) $arg(4))
+
+if $empty ($(nosuch))
+   set nxt $page_save (1 imanage.cml \
+                       $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                       # Manage Item $(ilabel) )
+end
+
+include $(main)/head.i $arg(3)  $quote(Manage Item $(ilabel): $t2hbr($(title))) 0 0 1
+
+include $(main)/body.i $arg(3) onLoad="ebox_onload('');" \
+                             onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     imanage Manage Item $(ilabel)
+
+set q SELECT time, prop, bits, text FROM resps WHERE items_id=$arg(4) AND rnum=0 \
+        ORDER BY version DESC LIMIT 1
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set freezeword $if ($(frozen) Thaw Freeze)
+
+#---Header
+"<span class="bigger"><B>
+"   Item $(ilabel): $t2hbr($(title))
+"</B></span>
+
+"<p/>
+
+#"vi_cnum=$(vi_cnum)<br>
+#"access=%access($(vi_cnum))<br>
+#"group_access=$group_access ($userid() Item $arg(4))<br>
+#"is_org=$(is_org)<br>
+#"myaccess=$(myaccess)<br>
+if $(is_org)
+   "Since you are an organizer, you are given special abilities
+   "to manage this item.&nbsp;
+end
+elif $(can_manage)
+   "Since you created this item, you are given special abilities
+   "to manage how it is used.&nbsp;
+end
+else
+   "As a member of this conference, you can manage your use of
+   "this item in two ways.&nbsp;
+end
+
+"You may:
+"<P>
+"<UL>
+
+#---Forget and Remember item.
+if $(forgot)
+   #"$ifthen ($(can_manage) <LI>)
+   "<LI>
+   "<A HREF="iforget.cml?0+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                   $arg(7)+$arg(8)">Remember</A>
+   " this item so that it will appear on your lists of items again.
+end
+else
+   "<LI>
+   "<A HREF="iforget.cml?1+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                               $arg(7)+$arg(8)">Forget</A>
+   " this item so that it will no longer appear in your lists of items.
+end
+  
+  
+if $or ($(is_owner) $(can_manage))
+   #---Allow editing of item text?
+   set safe 1
+   set elapsed     $epochOfYYYY($(time))
+   set changelimit $site_data($arg(3) - changelimit)
+   if $not_empty ($(changelimit))
+      set safe $gt_equal($(changelimit) $minus($time() $(elapsed)) )
+   end
+  
+   if $or ($(is_org) $(safe))
+      "<P>
+      "<LI><A HREF="#textbox">Edit the item title or text</A> (see below)
+
+      if $equal (x$(type) xwiki)
+         "<p/>
+         "<li><a href="viedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)"
+         "   >Review earlier versions of this wiki</a>
+      end
+   end
+end
+
+if $(can_manage)
+   "<p/>
+   "<LI><A HREF="#copy">$(freezeword), reverse, delete, copy, move, or divide</A>
+   "the item and its responses
+
+   if $(is_org)
+      "<p/>
+      "<li><a href="#cleanup">Delete</a> a range of responses.
+   end
+
+   if $(is_org)
+      "<p/>
+      "<li>Change the
+      "  <a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+Item+$arg(4)+$arg(4)"
+      "   >access control</a> on the item.
+   end
+   "</UL>
+
+   "<p>&nbsp;
+   "<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 WIDTH="100%">
+   "<TR>
+   "<TD BGCOLOR=#BBBBBB><a name="textbox"><B>Edit Item OR Title</B></a></TD>
+   set ann_cnum $word (1 $cl_list (system_announcements) 0)
+   "<TD BGCOLOR=#BBBBBB>
+   if $equal ($arg(3) $(ann_cnum))
+      "<b>You MUST view your  item for announcements to work!</b>
+   end
+   "</td>
+   "</TABLE>
+end
+
+"<form METHOD=POST name="ebox"
+"      onSubmit="return ebox_submit();"
+"      ACTION="ieditf.cml?$(nch)+$(nxt)+\
+              $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+"<input type="hidden" name="type" value="$(type)"/>
+
+#---Is this person allowed to edit the item?
+if $or ($(is_org) $(safe))
+
+   #---Is this an assignment?  Show dates & group/conf pulldowns.
+   if $equal (x$arg(3) x$(assign_cnum))
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><b>Change:</b>&nbsp</td>
+      "<td colspan=3>starting date</td>
+      "<td></td>
+      "<td colspan=3>ending date</td>
+      "<td>conference or group.</td>
+  
+      "<tr>
+      "<td></td>
+      set temp $site_data ($arg(3) - assign$arg(4))
+      set d0 $word (2 $(temp))
+      set d1 $word (3 $(temp))
+      include $(main)/datefield.i $(d0) d0
+      "<td>&nbsp;&nbsp;</td>
+      include $(main)/datefield.i $(d1) d1
+  
+      include $(main)/sortedgroups.i
+      include $(main)/sortedconfs.i
+  
+      #---%gcsel (value)   Mark "selected" if $(who) == value.
+      #   Just a convenience to make the whole <select> menu easier to write.
+      set who $word (4 $(temp))
+      eval $mac_define (gcsel \$if (\$equal (\$(who) @1) selected))
+  
+      "<td><select name="who">
+      "    <option value="0" >(select one)
+      "    <option value="-1" %gcsel(-1)>* (everyone)
+  
+           #---Groups
+           for group in $(sorted_groups)
+           "   <option value="$(group)" %gcsel($(group))>Group: $(group)
+           end
+           #---Conferences
+           for cnum conf in $(sorted_confs)
+           "   <option value="$(cnum)"  %gcsel($(cnum)) >Conf: $(conf)
+           end
+      "</select></td>
+      "</table>
+      "<input type="hidden" name="userid" value="$word (1 $(temp))">
+      "<p>
+   end
+   #------------------------------------------------------------
+   "<p/>
+
+   #---Determine type of ebox to use for editing; force to <textarea>
+   #   if type of response is "word-wrapped" or "literal".
+   set textprop $plus ($(prop) 1)
+   set plaintextOnly $less ($(textprop) 3)
+   include $(main)/ebox_type.i  $(plaintextOnly)
+
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr>
+   "<td><img $(src_eboxtl)></td>
+   "<td $(eboxbg) colspan=5 rowspan=2><b>Choose from:</b></td>
+   "<td align=right><img $(src_eboxtr)></td>
+   "</tr>
+
+   "<tr $(eboxbg)>
+   "<td><img $(src_clear) width=1 height=3></td>
+   "<td><img $(src_clear) width=1 height=3></td>
+   "</tr>
+
+   #---Edit the title.  Allow for IE input text box size bug.
+   set titlesize 60
+   if $(is_explorer5)
+      set titlesize 40
+   end
+   "<tr $(eboxbg)><td>&nbsp;</td>
+   "<td colspan=5><table cellspacing=0 cellpadding=0 border=0>
+   "   <tr>
+   "   <td><img $(src_bullet)>&nbsp;Change&nbsp;Title:&nbsp;</td>
+   "   <td><INPUT TYPE="text" NAME="title" SIZE=$(titlesize) \
+             VALUE="$escquote($(title))"></td>
+   "   </table></td>
+   "<td>&nbsp;</td>
+
+#  "<tr><td>1</td> <td>2</td> <td>3</td> <td>4</td> <td>5</td> <td>6</td> <td>7</td>
+
+   "<tr $(eboxbg)>
+   "<td colspan=7><img $(src_clear) width=1 height=3></td>
+#  "<td><img $(src_clear) width=1 height=3></td>
+#  "</tr>
+
+   #---Edit the item text.
+   if $(ebox_ta)
+      include $(main)/ebox_ta.i $if ($empty($arg(9)) 1 2) 0 0 i_item 0 \
+              $(plaintextOnly)
+   end
+
+   elif $(ebox_ek)
+      include $(main)/ebox_ek.i $if ($empty($arg(9)) 1 2) 0 0 i_item
+   end
+
+   elif $(ebox_rt)
+#     "<p>Edit the item text or title, and press <b>Post</b>.
+      include $(main)/ebox_rt.i $if ($empty($arg(9)) 1 2) 0 0 i_item 0
+   end
+  
+   set anon $bit_and (32 $(bits))
+   if $or ($word (1 $site_data($arg(3) - allowanon) 0) $(anon))
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=2 class="paddedRow">
+      "   <img $(src_bullet)>&nbsp;
+      "   Responses are signed
+      "   <INPUT TYPE=radio NAME=anon VALUE="0" $if ($not($(anon)) CHECKED)>
+      "</td>
+      "<td colspan=3>
+      "   &nbsp;&nbsp;&nbsp;Responses are anonymous
+      "   <INPUT TYPE=radio NAME=anon VALUE="1" $if ($(anon)  CHECKED)>
+      "</td>
+      "<td></td></tr>
+   end
+
+   if $and ($(is_org))
+      "<tr $(eboxbg)><td colspan=7><img $(src_clear) width=1 height=4></td></tr>
+
+      "<tr $(eboxbg)>
+      "   <td>&nbsp;</td>
+      "   <td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0 width="100%">
+      "       <tr>
+                "<td>
+                    if $not_empty ($(nosuch))
+                       "<B>$(nosuch)</B><BR>
+                    end
+                    set nosuch
+                    "<img $(src_bullet)>&nbsp;Change the owner to userid:&nbsp;
+                "</td>
+                "<td align=right>
+      "             <INPUT TYPE=TEXT NAME=owner VALUE="$(owner)" SIZE=12>
+      "          </td>
+      "       </tr>
+      "   </table></td>
+      "   <td colspan=3>&nbsp;&nbsp;&nbsp;&nbsp;(%per_name($(owner))).</td>
+      "   <td>&nbsp;</td>
+      "</tr>
+   end
+  
+
+eval $mac_define (rangedate \
+        \$ifthen (\$greater (0@1 0) \
+           \$mac_expand(\%monthDayYear(\%yyyymmddOf(\$dateof(@1)))))\
+        \$ifthen (\$less    (0@1 1) (anytime)))
+
+   if $(is_org)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0  width="100%">
+         "<tr>
+         "<td><img $(src_bullet)>&nbsp;</td>
+         "<td>
+            "Responses allowed from:
+         "</td>
+         "<td align=right>
+         "   <input type="text" name="rdate0" size=12
+         "          value="%rangedate($site_data($arg(3) $arg(4) rdate0))">
+         "</td>
+      "</table></td>
+      "<td colspan=3>
+         "&nbsp;&nbsp;&nbsp;&nbsp;to: <input type="text" name="rdate1" size=12
+         "    value="%rangedate($site_data($arg(3) $arg(4) rdate1))"></td>
+      "</td>
+      "<td></td>
+
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0  width="100%">
+         "<tr>
+         "<td><img $(src_bullet)>&nbsp;</td>
+         "<td>
+            "Item is visible from:
+         "</td>
+         "<td align=right>
+             set visdate %rangedate($site_data($arg(3) $arg(4) visdate0))
+         "   <input type="text"   name="visdate0"    size="12" value="$(visdate)" />
+         "   <input type="hidden" name="visdate0old"           value="$(visdate)" />
+         "</td>
+      "</table></td>
+      "<td colspan=3>
+         set visdate %rangedate($site_data($arg(3) $arg(4) visdate1))
+         "&nbsp;&nbsp;&nbsp;&nbsp;to:
+         "<input type="text"   name="visdate1"    size="12" value="$(visdate)" />
+         "<input type="hidden" name="visdate1old"           value="$(visdate)" />
+         "&nbsp;&nbsp;&nbsp; <i>(mm/dd/yyyy)</i>
+         "</td>
+      "</td>
+      "<td></td>
+   end
+
+   "<tr $(eboxbg)><td></td>
+   "<td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0 width="100%">
+      "<tr>
+      "<td><img $(src_bullet)>&nbsp;</td>
+      "<td>
+         set wordLimit $site_data($arg(3) $arg(4) wordLimit)
+         "Limit responses to this many words:
+      "</td>
+      "<td align="right">
+      "   <input type="text"   name="wordLimit" size=6 value="$(wordLimit)">
+      "   <input type="hidden" name="wordLimitOld"     value="$(wordLimit)">
+      "</td>
+   "</table></td>
+   "<td colspan=3>&nbsp;&nbsp;&nbsp;&nbsp;(Organizers and instructors are unlimited.)</td>
+   "<td></td>
+
+   "<tr $(eboxbg)><td></td>
+   "<td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0 width="100%">
+      "<tr>
+      "<td><img $(src_bullet)>&nbsp;</td>
+      "<td>
+         set respLimit $site_data($arg(3) $arg(4) respLimit)
+         "Limit users to this many responses:</td>
+      "</td>
+      "<td align=right>
+         " <input type="text"   name="respLimit" size=6 value="$(respLimit)">
+         " <input type="hidden" name="respLimitOld"     value="$(respLimit)"></td>
+   "</table></td>
+   "<td colspan=4></td>
+
+   if $(ebox_ta)
+      "<tr $(eboxbg)><td>&nbsp;</td>
+      "<td colspan=2 class="paddedRow"><table cellspacing=0 cellpadding=0 width="100%">
+         "<tr>
+         "<td><img $(src_blank)>&nbsp;</td>
+         "<td>
+         "   <INPUT TYPE="submit" NAME="button" VALUE="Change Item">
+         "</td>
+         "<td align="right">
+         "   <INPUT TYPE="reset" VALUE="Undo Changes">
+         "</td>
+      "</table></td>
+      "<TD>
+         include $(main)/boxsize.i 0
+      "</TD>
+      "<td colspan=3>&nbsp;</td>
+      "</tr>
+   end
+
+   if $(ebox_rt)
+      "<tr $(eboxbg)><td>&nbsp;</td>
+      "<td colspan=5 class="paddedRow">
+      "   <img $(src_blank)>
+      "   <INPUT TYPE="submit" NAME="button" VALUE="Change Item">
+      "   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      "</td>
+      "<td>&nbsp;</td>
+      "</tr>
+   end
+
+   "<tr valign=bottom>
+   "<td><img $(src_eboxbl)></td>
+   "<td $(eboxbg) colspan=5><img $(src_clear) width=1 height=1></td>
+   "<td align=right><img $(src_eboxbr)></td>
+   "</table>
+end
+
+#---Delete, Move, or Copy item and responses
+
+if $(can_manage)
+   "<A NAME="copy"><P>&nbsp;</A><P>
+   "<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 WIDTH="100%">
+   "<TR><TD BGCOLOR=#BBBBBB><B>$(freezeword), Reverse, Delete, Copy, Move, Divide</B></TD>
+   "</TABLE>
+  
+   "<BLOCKQUOTE>
+   "You can also perform one of the following operations.&nbsp;
+   "<I>(Any changes made above to the item title or text will be applied
+   "before the item is frozen, copied or moved.)</I>
+end
+
+"<P>
+"<A NAME="Error"></A><FONT COLOR=RED>
+if $equal ($arg(5) 1)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> the conference does not
+   "exist or you cannot create items in it.
+end
+elif $equal ($arg(5) 2)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> you must enter an item
+   "number, or the word "new".
+end
+elif $equal ($arg(5) 3)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> there is no such item.
+end
+elif $equal ($arg(5) 4)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> cannot add to item;
+   "it may be frozen.
+end
+elif $equal ($arg(5) 5)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> cannot create new item.
+end
+elif $equal ($arg(5) 6)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> copying not allowed in
+   "this conference.
+end
+elif $equal ($arg(5) 8)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> attempted copy to self or own breakout.
+end
+"</FONT>
+
+
+"<TABLE BORDER=0>
+
+#---If the item creator is allowed Freeze/Delete/Rename...
+#if $or ($(is_org) $not_equal (x$site_data($arg(3) - icreator) x0) )
+if $or ($(is_org) $and ($(can_manage) \
+                        $not_equal (x$site_data($arg(3) - icreator) x0)) )
+   #---Freeze/thaw the item.
+   "<P>
+   "<TR>
+   if $(frozen)
+      "<TD><INPUT TYPE="submit" NAME="button" VALUE="Thaw"></TD>
+      "<TD COLSPAN=3> this item.&nbsp;  Responses may then be added again.</TD>
+   end
+   else
+      "<TD><INPUT TYPE="submit" NAME="button" VALUE="Freeze"></TD>
+      "<TD COLSPAN=3> this item.&nbsp;  No more responses may be
+      "   added by anyone.</TD>
+   end
+end
+
+if $(can_manage)
+   #---Reverse/unreverse response direction.
+   "<TR valign=top>
+   if 0$site_data ($arg(3) $arg(4) reverse)
+      "<TD><INPUT TYPE="submit" NAME="button" VALUE="Unreverse"></TD>
+      "<TD COLSPAN=3> this item.&nbsp;
+      "   Responses will be shown in order, lowest down to highest.</TD>
+   end
+   else
+      "<TD><INPUT TYPE="submit" NAME="button" VALUE="Reverse"></TD>
+      "<TD COLSPAN=3> this item.&nbsp;  Responses will be shown
+      "   in reverse order, highest (newest) first, on down.</td>
+   end
+
+   "<P>
+      "<TR><TD>
+      "<INPUT TYPE="submit" NAME="button" VALUE="Delete">&nbsp;</TD>
+      "<TD COLSPAN=3> this item and all of its responses
+      "and <b>all sub-items</b>? </TD>
+end
+
+if $(is_org)
+   "<tr>
+   "<td><input type="submit" name="button" Value="Divide"></td>
+   "<td colspan=2> page vertically so that item displays in </td>
+   "<td><input type="text" size="5" name="dividedItem"
+   "           value="$site_data ($arg(3) $arg(4) dividedItem)"> % of the height</td>
+
+end
+
+   "<TR>
+   "<TD><INPUT TYPE=submit NAME="button" VALUE="Copy"></TD>
+   "<TD>
+   if $(can_manage)
+      "<nobr>or&nbsp;&nbsp; <INPUT TYPE=submit NAME="button" VALUE="Move"></nobr>
+   end
+   "</TD>
+   "<TD COLSPAN=2>this item and its responses to:</TD>
+
+   "<TR><TD></TD>
+   "<TD><nobr><INPUT TYPE=RADIO NAME="towhere" VALUE="new" CHECKED
+   "    >&nbsp;a&nbsp;new&nbsp; item</nobr></TD>
+
+   set query  \
+      SELECT a.name, a.cnum cnm, a.access, o.alpha FROM \
+         (SELECT c.name, c.cnum, g.access FROM (confs c, groups g) \
+            LEFT JOIN confhidden h \
+              ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+           WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+             AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+             AND  c.deleted = 0 \
+             AND  h.hidden IS NULL) a \
+        LEFT JOIN conforder o \
+          ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+       ORDER BY ifnull(o.alpha, a.name)
+
+   set h $sql_query_open ($(query))
+
+   "<TD ROWSPAN=2 VALIGN="middle">...in the conference&nbsp; </TD>
+   "<TD ROWSPAN=2 VALIGN="middle">
+   "   <SELECT NAME=sconf>
+       while $sql_query_row  ($(h))
+         "<OPTION VALUE="$(cnm)"
+         "   $if ($equal($(cnm) $arg(3)) SELECTED)
+         "     >$replace(_ 32 $(name))</OPTION>
+       end
+       eval  $sql_query_close($(h))
+   "   </SELECT>
+   "<TD>
+
+   "<TR><TD></TD>
+   "<TD><INPUT TYPE=RADIO NAME="towhere" VALUE="app">
+   "item <INPUT TYPE=TEXT NAME=itemno SIZE=3 VALUE="">&nbsp;&nbsp;</TD>
+
+   if $gt_equal ($(myaccess) $priv(instructor))
+      "<TR><TD></TD>
+      "<TD COLSPAN=3><INPUT TYPE=CHECKBOX NAME="anonly" VALUE="1">
+      "Suppress "copied by" text (if you are an organizer)</TD>
+      "<TR><TD></TD>
+      "<TD COLSPAN=3><INPUT TYPE=CHECKBOX NAME="datenow" VALUE="1">
+      "Do not preserve original dates</td>
+   end
+   "</TABLE>
+
+   "</BLOCKQUOTE>
+
+   if $(is_org)
+      "<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 WIDTH="100%">
+      "<TR><TD BGCOLOR=#BBBBBB
+      "   ><a name="cleanup"><B>Delete a range of responses</B></TD>
+      "</TABLE>
+      "<blockquote>
+      "<INPUT TYPE="submit" NAME="button" VALUE="Delete range">
+      "of responses, numbered from
+      "<input type="text" name="range0" size="4"> to
+      "<input type="text" name="range1" size="4">
+      "</blockquote>
+   end
+
+"</form>
+
+#if $(can_manage)
+#   include $(main)/trailer.i    imanage  Manage Item $arg(4)
+#end
+#else
+   "<HR>
+#end
+
+"</div>
+"</body>
+"</HTML>
+#---------------------------------------------------------------------

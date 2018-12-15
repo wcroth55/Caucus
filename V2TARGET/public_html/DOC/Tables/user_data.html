@@ -1,0 +1,43 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>user_data&nbsp;&nbsp;&nbsp;</span>User "variables" that control or modify the actual operation of the software.  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Typically "sparse" data, in that most users do not have values for  "most" variables. Whereas fields that have data for everyone typically are added  as new columns in <a href='user_info.html'>user_info</a>.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(255) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td> Actual userid (with 'name' combines to form primary key)   name. FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row1'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td> name of user "variable"  <br></td>
+<tr valign=top class='row0'>
+<td>value</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> value of "variable"  <br></td>
+</table>
+</body>
+</html>

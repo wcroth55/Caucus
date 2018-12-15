@@ -1,0 +1,49 @@
+#
+#---customnf.cml.  Handle conference renaming form
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_name.cml
+end
+
+include $(main)/secure.i org $arg(3)
+
+set nch $unique()
+
+set result $co_rename($form(cnum) $replace (32 _ $form(cname)))
+
+if $equal($(result) 0)
+   set bad_conf_name Strangely, you do not have permission to change the name \
+                     of this conference.
+   "%location($(mainurl)/custom_name.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+elif $equal($(result) -1)
+   set bad_conf_name You may only use letters and numbers in your conference \
+                     name.
+   "%location($(mainurl)/custom_name.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+elif $equal($(result) -2)
+   set bad_conf_name An error has occured (bad conference number: $(cnum)). \
+                     Please quit Caucus and try again.
+   "%location($(mainurl)/custom_name.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+elif $equal($(result) -3)
+   set bad_conf_name A conference called <i>$form(cname)</i> already exists. \
+                     Please choose another name.
+   "%location($(mainurl)/custom_name.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+else
+  set caller $page_caller (1 $arg(2))
+  "%location($(mainurl)/$page_return ($(caller) # custom.cml?$(nch)+0+x+x+x+x+x+x))
+  "
+end
+
+#------------------------------------------------------

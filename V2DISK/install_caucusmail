@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+#---install_caucusmail     Installer script for Caucus email participation.
+#
+#: CR  7/09/04 New installer script.
+#--------------------------------------------------------------------------
+
+caucus=`dirname $0`
+
+chmod 710 .
+
+#---Make sure that this id and Caucus have the same group.
+cowner=`ls -ld $caucus | (read a b c d e; echo $d)`
+mowner=`ls -ld .       | (read a b c d e; echo $d)`
+if test "x$cowner" != "x$mowner"; then
+   echo "$caucus and the current directory do not appear to have the"
+   echo "same group.  Please correct this and try again."
+   exit
+fi
+
+echo "(echo \"p *\";  echo \"d *\";  echo \"q\") | /bin/mail >mailtext" >import
+echo "chmod 644 mailtext"   >>import
+echo "$caucus/SWEB/sweba $caucus/SWEB/swebd.conf EMAIL44/main/import.cml mailtext /tmp /bin/mail" >>import
+
+echo "$caucus/SWEB/sweba $caucus/SWEB/swebd.conf EMAIL44/main/sendup.cml /tmp /bin/mail" >export
+
+pwd=`pwd`
+echo "5 5 * * * $pwd/import"   >crontab_file
+echo "6 5 * * * $pwd/export"  >>crontab_file
+
+crontab crontab_file
+crontab -l >crontab_test
+if test ! -s crontab_test; then
+   echo "WARNING!!   This id apparently is not allowed to use crontab."
+   echo "Crontab is required for Caucus email participation to work."
+   echo "Please correct this, and then try again."
+   exit
+fi
+rm crontab_test
+
+chmod 750 import export
+
+echo " "
+echo "The Caucus email participation module has been successfully installed."
+echo " "
+echo "Now run Caucus from a manager id, and make sure that the email"
+echo "participation id has been set.  (Click on Manager, Look and feel, "
+echo "edit switches.)"
+echo " "
+#--------------------------------------------------------------------------

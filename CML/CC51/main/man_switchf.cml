@@ -1,0 +1,48 @@
+#
+#---man_switchf.cml.    Handles form-based changes to switches
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  2/22/02 17:15 Complete rewrite of switch handling.
+#: CR  3/06/06 Changing thumbnail size => recreate all thumbnails.
+#=====================================================================
+
+include $(main)/secure.i manage systemEditSwitches
+
+set nch $unique()
+
+set old_thumbnail $(default_thumbnail)
+
+#---Save all of the switch variables that are defined.
+count x 0 10000
+   if $empty ($form (NAM$(x)))
+      break
+   end
+
+   set vartype $str_sub (0    3 $form(NAM$(x)))
+   set varname $str_sub (4 1000 $form(NAM$(x)))
+
+   if   $equal ($(vartype) CHK)
+      set $(varname) $if ($equal (x$form (VAR$(x)) xon) 1 0)
+      eval $set_site_data (0 - SW$(varname) $($(varname)))
+   end
+   elif $equal ($(vartype) TXT)
+      set $(varname) $form(VAR$(x))
+      eval $set_site_data (0 - SW$(varname) $($(varname)))
+   end
+   elif $equal ($(vartype) BOX)
+      set $(varname) $form(VAR$(x))
+      eval $set_site_data (0 - SW$(varname) $($(varname)))
+   end
+end
+
+if $not_equal (x$(old_thumbnail) x$(default_thumbnail))
+   eval $xshell (0 0 1 $caucus_path()/SWEB/sweba \
+                       $caucus_path()/SWEB/swebd.conf \
+                       $(iface)/main/thumbmake.cml)
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------

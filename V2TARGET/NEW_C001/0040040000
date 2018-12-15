@@ -1,0 +1,84 @@
+#0004 lisa 0 07-MAR-95 11:12 Lisa Kimball (lisa)
++3 2 130
+ Beth - just want to say that i'm always soooo impressed by the
+ knack you have for explaining squirrly stuff so clearly.  Thanks!
+#0005 kanter 0 07-MAR-95 12:39 Beth Kanter Arts Wire (kanter)
+ Thanks Lisa.  This is topic drift -- I can't remember where this was requested, so I"m posting it with a giant mea culpa
+ 
+  ---------- Forwarded message ----------
+  Date: Thu, 2 Mar 1995 16:37:20 +0500
+  From: Jay Glicksman <jay@eit.com>
+  To: Multiple recipients of list <www-html@www10.w3.org>
+  Subject: hypermail archives are now searchable
+ 
+ The hypermail archives of www-talk and www-html at
+ 
+ http://gummo.stanford.edu/html/hypermail/archives.html
+ 
+ are now searchable.  Thanks to Kevin Hughes for the programs and
+ the help in setting them up.
+#0006 roth 0 14-MAR-95 15:13 Charles Roth (roth)
+ Does anyone have any experience or information about the "Expires:" line in the MIME headers that are passed to Web browsers?
+ 
+ I'm trying to use it ("Expires:") in dynamic HTML.  Results so far:
+ 
+     lynx   -- always ignores "Expires:" and once a page has been
+               fetched, keeps re-using the same page
+ 
+     mosaic -- always refetches a page, whether or not it has
+               expired.
+#0007 scott 0 15-MAR-95  8:35 Scott Burns, MDG (scott)
++3 1 80
+ Hmm, "Expires:" sounds like RFC1036 newsgroup header, were you looking at news?
+#0008 kanter 0 15-MAR-95  9:55 Beth Kanter Arts Wire (kanter)
+ I thought it had to do with the bookmark function and wehther or not the link is purple to indicate that you've been there before.  But, I may be wrong.
+#0009 scott 0 15-MAR-95  9:57 Scott Burns, MDG (scott)
++3 1 53
+ That's a Netscape specific thing (the purple links).
+#0010 kanter 0 15-MAR-95  9:59 Beth Kanter Arts Wire (kanter)
++3 3 173
+ Okay, but isn't there an EXPIRES tag in the bookmark followed by a date that lets you know when you've been so place before.  I know that on EMOSAIC it turns  the links Red.
+#0011 roth 0 16-MAR-95 17:11 Charles Roth (roth)
+ "Expires" is part of the MIME standard header that must preceed HTML sent by the server.  It is described in "Spinning the Web", pages 148-150, it just doesn' t seem to work as suggested.
+#0012 kanter 0 17-MAR-95 12:12 Beth Kanter Arts Wire (kanter)
++3 3 182
+ Thanks for reference.  Now, here's a stupid question -- Can you explain
+ in non-technical language what MIME is and why anyone who is creating
+ HTML pages would have to know about it?
+#0013 roth@gamgee.lt.lrt.emich.edu 0 20-MAR-95 19:09 Charles Roth (roth)
++1 gamgee.lt.lrt.emich.edu 13
++3 18 848
+ Alas, I forget what MIME stands for.  But it is a set of extensions
+ to e-mail standards that allow for the transmission of data files
+ (graphics, sound, word proc. documents, etc.) as part of e-mail.
+ 
+ I know that 'elm', for example, can handle many of the MIME extensions.
+ Not sure about other mailers.
+ 
+ Well, when HTML was developed, they used the MIME headers to simply
+ define a new type of file called, not surprisingly, HTML.  Which
+ means that you can also ship HTML files around by mail, if your
+ mailer is MIME-enabled.
+ 
+ If you are writing static HTML pages, you can pretty much ignore
+ MIME.  BUT!  If you ever tinker with dynamic HTML (that is,
+ HTML pages that are created on-the-fly by CGI programs), you MUST
+ know about MIME headers.  When a Web server sends HTML to a
+ Web browser, the HTML is always preceeded (surprise!) by a
+ MIME header.
+#0014 kanter 0 21-MAR-95 13:55 Beth Kanter Arts Wire (kanter)
++3 1 16
+ Thanks Charlie.
+#0015 cbury 0 21-MAR-95 16:19 Philadelphia EDOIG (cbury)
++3 11 549
+ The newest release of Netscape (1.1b) is now a MIME compliant mail and
+ newsreader (at least according to the readme) so that if you are
+ reading a newsgroup with MIME encoded attachments it will pull out the
+ attachments and decode them for you (at least GIFs and JPEGs) so you
+ can view them.  Currently however most newsgroups use uuencode which
+ isn't supported by MIME, you have to use Base64 encoding which is
+ provided my most mail programs, susch as pine or eudora.
+ 
+ By the way, I think MIME stands for Multimedia Internet Mail Extensions.
+ 
+ chuck

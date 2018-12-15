@@ -1,0 +1,36 @@
+#
+#---H_MAN_ARCHIVE.I    Help about "Manage: Archive a Conference" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_archive.cml $quote(Help on Manage: Archive \
+          a Conference)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Archive a Conference page allows authorized managers to create an archive
+"file of a conference for storage and possible later use.  The archiving
+"process does not alter a conference, but makes a compact archive of
+"its entire contents.  Archiving is often done before a conference is 
+"<A HREF=$(helpurl)/h_man_remove.cml?x+x">deleted.</A><P>
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Click on <U>Archive</U>.
+
+"<P>
+"<B>More about the Archive Page</B><BR>
+"Once a conference has been archived, the archive can be expanded into a new,
+"empty conference using the <A HREF=$(helpurl)/h_man_create.cml?x+x">Create 
+"a Conference</A> management function.<P>
+
+"To create a conference archive, choose a conference from the menu, type in 
+"an archive name (the name of the conference, perhaps with a date, is a 
+"good choice) and press the <B>Archive it!</B> button.
+
+include $(help)/hb.i

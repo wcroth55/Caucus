@@ -1,0 +1,131 @@
+#
+#---EDIT_SAFE.CML.   Non-manager Managing File Safe
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_safe.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set pagename Manage $(filesafe_name): $upper1($arg(9))
+
+set nch   $unique()
+set nxt   $page_save (2 man_safe.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                      # $(pagename))
+
+include $(main)/head.i $arg(3)  $quote($(pagename))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i editsafe $(pagename)
+
+"<BLOCKQUOTE>
+
+"<FORM NAME="cc" METHOD=POST
+"    ACTION="man_safef.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                    $arg(7)+$arg(8)+$arg(9)">
+
+"<font size=+1>$(filesafe_name): $upper1($arg(9))</font>
+
+
+"<TABLE>
+   "<tr><td>Display&nbsp;name</td>
+   "<TD><input type="text" name="dispname" 
+   "   maxlength="50" size="40" value="$site_data(0 - FN_$arg(9))"></TD>
+   "<td><b>Delete Section?</b></td>
+
+set highest 0
+set counter 0
+set files   0
+set vnames  $list_site_data (0 - FS_$arg(9)_)
+for vdex in $gen_sort (1 $(vnames))
+   set vname $word ($(vdex) $(vnames))
+
+   set vtitle $site_data (0 - $(vname))
+   if $empty ($(vtitle))
+      continue
+   end
+
+   set counter $plus ($(counter) 1)
+   set files $plus ($(files) $divide ($sizeof(\
+                             $dirlist (0 $caucus_lib()/FILESAFE/$(vname))) 2))
+   "<TR>
+   "<TD>Section $(counter):</TD><TD><input type="text" name="$(vname)" 
+   "   maxlength="50" size="40" value="$site_data(0 - $(vname))"></TD>
+
+   "<td align=center><input type="checkbox" name="cb_%makeLegal($(vname))"></td>
+   "</TR>
+
+   #---Keep track of the highest section number.
+   set secus   $str_revdex (_ $(vname))
+   set secnum  $str_sub ($plus ($(secus) 1) 1000 $(vname))
+   set highest $max ($(highest) $(secnum))
+end
+
+set counter $plus ($(counter) 1)
+set highest $plus ($(highest) 1)
+set highest $str_sub ($strlen($(highest)) 5 0000)$(highest)
+#set vprefix $str_sub (0 $(secus) $(vname))
+set vprefix FS_$arg(9)
+set vname   $(vprefix)_$(highest)
+"<TR>
+"<TD>Section $(counter):</TD><TD><input type="text" name="$(vname)" 
+"     maxlength="50" size="40" value=""></TD>
+"</TR>
+
+# prompt for filesafe readonly variable
+"<tr>
+" <td>Readonly File Safe?</td>
+" <td><input type="checkbox" name="readonly"
+"      $ifthen($not_empty($site_data(0 - FReadonly_$arg(9))) checked)></td>
+"</tr>
+
+"</TABLE>
+
+"<input type=hidden name="newsec"    value="$(vname)">
+#<input type=hidden name="vprefix"   value="$(vprefix)">
+"<input type=hidden name="vprefix"   value="FS_$arg(9)">
+
+
+"<br>
+"<INPUT NAME=submit TYPE=SUBMIT VALUE="Make Changes">
+
+"</form>
+
+"<script type="text/javascript" language="javascript">
+"function deletesafe (n) {
+"   return (n == 0  ||  
+"           confirm ('$(files) file(s) remain.  OK to delete them all?'));
+"}
+"</script>
+
+"<form NAME="dd" METHOD=POST  onSubmit="return deletesafe($(files));"
+"    ACTION="man_delsafe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                    $arg(7)+$arg(8)+$arg(9)">
+
+"<input name=deletebutton type=submit 
+"      value="Delete this entire $(filesafe_name)">
+"</form>
+
+"</div>
+"</body>
+"
+"</BLOCKQUOTE>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>

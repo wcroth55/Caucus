@@ -1,0 +1,49 @@
+#
+#---h_assignedit.cml  Help about the Assignment Edit page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/03/04 New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_assign.cml $quote(Help on Assignment)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page displays a course assignment created by the
+"organizer or instructors for this conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"<img $(src_assign) align=right>
+"From any page "inside" a course conference, click on
+"the "Assignments" button on the Caucus toolbar.&nbsp;
+"Then click on the "blue'd" text of the particular
+"assignment you wish to see.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Regular ("include"d) members of a conference will see
+"the text of the assignment.&nbsp;
+"This may include graphics, links to other files or
+"conference items, etc.
+
+"<p/>
+"<B>Instructors</B><BR>
+"If you are an organizer or instructor, you may also <b>edit</b>
+"this assignment.&nbsp;
+"This process should look familiar -- it is almost identical
+"to entering or editing an item or a response.&nbsp;
+"The big difference is that, when you click on "Save Changes",
+"the page reloads immediately and shows you, below the
+"blue box, how your text will look to your conference members.
+"<p/>
+"For more detailed information on what you can put into the
+"text of your assignment, see the
+"<A HREF="$(helpurl)/i_resp.cml">Help on the Response Box</a>.
+
+
+include $(help)/hb.i

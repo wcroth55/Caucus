@@ -1,0 +1,28 @@
+#
+#---INDVRESPR.CML.   Save "act on" window resize information, then
+#                    reload page we just came from.
+#
+#  arg(1)  
+#  arg(2)  
+#  arg(3)
+#  arg(4)
+#  arg(5)  new x window size value
+#  arg(6)  new y window size value
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+
+#---If arg(5) and arg(6) are non-empty, and are numbers, save
+#   the resized value as persistent variables.
+if $and ($not_empty ($arg(5))   $equal ($is_num($arg(5)) $strlen($arg(5))) \
+         $not_empty ($arg(6))   $equal ($is_num($arg(6)) $strlen($arg(6))) )
+   eval $set_user_data ($userid() xs_indv $arg(5))
+   eval $set_user_data ($userid() ys_indv $arg(6))
+end
+
+"%location(indvresp.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4))
+

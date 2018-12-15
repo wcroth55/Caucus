@@ -1,0 +1,85 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>quizanswers&nbsp;&nbsp;&nbsp;</span>Each problem may have multiple "rows" of answers, e.g. a three-choice multiple-choice problem has 3 rows which define the possible answers.  
+<p/><b>Categories: </b>
+<a href='_Quizzes.html'>Quizzes</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>akey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>pkey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td> which problem 'owns' these answers  <br></td>
+<tr valign=top class='row0'>
+<td>text1</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> text before form element before this answer row  <br></td>
+<tr valign=top class='row1'>
+<td>type</td>
+<td>varchar(20) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> type of text in text1  <br></td>
+<tr valign=top class='row0'>
+<td>text2</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> text after form element  <br></td>
+<tr valign=top class='row1'>
+<td>answer</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> correct answer (if needed)  <br></td>
+<tr valign=top class='row0'>
+<td>sortorder</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> sorting order for listing problems  <br></td>
+<tr valign=top class='row1'>
+<td>points</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>newrow</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'1'</td>
+<td> Start a new row when display this answer element?  <br></td>
+</table>
+</body>
+</html>

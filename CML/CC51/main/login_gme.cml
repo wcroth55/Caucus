@@ -1,0 +1,57 @@
+#
+#---LOGIN_GME.   Pop-up login page for Group Mind Express.
+#
+#   This is a (working) example of how to use the Caucus 4.4
+#   authorisation features to integrate with another web 
+#   application -- in this case GroupMind Express.
+#
+#   The basic idea is that *both* applications have the same userid
+#   and password combination for a given user.  (Ideally, both
+#   applications are using LDAP as their authorisation source, but
+#   that is not required -- just makes things easier.)
+#
+#   Thus, a user already logged in to Caucus can execute the
+#   %login_gme() macro, which pops up a new window which in
+#   turn executes this page -- and automatically logs the user
+#   in to GroupMind Express.
+#
+#   arg(3)   URL for GME login form submission, e.g.
+#                    "http://gme.groupmindexpress.com/groupjazz/index.php3"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  9/11/02 New file.
+#============================================================================
+
+set nch   $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i login_gme.cml
+end
+ 
+
+#---Start displaying the page!
+"Content-type: text/html
+"
+
+#---All we're really doing here is writing a page with some
+#   hidden form fields to supply the data that GroupMind Express
+#   needs -- and then automatically submitting the page as
+#   soon as it is loaded.  The user will see a new window appear,
+#   with a brief flash of a blank white page, before it takes
+#   them into GME.
+"<html>
+"<body bgcolor="#FFFFFF" onLoad="document.login_form.submit();">
+"<form action="$arg(3)"  method=post name="login_form">
+"<input type=hidden name=function     value="login2">
+"<input type=hidden name=object_id    value="GME_Login">
+"<input type=hidden name=query_string value="">
+"<input type=hidden name=username     value="$userid()">
+"<input type=hidden name=password     value="$auth_pw()">
+"</form>
+
+"</div>
+"</body>
+"</html>

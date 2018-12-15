@@ -1,0 +1,72 @@
+#
+#---MAN_REMOVE.CML.   Manager deleting conferences
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_remove.cml
+end
+
+include $(main)/secure.i manage conferenceDelete conferenceAllPrivileges
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_remove.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Delete a Conference )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Delete a Conference)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_remove  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Delete a Conference
+
+"Using this page, you can delete a conference from this system.&nbsp;
+"This step cannot be undone, so pay attention to what you're doing.&nbsp;
+"(If you wish, you can
+"<A HREF="man_archive.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x">archive</A>
+"the conference first.)
+
+include $(main)/mac_bug.i
+
+"<P>
+"<FORM METHOD=POST ACTION="man_removef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+"Conference: <SELECT NAME=cnum SIZE=1>
+"<OPTION VALUE=0>(Select a conference)</OPTION>
+
+set time0 $time()
+set phalf $divide ($pagetime() 2)
+for cnum in $cl_list()
+  "<OPTION VALUE=$(cnum)>%displayed_conf_name ($(cnum))
+  "</OPTION>
+
+   #---If we've gone pagetime/2 seconds since the start or the last
+   #   page_flush(), flush the output.
+   if $greater ($minus ($time() $(time0)) $(phalf))
+      eval $page_flush()
+      set  time0 $time()
+   end
+end
+"</SELECT>
+
+"<P><INPUT TYPE="submit" VALUE="Delete">
+
+"</FORM>
+
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

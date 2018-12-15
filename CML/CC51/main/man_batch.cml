@@ -1,0 +1,166 @@
+#
+#---MAN_BATCH.CML.   Batch creation of user accounts.
+#
+#   Notes:
+#      variable fieldlist is passed on to man_ucreated, which needs
+#      it to pluck out the field names.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This file is *not* open source, and is part of the "batch registration"
+# add-on package. You must purchase a license to use this package.
+#
+#: CR 03/29/03 New file.
+#: CR 06/20/03 Use $copyfile() to ensure spreadsheet hdr file has proper perms
+#: CR 04/15/04 Warn if cannot create ids/pws.
+#: CR 12/08/05 Modify for C5.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_batch.cml
+end
+
+include $(main)/secure.i manage userCreate
+
+set nch   $unique()
+set nxt   $page_save (2 man_batch.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Batch create users )
+
+include $(main)/head.i $quote(Manager Options : Batch create users)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_org  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Batch&nbsp;create&nbsp;users
+
+#---Set "first call" for batch creation -- used to distinguish
+#   between first call and reloads in man_ucreated.
+set batch_first_call 1
+
+"<script language="javascript">
+"function check_add_pw() {
+ if $pw_can_add()
+"   return true;
+ end
+ else
+"   if (! document.batch.nopwok.checked) {
+"      confirm ("Cannot add users to authentication source.");
+"      return false;
+"   }
+"   return true;
+ end
+"}
+"</script>
+
+"<BLOCKQUOTE>
+"Use this page to create many users (a "batch") at once.&nbsp;
+"Follow the numbered steps below.
+
+"<form ENCTYPE="multipart/form-data" METHOD=POST name="batch"
+"      onSubmit="return check_add_pw();"
+"      ACTION="man_ucreated.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+"<p>
+"<ol>
+
+if $not ($pw_can_add())
+   "<li><b>Warning:</b>&nbsp;
+   "This Caucus site cannot add userids and passwords to the
+   "user authentication source.&nbsp;
+   "This may be fine if you are just registering people who already
+   "have a userid and password.&nbsp; Check with your system
+   "administrator to be sure.
+   "</p>
+   "Check this box: <input type="checkbox" name="nopwok" value="1"> if you
+   "wish to continue with batch registration.&nbsp;
+   "Any passwords you supply will be ignored.
+end
+
+"<p/>
+"<li>
+if %mgr_in_group ($userid() interfaceManage)
+   "<A HREF="man_userface.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+             $arg(5)+$arg(6)+$arg(7)+$(iface)/reg"
+            ">Modify the $(iface) registration interface</A>
+end
+else
+   "<u>Modify the $(iface) registration interface</u>
+end
+"so that it contains fields for all of the information you
+"wish to record about each user.&nbsp;
+"Then return to this page.
+
+#---Write the field headers file for downloading into user's spreadsheet.
+   set query SELECT name, width, position FROM user_iface  \
+              WHERE iface='$(iface)' AND width > 0 AND name NOT LIKE '{%' \
+                AND name != 'userid' ORDER BY position
+set h $sql_query_open ($(query))
+set line userid$char(9)password$char(9)groups$char(9)
+set fieldlist
+while $sql_query_row  ($(h))
+   set line      $(line)$(name)$char(9)
+   set fieldlist $(fieldlist) $(name)
+end
+eval $sql_query_close($(h))
+set source /tmp/caucus.$caucus_id().batch.txt
+eval $output ($(source) 644)
+"#$(line)
+eval $output ()
+eval $copyfile($(source) $caucus_path()/public_html/TEMP/batch_$(iface).xls 644)
+eval $delfile ($(source))
+
+"<p>
+"<li>Download the
+"<a href="$(http)://$host()/~$caucus_id()/TEMP/batch_$(iface).xls"
+"  TARGET="_blank">list of fields</a>
+" as a spreadsheet.&nbsp;
+"Clicking on this link should automatically load
+"the list into Excel or your default spreadsheet tool.
+
+"<p>
+"<li>Edit the spreadsheet to contain one row for each user you
+"want to create, and fill in the appropriate columns
+"for each user.&nbsp;
+"(You can leave the header row as it is -- any row beginning with "#"
+"is ignored.)&nbsp;
+"Do <b>not</b> delete any columns, or change the order of the columns.
+
+"<p/>
+"<li>Take careful note of the "<b>groups</b>" column in the spreadsheet.&nbsp;
+"You may leave it empty, or
+"put one or more group names in this column, separated by spaces.&nbsp;
+"The newly created users will be put into <b>your</b> (that is, 
+"userid <b>$userid()</b>'s) user group(s) by those name(s).
+
+"<p>
+"<li>When you are all finished,
+"save the spreadsheet as a tab-delimited ".txt" file
+"(choose "save as", and select "text - tab delimited").
+"This is <b>required</b>.
+
+"<p>
+"<li>Upload the file:
+"<INPUT NAME="upload" TYPE="file">
+"and press
+"<INPUT TYPE="submit" NAME="submit" VALUE="Go">.
+"<p>
+"After you press <b>Go</b>,
+"you will see a list of the newly-created users.
+
+"</FORM>
+
+
+
+"</ol>
+
+"</BLOCKQUOTE>
+
+"<hr>
+"</BODY>
+"</HTML>
+
+set error
+#------------------------------------------------------------------------

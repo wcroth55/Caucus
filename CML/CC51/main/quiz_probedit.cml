@@ -1,0 +1,410 @@
+#
+#---quiz_probedit.   Edit a quiz.
+#
+#   arg(9)  problem key (0 for new)
+#
+#   Notes:
+#     The individual problem has an owner field, too, although
+#     we leave it out of the display for now.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/16/06 New file.
+#: CR 02/07/06 escape double quotes in form fields.
+#: CR 02/10/06 Support file uploads into quizzes.
+#: CR 02/17/06 Add doc/help.
+#: CR 10/16/06 Add 'floating' field.
+#: CR 09/25/07 Add reference field (uploaded answer info for problem)
+#: CR 10/06/09 Remove $sql_sequence(quizproblems,quizanswers)
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_probedit.cml
+end
+
+set nch      $unique()
+set arglist  $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal ($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+set pkey $plus (0 $arg(9))
+
+include $(main)/secure.i org $arg(3)
+
+#---Form submission (edit or create)
+set q3
+set h3
+if $not_empty($form(submitpv))
+   set text      $escsingle($form(tx_resp))
+   set texttype  $form(tp_resp)
+
+   #---Create new problem?
+   if $equal ($(pkey) 0)
+      set q1 \
+          INSERT INTO quizproblems (pkey, owner, category, title, text, \
+                 texttype) \
+          VALUES (NULL, '$userid()', '$escsingle($form(category))', \
+                  '$escsingle($form(title))', '$(text)', '$(texttype)')
+      set h1 $sql_query_open ($(q1))
+      eval   $sql_query_close($(h1))
+      set pkey $sql_last_insert()
+      set q2 SELECT MAX(sortorder) FROM quizmap WHERE qkey=$(qkey)
+      set sortorder $sql_query_select ($(q2))
+      set q3 INSERT INTO quizmap (qkey, pkey, sortorder) \
+             VALUES ($(qkey), $(pkey), $plus(1 $(sortorder)))
+      set h3 $sql_query_open ($(q3))
+      eval   $sql_query_close($(h3))
+   end 
+
+   #---Edit existing problem.
+   else
+      set q1 UPDATE quizproblems SET category='$escsingle($form(category))', \
+                 title='$escsingle($form(title))', text='$(text)', \
+                 texttype='$(texttype)', floating=$form(floating) \
+              WHERE pkey=$(pkey)
+      set h1 $sql_query_open ($(q1))
+      eval   $sql_query_close($(h1))
+
+      #---Save any changes to answer list.
+      count anum 0 1000
+         if $empty($form(akey_$(anum)))
+            break
+         end
+         set q2 UPDATE quizanswers SET  \
+                   text1='$escsingle($form(text1_$(anum)))', \
+                   type='$form(answertype_$(anum))', \
+                   text2='$escsingle($form(text2_$(anum)))', \
+                   answer='$escsingle($form(answer_$(anum)))', \
+                   points=$plus (0 $form(points_$(anum))), \
+                   newrow=0$form(newrow_$(anum)) \
+                WHERE akey=$form(akey_$(anum))
+         set h2 $sql_query_open ($(q2))
+         eval   $sql_query_close($(h2))
+      end
+   end
+
+
+   #---Add an answer row if an answertype was selected.
+   if $not_equal ($form(answertype) 0)
+      #---insert new answer row
+      set q3 \
+          INSERT INTO quizanswers (akey, pkey, text1, type, text2, answer, \
+                                   points, sortorder, newrow) \
+          VALUES (NULL, $(pkey), '$escsingle($form(text1))', \
+                 '$form(answertype)',\
+                 '$escsingle($form(text2))', '$escsingle($form(answer))',\
+                  $plus (0 $form(points)), $(akey), 0$form(newrow))
+      set h3 $sql_query_open ($(q3))
+      eval   $sql_query_close($(h3))
+      set akey $sql_last_insert()
+   end
+
+   #---Update totalpoints for this problem.
+   set q4 SELECT SUM(points) FROM quizanswers \
+           WHERE pkey=$(pkey) AND type!='radio'
+   set q5 SELECT MAX(points) FROM quizanswers \
+           WHERE pkey=$(pkey) AND type='radio'
+   set t4 $sql_query_select ($(q4))
+   set t5 $sql_query_select ($(q5))
+   set q6 UPDATE quizproblems SET totalpoints=$plus($(t4) $(t5)) \
+           WHERE pkey=$(pkey)
+   set h6 $sql_query_open ($(q6))
+   eval   $sql_query_close($(h6))
+
+   #---The "View Results" button goes to quiz_prob.cml to view.
+   if $gt_equal ($str_index(View x$form(submitpv)) 0)
+      "%location($(mainurl)/quiz_prob.cml?$(nch)+$arg(2)+$(arglist)+\
+                 $arg(7)+$arg(8)+$(pkey))
+      quit
+   end
+   
+end
+
+if $not_empty ($form(deleteAkey))
+   set q3 DELETE FROM quizanswers WHERE akey=$form(deleteAkey)
+   set h3 $sql_query_open ($(q3))
+   eval   $sql_query_close($(h3))
+end
+
+#---Form submission (upload reference file)
+if $not_empty ($form(upload))
+   set uploadFile $form(upload)
+   set uploadName $form(name.upload)
+   set libDir     QUIZ/$(pkey)
+   include $(main)/virus_checker.i $(uploadFile) $(uploadName) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(uploadFile) $(libDir)/$(uploadName))
+      include   $(main)/uploadcheck.i $(libDir) $(uploadName)
+      set q3 UPDATE quizproblems SET reference='$(uploadName)' WHERE pkey=$(pkey)
+      set h3 $sql_query_open ($(q3))
+      eval   $sql_query_close($(h3))
+#     set fname $replace (/ 32 $(url))
+#     set fname $word ($sizeof($(fname)) $(fname))
+   end
+end
+
+
+include $(main)/requiredinfo.i
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set query SELECT userid, title FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set quid  $(userid)
+
+set category
+set title
+set text
+set score
+set totalpoints 0
+set query SELECT category, title, text, texttype, totalpoints, floating, reference \
+            FROM quizproblems WHERE pkey = $(pkey) AND deleted=0
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set nxt   $page_save (1 quiz_probedit.cml \
+                   $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                   # Edit: $if ($not($arg(9)) New&nbsp;$upper1($(problemName)) $(title)))
+
+include $(main)/head.i $arg(3)  \
+   $quote($if ($not($(pkey)) New&nbsp;$upper1($(problemName)) Edit&nbsp;$(title))) 0 0 1
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+set headerName $if ($(isQuiz) quiz_answers survey_answers)
+include $(main)/header.i      $(headerName)  \
+    </A><a href="#top">$if ($not($arg(9)) New&nbsp;$upper1($(problemName)) Edit&nbsp;'$(title)')
+
+"<script type="text/javascript" language="javascript">
+"function deleteAnswer(akey) {
+"   if (! validateTitle())  return false;
+"   document.ebox.deleteAkey.value = akey;
+"   ebox_submit();
+"   document.ebox.submit();
+"   return false;
+"}
+"function validateTitle() {
+"   if (document.ebox.title.value != '')  return true;
+"   confirm ('Please enter a Title.');
+"   return false;
+"}
+"function wasChanged() {
+"   document.ebox.changed.value = '1';
+#   confirm ("changed");
+"}
+"function submitMe() {  
+"   if (validateTitle()) {ebox_submit();   document.ebox.submit(); }
+"}
+"</script>
+
+"<p/>
+"<form name="ebox" method="post"
+"      onSubmit="return validateTitle() && ebox_submit();"
+"      action="quiz_probedit.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)#bottom">
+"<input type="hidden" name="deleteAkey" value="">
+
+"Use this page to edit your $(problemName).&nbsp;
+"Each $(problemName) has a title and an (optional) category, 
+if $(isQuiz)
+   "some arbitrary text (which may include attached files),
+   "and a list of answer fields.&nbsp;
+end
+else
+   "and some arbitrary text (which may include attached files).
+end
+"For more information, click on the Help button.
+
+"<p/>
+"<table border=0>
+"<tr>
+"<td>Title:&nbsp;</td>
+"<td><input type="text" size="50" name="title" value="$escquote($(title))"></td>
+"<td></td>
+"<td><input type="submit" name="submitpv" value="Save Changes"></td>
+"<td><input type="submit" name="submitpv" value="View Result"></td>
+
+
+"<tr>
+"<td>Category:&nbsp;</td>
+"<td><input type="text" size="30" name="category" 
+"          value="$escquote($(category))">&nbsp;&nbsp;(optional)</td>
+"<td></td>
+"<td><input type=button name="submit3" value="Cancel Changes"
+   "  onClick="location.href='quiz.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)';"
+"   >&nbsp;&nbsp;</td>
+"<td><input type="button" name="submit4" 
+"       value="Delete $upper1($(problemName))"
+"    onClick="if (confirm('OK to delete this entire $upper1($(problemName))?')) \
+    location.href='quiz_probdel.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$arg(9)';"
+"   ></td>
+
+"</table>
+
+set plaintextOnly $tablefind (x$(texttype) xformat xliteral)
+include $(main)/ebox_type.i  $(plaintextOnly)
+
+set lead     $word (1 $(lead)     $userid())
+set assigner $word (1 $(assigner) $userid())
+
+
+"<p/>
+
+
+"<p/>
+"<table border=0>
+"<tr>
+"<td colspan=2 align=top>
+   "<table $(eboxbg) cellpadding=2 cellspacing=0>
+   "<tr><td colspan=3><img $(src_clear) width=1 height=2></td>
+   if $(ebox_ta)
+      include $(main)/abox_ta.i $word(1 $(texttype) html) text i_resp \
+                                QUIZ/$(pkey)
+   end
+   else
+      include $(main)/abox_rt.i $word(1 $(texttype) html) text i_resp \
+                                QUIZ/$(pkey)
+   end
+   "<tr><td colspan=3><img $(src_clear) width=1 height=2></td>
+   "</table>
+"</td>
+
+set ci0 0
+set whitespace &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+"</table>
+
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr><td colspan=4><b>Answers:</b>&nbsp;&nbsp; <a href="#" 
+"  onClick="pop_up('help','$(helpurl)/h_quiz_answers.cml?x+x+1'); return false;"
+"    >(How does this work?)</a>
+"</td>
+
+"<td colspan=4>Layout: 
+"    tabular <input type="radio" name="floating" value="0"
+"       $ifthen ($not($(floating)) checked)>&nbsp;&nbsp;&nbsp;
+"    floating <input type="radio" name="floating" value="1"
+"       $ifthen ($(floating) checked)>
+"</td>
+"<tr bgcolor="#E0E0FF" valign=bottom><td></td>
+"<td>New<br>Row&nbsp;</td>
+"<td>&nbsp;Left text</td>
+"<td>Answer Field</td>
+"<td>Right text</td>
+if $(isQuiz)
+   "<td>Answer</td>
+   "<td>Points</td>
+end
+"<td colspan=2>&nbsp;</td>
+
+eval $mac_define (qpmatch \$ifthen (\$equal (\$(type) @1) selected))
+set anum 0
+set query SELECT akey, text1, type, text2, answer, points, newrow \
+            FROM quizanswers WHERE pkey=$(pkey) ORDER BY sortorder
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   "<tr valign=top><td>&nbsp;&nbsp;</td>
+   "<td><input type="checkbox" name="newrow_$(anum)" value="1"
+   "           $ifthen (0$(newrow) checked)></td>
+   "<td><input type="hidden" name="akey_$(anum)" value="$(akey)"
+   "   ><input type="text" name="text1_$(anum)" size=35 
+   "          value="$escquote($(text1))">&nbsp;</td>
+   "<td><select name="answertype_$(anum)">
+   " <option value="0"                      >(choose)
+   " <option value="tf"     %qpmatch(tf)    >True/False
+   " <option value="radio"  %qpmatch(radio) >1 of Many
+   " <option value="check"  %qpmatch(check) >N of Many
+   " <option value="number" %qpmatch(number)>Number
+   " <option value="text"   %qpmatch(text)  >Text-line
+   " <option value="box"    %qpmatch(box)   >Text-box
+   " </select>&nbsp;</td>
+   "<td><nobr><input type="text" name="text2_$(anum)" size=35 
+   "                value="$escquote($(text2))">&nbsp;</nobr></td>
+
+   if $(isQuiz)
+      if $tablefind ($(type) tf number text)
+         "<td><input type="text" name="answer_$(anum)" size=5 
+         "          value="$(answer)">&nbsp;</td>
+      end
+      else
+         "<td>&nbsp;</td>
+      end
+
+      "<td><input type="text" name="points_$(anum)" size=3 
+      "          value="$(points)">&nbsp;</td>
+      "<td>&nbsp;&nbsp;<a href="#" onClick="return deleteAnswer($(akey));"
+      "   ><img $(src_trash)></a></td>
+   end
+   set anum $plus ($(anum) 1)
+end
+eval  $sql_query_close($(h))
+
+"<tr valign=top><td>&nbsp;&nbsp;</td>
+"<td><input type="checkbox" name="newrow" value="1" checked></td>
+"<td><input type="text" name="text1" size=35>&nbsp;</td>
+"<td><select name="answertype">
+" <option value="0" selected >(choose)
+" <option value="tf"   >True/False
+" <option value="radio">1 of Many
+" <option value="check">N of Many
+" <option value="number">Number
+" <option value="text"  >Text-line
+" <option value="box"   >Text-box
+" </select>&nbsp;</td>
+"<td><nobr><input type="text" name="text2" size=35>&nbsp;</nobr></td>
+
+if $(isQuiz)
+   "<td><input type="text" name="answer" size=5>&nbsp;</td>
+   "<td><input type="text" name="points" size=3>&nbsp;</td>
+end
+
+"<td colspan=2><input type="submit" name="submitpv" value="Add"></td>
+
+if $(isQuiz)
+   "<tr><td colspan=6 align=right><a name="bottom">Maximum possible points:&nbsp;&nbsp;</a></td>
+   "<td>$(totalpoints)</td>
+end
+
+"</table>
+"</form>
+
+"<p/>
+"&nbsp;<br>
+"<form ENCTYPE="multipart/form-data" METHOD=POST name="uploadform"
+"    action="quiz_probedit.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)#bottom">
+
+if $(isQuiz)
+   "<table cellspacing=0 cellpadding=0>
+   "<tr valign=top>
+   "<td><b>Reference File:</b>&nbsp;  
+   "   $if ($empty($(reference)) (none) \
+          <a href="/~$caucus_id()/LIB/QUIZ/$(pkey)/$(reference)" \
+             target="_blank">$(reference)</a>)
+   "<p/>
+   "You may upload a "reference" file that explains the answers.&nbsp;
+   "If you allow students to see the correct answers once they have
+   "submitted their work, they will also be able to see the reference file.</td>
+   "<td width="10%">&nbsp;&nbsp;</td>
+   "<td width="40%"><INPUT NAME="upload" TYPE="file" size=24><br>
+   "<input type="submit" name="submit" value="Save"></td>
+   "</table>
+end
+
+
+"$errors()
+"</div>
+"</body>
+"</html>

@@ -1,0 +1,92 @@
+#
+#---TABLEEDIT.CML.   Editing a table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/12/01 09:30 Dynamic tables.
+#
+#  arg(1) nch
+#  arg(2) tablename
+#---------------------------------------------------------------
+
+set nch   $unique()
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"</HEAD>
+
+"<BODY BGCOLOR="#FFFFFF">
+"<P>
+"<FORM NAME=table METHOD=POST ACTION="$(mainurl)/tableeditf.cml?$arg(2)">
+"<CENTER><BIG><B>Edit Table $arg(2)</B></BIG></CENTER>
+
+"<TABLE BORDER=0 BORDERCOLOR="#000000">
+   "<TR VALIGN=BOTTOM>
+   "<TD></TD>
+
+   count col 0 $minus ($array_size ($arg(2) 2) 1)
+      "<TD ALIGN=right><B><SMALL>
+      "<A HREF="$(mainurl)/tableinsc.cml?$arg(2)+$(col)">I</A>&nbsp;
+      "<A HREF="$(mainurl)/tabledelc.cml?$arg(2)+$(col)">D</A>
+      "</SMALL>
+      "&nbsp;&nbsp;$(col)</B>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+   end
+   "<TD><SMALL><B><A HREF="$(mainurl)/tableinsc.cml?$arg(2)+$plus($(col) 1)"
+               ">Add&nbsp;new<BR>column</A></B></SMALL></TD>
+
+   count row 0 $minus ($array_size ($arg(2) 1) 1)
+      "<TR>
+      "<TD ALIGN=right>
+         "<B>$(row)<B><BR>
+         "<SMALL      ><A HREF="$(mainurl)/tableinsr.cml?$arg(2)+$(row)">I</A
+         ">&nbsp;&nbsp;<A HREF="$(mainurl)/tabledelr.cml?$arg(2)+$(row)">D</A>
+         "</SMALL>
+      "</TD>
+
+      count col 0 $minus ($array_size ($arg(2) 2) 1)
+         "<TD><SMALL><TEXTAREA WRAP=virtual NAME="c$(row)x$(col)" ROWS=2 COLS=15
+              ">$t2esc($array ($arg(2) $(row) $(col)))</TEXTAREA></SMALL></TD>
+      end
+   end
+   "<TR><TD></TD>
+   "<TD><SMALL><B><A HREF="$(mainurl)/tableinsr.cml?$arg(2)+$plus($(row) 1)"
+               ">Add&nbsp;new&nbsp;row</A></B></SMALL></TD>
+
+   "<TR><TD><SMALL>&nbsp;</SMALL></TD>
+   "<TR>
+   "<TD></TD>
+   "<TD COLSPAN=2><INPUT TYPE=Submit NAME=submit VALUE="Save Changes"></TD>
+
+   "<TR><TD><SMALL>&nbsp;</SMALL></TD>
+   "<TR>
+   "<TD></TD>
+   "<TD><INPUT TYPE=BUTTON NAME=close VALUE="Close w/o saving" 
+           " onClick="window.close();"></TD>
+"</TABLE>
+"<P>
+"<B>Explanatory Notes:</B>
+"<OL>
+"<LI>To edit a cell, click in the cell and type.&nbsp; 
+"    Cells can contain text, numbers, or even CML functions or macros.
+"<LI>To enter a <B>\$</B> (dollar-sign), you must type a <B>\</B>
+"   (back-slash) and then a <B>\$</B>.&nbsp;
+"   (The \$ character without the \ is used to call CML functions.)
+"<LI>Click <B>Save Changes</B> when you are done.
+"<LI>Click on an <B><FONT COLOR=BLUE><U>I</U></FONT></B> to <B>insert</B> a
+" new (empty) row or column before that row or column.
+"<LI>Click on a <B><FONT COLOR=BLUE><U>D</U></FONT></B> to <B>delete</B> 
+" that row or column.
+"</OL>
+"</FORM>
+
+
+
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

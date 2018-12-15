@@ -1,0 +1,121 @@
+#
+#---UPLOADPOP.CML   Upload a file to a response.
+#
+#   arg(3)   cnum
+#   arg(4)   inum
+#   arg(5)   rnum
+#   arg(6)   0=new text, 1=old text
+#   arg(7)   base for uploaded files
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/21/04 New file, based loosely on old upload.cml
+#: CR 10/13/04 Use CSS, slight wording changes.
+#: CR 12/16/04 Major rewrite, put file type choices on first pop-up page.
+#: CR 02/10/06 Add arg(7) for generic (not just item/resp) file uploads.
+#: CR 04/25/06 Add ability to upload multiple files.
+#------------------------------------------------------------------------
+
+set nch $unique()
+set upload_failed 0
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<title>Attach a file to your $if ($arg(5) response item)</title>
+include $(main)/css.i 1
+"<script type="text/javascript" language="javascript">
+"function showname() {
+"   var fslash = document.popform.upload.value.lastIndexOf("/");
+"   var bslash = document.popform.upload.value.lastIndexOf("\\");
+"   var slash  = Math.max (bslash, fslash);
+"   document.popform.linkname.value = 
+"      document.popform.upload.value.substring(slash+1);
+"}
+"function handleMany() {
+"   var dh = document.popform.howmany;
+"   if (dh.options[dh.selectedIndex].value == "10") {
+"      location.href = "uploadpop10.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)\
+                          +$arg(6)+$arg(7)";
+"   }
+"}
+"</script>
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+"<form ENCTYPE="multipart/form-data" METHOD=POST name="popform"
+"      ACTION="uploadpop2.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                     $arg(6)+$arg(7)">
+
+"<b>1.&nbsp;</b><INPUT NAME="upload" TYPE="file" size=24 onChange="showname();">
+"&nbsp;to select 
+"<select name="howmany" onChange="handleMany();">
+"   <option value="1" selected>a file</option>
+"   <option value="10">10 files</option>
+"</select>
+"to attach.
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr>
+"<td><b>2.&nbsp;</td><td colspan=3>Show my attached file as:</td>
+
+#<tr><td class="vertSpacer">&nbsp;</td>
+"<tr valign=top><td></td>
+"<td><input type="radio" name="utype" value="link" checked>&nbsp;</td>
+"<td colspan=2>A link named
+"    <input type="text" name="linkname" size=20 value=""></td>
+
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="url">&nbsp;</td>
+"<td colspan=2>The full, absolute URL</td>
+
+"<tr><td class="vertSpacer">&nbsp;</td><td></td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="img">&nbsp;</td>
+"<td colspan=2>An image</td>
+
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="imgr">&nbsp;</td>
+"<td colspan=2>An image (right-justified)</td>
+
+if $not_empty ($config(convertDir))
+   "<tr><td></td>
+   "<td><input type="radio" name="utype" value="imgg">&nbsp;</td>
+   "<td colspan=2>A thumbnail image in a gallery
+   "       <input type="text" name="gwidth"  size="3" value="150"> x 
+   "       <input type="text" name="gheight" size="3" value="100"></td>
+end
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="text">&nbsp;</td>
+"<td colspan=2>Plain text (.txt files only)</td>
+
+#if $not_equal (x$site_data($arg(3) - allowhtml) x0) )
+   "<tr><td></td>
+   "<td><input type="radio" name="utype" value="html">&nbsp;</td>
+   "<td colspan=2>HTML text (.html files only)</td>
+#end
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="zip">&nbsp;</td>
+"<td colspan=2>A zip file (unzip it)</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="iframe">&nbsp;</td>
+"<td>In an iframe</td>
+"<td align=right><input type="submit" name="submit" value="Continue"></td>
+
+"</table>
+"</ul>
+"</form>
+
+"</div>
+"</body>
+"</html>
+#------------------------------------------------------------------

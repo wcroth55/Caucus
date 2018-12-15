@@ -1,0 +1,36 @@
+#
+#---H_YOUARE.CML.   Help about YOU ARE ??
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_youare.cml $quote(Help on 'You are $my_name()')
+"<P>
+
+"<B>What Is It?</B><BR>
+""You are <FONT COLOR=blue><U>$my_name()</U></FONT>" appears near the top of
+"every page.&nbsp;
+"Click on your name to see or change any of the "personal
+"information" that Caucus knows about you.
+
+"<P>
+"<B>What Is Its Purpose?</B><BR>
+"Throughout Caucus, whenever you see a person's name, you can
+"click on the name to learn more about that person.
+"<P>
+"When you click on your <B>own</B> name, you get to see (and
+"change) the information about yourself.&nbsp;
+
+"Since your name appears near the top of every page, you
+"can change this information at any time.
+
+"<P>
+"For more information about changing your personal information,
+"click on your own name.&nbsp;
+"When you see the page with your own information, click on
+"<B>Help</B>.
+
+include $(help)/hb.i

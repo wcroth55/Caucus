@@ -1,0 +1,44 @@
+#
+#---TUTOR2.CML.   Tutorial, page 1.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#----------------------------------------------------------------------
+
+if $empty ($(helpurl))
+   include $cml_dir()/startup.i center.cml
+end
+ 
+set nch $unique()
+
+include $(main)/head.i $quote(Caucus Tutorial (page 2 of 4)) 0 $(href)/
+
+include $(main)/body.i $arg(3) 
+
+include $(main)/headquit.i Tutorial_(page_2_of_4)
+
+include $(main)/location.i Tutorial (page 2)
+
+"<P>
+include $(help)/tutor2.i
+
+"<FORM METHOD=POST ACTION="$(helpurl)/tutor3.cml?0+0+x+x+x+x+x+x">
+
+"<CENTER>
+"<INPUT TYPE="submit" NAME="submit" VALUE="Continue Tutorial">
+"<BR>
+"(Next section: Using Caucus the First Time.)
+"</CENTER>
+
+"</FORM>
+
+"<HR>
+"<CENTER>
+"The Caucus Tutorial is Copyright (C) 1997 by 
+"<A HREF="http://caucuscare.com" TARGET="_blank">CaucusCare/A>.
+"</CENTER>
+"<HR>
+"</BODY>
+"</HTML>

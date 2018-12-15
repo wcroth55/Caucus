@@ -1,0 +1,34 @@
+#
+#---H_RESIGN.I.  Help about Resign page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_resign.cml $quote(Help on Resign)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"Resigning from a conference means removing yourself as a member.&nbsp;
+"The conference will no longer appear in your personal conference list, 
+"and you will not appear in the list of conference members.&nbsp;
+"(But any items or responses you have written will remain in the conference.) 
+"Resigning also means that you will not receive any more e-mail
+"notifications about the conference (if you were getting any
+"in the first place.)
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Underneath the list of items, click on the "You may
+"also <U>resign</U> from this conference" link.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Choose <B>Yes</B> to resign from the conference, or <B>No</B> to
+"go back to the $(cname) home page.&nbsp;
+"If you resign, you can join the conference again later, but it will 
+"be as if you were joining for the first time. 
+include $(help)/hb.i

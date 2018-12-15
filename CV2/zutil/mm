@@ -1,0 +1,260 @@
+1.SUFFIXES:     .c .obj
+2.SUFFIXES:     .c .o
+ 
+ #: CR  9/11/92 12:31 1st carvmark.
+ #: CR  9/29/92 11:09 Add scryptor.
+ #: CI 10/04/92 23:19 Chix integration.
+ #: CR 10/15/92 18:02 Minor fixes.
+ #: CR 10/21/92 15:35 Give "all:" something to do.
+ #: CR  1/04/93 14:05 Add 'clean' and 'clobber' elements.
+ #: CR  1/13/93 13:55 Modify FLIB.
+ #: CR  1/14/93 14:54 Add uuenc, uudec.
+ #: CR  2/02/93 14:25 Add testresp.
+ #: CK  3/03/93 14:14 Add ux2dos, dos2ux.
+ #: CN  4/14/93 16:57 Remove dos2ux, ux2dos: they're part of TPX_MAKER.
+ #: CK  5/13/93 13:24 Fix sys -> sys1,sys2.
+1#: JV  4/08/93 15:10 Add attach.lib.
+2#: JV  4/08/93 15:10 Add attach.a.
+ #: JV  6/06/93 12:48 Add addlen.
+ #: CP  4/14/92 18:06 sys -> sys1, sys2.
+ #: CN  5/16/93 16:16 Add fdate.
+ #: CP  7/14/93 17:17 Make things link.
+ #: CK  8/05/93 16:45 Add availtest.
+ #: JV  8/20/93 10:32 Add expuser.
+ #: JZ 10/14/93 19:36 Consistentize expuser.
+ #: CK 10/13/93 19:16 Remove xfp/nextuser reference.
+ #: CR 10/17/93 17:09 Add sys2 to availtest.
+ #: JZ 10/07/93 16:06 Add dtu (DOS to Unix)
+ #: CP 11/19/93 16:19 Fix 'dtu' target --> 'dtu_x'.
+ 
+ FLIB = \
+1../cmd2/help.obj \
+1../main/fireafm.obj   \
+1../xmaint/mainter.obj \
+1../api/api.lib        \
+1../people/people.lib  \
+1../conf/conf.lib      \
+1../chg/chg.lib        \
+1../inout/inout.lib \
+1../gen/gen.lib \
+1../unit/unit.lib \
+1../gen/gen.lib \
+1../db/db.lib       \
+1../people/people.lib  \
+1../api/api.lib        \
+1../resp/resp.lib       \
+1../people/people.lib  \
+1../xaction/xaction.lib \
+1../inout/inout.lib \
+1../unit/unit.lib   \
+1../gen/gen.lib     \
+1../glyph/glyph.lib \
+1../sys1/sys1.lib   \
+1../sys2/sys2.lib   \
+1../inout/inout.lib \
+1../attach/attach.lib \
+1../unit/unit.lib   \
+1../chx/chx.lib     \
+1../sys1/sys1.lib   \
+1../sys2/sys2.lib   \
+1../str/str.lib
+2../cmd2/help.o \
+2../main/fireafm.o   \
+2../xmaint/mainter.o \
+2../api/api.a        \
+2../people/people.a  \
+2../conf/conf.a      \
+2../chg/chg.a        \
+2../inout/inout.a \
+2../gen/gen.a \
+2../unit/unit.a \
+2../gen/gen.a \
+2../db/db.a       \
+2../people/people.a  \
+2../api/api.a        \
+2../resp/resp.a       \
+2../people/people.a  \
+2../xaction/xaction.a \
+2../inout/inout.a \
+2../unit/unit.a   \
+2../gen/gen.a     \
+2../glyph/glyph.a \
+2../sys1/sys1.a   \
+2../sys2/sys2.a   \
+2../inout/inout.a \
+2../attach/attach.a \
+2../unit/unit.a   \
+2../chx/chx.a     \
+2../sys1/sys1.a   \
+2../sys2/sys2.a   \
+2../str/str.a
+ 
+ ALIB= \
+1../api/api.lib     \
+1../conf/conf.lib   \
+1../chg/chg.lib     \
+1../db/db.lib       \
+1../subj/subj.lib   \
+1../db/db.lib       \
+1../ced/ced.lib     \
+1../xaction/xaction.lib \
+1../gen/gen.lib     \
+1../subj/subj.lib   \
+1../people/people.lib \
+1../chg/chg.lib     \
+1../resp/resp.lib   \
+1../inout/inout.lib \
+1../unit/unit.lib   \
+1../sys1/sys1.lib   \
+1../sys2/sys2.lib   \
+1../db/db.lib       \
+1../api/api.lib     \
+1../attach/attach.lib   \
+1../xaction/xaction.lib \
+1../inout/inout.lib \
+1../gen/gen.lib     \
+1../conf/conf.lib   \
+1../unit/unit.lib   \
+1../glyph/glyph.lib \
+1../str/str.lib     \
+1../chx/chx.lib     \
+1../sys1/sys1.lib   \
+1../sys2/sys2.lib
+2../api/api.a     \
+2../conf/conf.a   \
+2../chg/chg.a     \
+2../db/db.a       \
+2../subj/subj.a   \
+2../db/db.a       \
+2../ced/ced.a     \
+2../xaction/xaction.a \
+2../gen/gen.a     \
+2../subj/subj.a   \
+2../people/people.a \
+2../chg/chg.a     \
+2../resp/resp.a   \
+2../inout/inout.a \
+2../unit/unit.a   \
+2../sys1/sys1.a   \
+2../sys2/sys2.a   \
+2../db/db.a       \
+2../api/api.a     \
+2../attach/attach.a   \
+2../xaction/xaction.a \
+2../inout/inout.a \
+2../gen/gen.a     \
+2../conf/conf.a   \
+2../unit/unit.a   \
+2../glyph/glyph.a \
+2../str/str.a     \
+2../chx/chx.a     \
+2../sys1/sys1.a   \
+2../sys2/sys2.a
+ 
+ all: addlen fname  fmaster  merge2  scryptor  uudec  uuenc  testresp  fdate_x \
+      availtest  expusr_x dtu_x holdlock lstest
+ 	@echo zutil done.
+ 
+1addlen: addlen.obj $(FLIB) makefile
+1	cc $(LDFLAGS) -o addlen addlen.obj $(FLIB) $(NTLIB) $(OPTS)
+1
+1availtest: availtest.obj ../sys1/sys1.lib ../sys2/sys2.lib  ../unit/unit.lib makefile
+1	cc $(LDFLAGS) -o availtest availtest.obj ../sys1/sys1.lib \
+1           ../sys2/sys2.lib ../unit/unit.lib $(NTLIB)
+1
+1lstest: lstest.obj ../sys1/sys1.lib ../sys2/sys2.lib ../unit/unit.lib  makefile
+1	cc $(LDFLAGS) -o lstest lstest.obj ../sys1/sys1.lib \
+1           ../sys2/sys2.lib ../unit/unit.lib ../str/str.lib
+1
+1dtu_x: dtu.obj
+1	cc $(LDFLAGS) -o dtu_x dtu.obj
+1
+1fname: fname.obj  $(FLIB) makefile
+1	cc $(LDFLAGS) -o fname fname.obj $(FLIB) $(OPTS)
+1
+1scryptor: scryptor.obj   makefile
+1	cc $(LDFLAGS) -o scryptor scryptor.obj
+1
+1fmaster: fmaster.obj
+1	cc $(LDFLAGS) -o fmaster fmaster.obj \
+1           ../str/str.lib ../sys1/sys1.lib $(OPTS)
+1
+1testresp: testresp.obj
+1	cc $(LDFLAGS) -o testresp testresp.obj \
+1          ../str/str.lib ../sys1/sys1.lib $(OPTS)
+1
+1merge2: merge2.obj
+1	cc $(LDFLAGS) -o merge2 merge2.obj
+1
+1uudec: uudec.obj
+1	cc $(LDFLAGS) -o uudec uudec.obj
+1
+1uuenc: uuenc.obj
+1	cc $(LDFLAGS) -o uuenc uuenc.obj
+1
+1expusr_x: expuser.obj
+1	cc $(LDFLAGS) -o expusr_x expuser.obj  \
+1            ../api/api.lib $(FLIB) $(OPTS)
+1
+1fdate_x: fdate.obj makefile $(ALIB)
+1	cc $(LDFLAGS) -o fdate_x fdate.obj $(ALIB) $(NTLIB) $(OPTS)
+1
+1holdlock: holdlock.obj makefile
+1	cc $(LDFLAGS) -s -o holdlock holdlock.obj  $(ALIB) $(OPTS)
+2addlen: addlen.o $(FLIB) makefile
+2	cc $(LDFLAGS) -o addlen addlen.o $(FLIB) $(NTLIB)
+ 
+2availtest: availtest.o ../sys1/sys1.a ../sys2/sys2.a  ../unit/unit.a makefile
+2	cc $(LDFLAGS) -o availtest availtest.o ../sys1/sys1.a \
+2           ../sys2/sys2.a ../unit/unit.a $(NTLIB)
+2
+2lstest: lstest.o ../sys1/sys1.a ../sys2/sys2.a ../unit/unit.a  makefile
+2	cc $(LDFLAGS) -o lstest lstest.o ../sys1/sys1.a \
+2           ../sys2/sys2.a ../unit/unit.a ../str/str.a
+2
+2dtu_x: dtu.o
+2	cc $(LDFLAGS) -o dtu_x dtu.o
+2
+2fname: fname.o  $(FLIB) makefile
+2	cc $(LDFLAGS) -o fname fname.o $(FLIB)
+2
+2scryptor: scryptor.o   makefile
+2	cc $(LDFLAGS) -o scryptor scryptor.o
+2
+2fmaster: fmaster.o
+2	cc $(LDFLAGS) -o fmaster fmaster.o ../str/str.a ../sys1/sys1.a
+2
+2testresp: testresp.o
+2	cc $(LDFLAGS) -o testresp testresp.o ../str/str.a ../sys1/sys1.a
+2
+2merge2: merge2.o
+2	cc $(LDFLAGS) -o merge2 merge2.o
+2
+2uudec: uudec.o
+2	cc $(LDFLAGS) -o uudec uudec.o
+2
+2uuenc: uuenc.o
+2	cc $(LDFLAGS) -o uuenc uuenc.o
+2
+2expusr_x: expuser.o
+2	cc $(LDFLAGS) -o expusr_x expuser.o  \
+2            ../api/api.a $(FLIB)
+2
+2fdate_x: fdate.o makefile $(ALIB)
+2	cc $(LDFLAGS) -o fdate_x fdate.o $(ALIB) $(NTLIB)
+2
+2holdlock: holdlock.o makefile
+2	cc $(LDFLAGS) -s -o holdlock holdlock.o  $(ALIB)
+2
+ clean:
+1	rm -f *.obj
+2	rm -f *.o
+ 
+ clobber:
+1	rm -f *.obj fname scryptor fmaster merge2 uuenc uudec availtest expusr_x
+2	rm -f *.o fname scryptor fmaster merge2 uuenc uudec availtest expusr_x
+ 	rm -f     addlen testresp fdate_x holdlock lstest
+ 
+1.c.obj:
+2.c.o:
+ 	cc $(CCFLAGS) -I../include -c $*.c

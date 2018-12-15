@@ -1,0 +1,30 @@
+#
+#---iforget.cml.    Forget an item.
+#
+#   arg 1    1 to forget, 0 to remember
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/08/06 Rewrite for C5.1
+#-------------------------------------------------------------------
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch     $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i imanage.cml
+end
+ 
+if $equal ($arg(1) 1) 
+   eval $item_set_seen ($arg(3) $arg(4) $userid() -2)
+end
+else
+   eval $item_set_seen ($arg(3) $arg(4) $userid() -1)
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#--------------------------------------------------------

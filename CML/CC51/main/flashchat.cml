@@ -1,0 +1,48 @@
+#
+#---flashchat.cml  Implementation of %flashchat() macro.
+#
+# CR 07/04/09
+#-------------------------------------------------------------
+"Content-type: text/html
+"
+
+set fullName $user_info ($userid() fname) $user_info ($userid() lname)
+if $equal($sizeof($(fullName)) 1)
+   if $equal ($lower($(fullName)) admin)
+      if $not_equal ($userid() admin))
+         "<html>
+         "<body>Error: you may not enter the chat with the name "admin".</body>
+         "</html>
+         quit
+      end
+   end
+end
+set fullName $replace(32 _ $(fullName))
+
+
+"<html>
+"<head>
+"<script language="JavaScript" src="$config(flashChatUrl)/common/js/flashcoms.js"></script>
+"</head>
+
+"<body>
+"<div id="flashcoms_videochat_swf" style="width:100%; height:100%;">
+"<p><strong>Videochat</strong></p>
+"<p>You need to upgrade your Flash Player.</p><p>Version 8 or higher is required.</p>download from <a href="http://www.adobe.com/go/getflashplayer">http://www.adobe.com/go/getflashplayer</a>
+"</div>
+
+"<script type="text/javascript">
+"var so = new SWFObject("$config(flashChatUrl)/flashcoms.swf", "videochat", "100%", "100%", "8", "#FFFFFF");
+"so.addVariable("rootPath", "$config(flashChatUrl)/");
+"so.addVariable("app", "videochat/videochat.swf?anticash=v5_1_b_10");
+
+set timecode $divide($time() 10000)
+"so.addVariable("uid", "$(fullName)+$md5hash($(fullName)$(timecode))");
+
+"so.addVariable("roomId", "$arg(1)");
+#"so.addVariable("langId", "LanguageID");
+"so.write("flashcoms_videochat_swf");
+"</script>
+
+"</body>
+"</html>

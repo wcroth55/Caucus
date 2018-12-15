@@ -1,0 +1,124 @@
+#
+#---UPLOAD.CML   Upload a file to a response.
+#
+#   arg(9)  name of "thing" we're attaching file to.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/15/00 10:30 Rearrange radio buttons, add "no blued" link option.
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#: CR  4/20/00 00:03 Add "IFrame" option.
+#: CR 10/09/02 Use $(icon) instead of literal GIF44
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i upload.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 upload.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Attach a File )
+
+#--- If we're uploading into something other than a response, $arg(9)
+#    should tell us what to call it in the text.
+
+if $not_equal(x$arg(9) x)
+   set what $arg(9)
+end
+else
+   set what response
+end
+
+include $(main)/head.i $arg(3)  $quote(Attach a File)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     upload  Attach a File
+
+"<TABLE>
+"<TR>
+"<TD>&nbsp;&nbsp;&nbsp;</TD>
+"<TD>Follow the steps below to attach a file to your $(what).&nbsp;
+"You may revisit this page to attach multiple files to the
+"same $(what).
+"</TD>
+"<TD>&nbsp;&nbsp;&nbsp;</TD>
+"</TABLE>
+
+"<form ENCTYPE="multipart/form-data" METHOD=POST
+"      ACTION="uploadf.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+
+
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR >
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD><TD><B>&nbsp;1.&nbsp;</B></TD>
+"<TD><NOBR>I want to attach the file named:&nbsp;</NOBR></TD>
+"<TD><INPUT NAME="upload" TYPE="file"></TD>
+
+"<TR><TD></TD><TD></TD>
+"<TD COLSPAN=3>(Press <B>browse</B> to select a file to attach)</TD>
+
+"</TABLE>
+
+"<P>&nbsp;
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD><TD><B>&nbsp;2.&nbsp;</B></TD>
+"<TD COLSPAN=4>Show my attached file as (choose one):</TD>
+"<TR><TD></TD><TD><IMG SRC="$(icon)/clearpix.gif" WIDTH=1 HEIGHT=8></TD>
+
+"<TR><TD></TD><TD></TD><TD><B>Text in the response:</B></TD>
+"    <TD><INPUT TYPE="radio" NAME="utype" VALUE="text"
+"        >&nbsp;plain&nbsp;text</TD>
+
+"<TD><INPUT TYPE="radio" NAME="utype" VALUE="html">&nbsp;HTML</TD>
+
+"<TR><TD></TD>
+"<TR><TD></TD><TD></TD><TD><B>A link to the file:</B></TD>
+"    <TD><INPUT TYPE="radio" NAME="utype" VALUE="url" CHECKED>&nbsp;<U><FONT 
+"         COLOR=BLUE>URL</FONT></U>&nbsp;("blued")&nbsp;&nbsp;</TD>
+"    <TD><INPUT TYPE="radio" NAME="utype" VALUE="noblue"
+"        >&nbsp;URL&nbsp;(not&nbsp;blued)&nbsp;&nbsp;&nbsp;</TD>
+
+#if $not_equal (x$site_data($arg(3) - allowhtml) x0) )
+   "<TD COLSPAN=5><NOBR><INPUT TYPE="radio" NAME="utype" VALUE="link"
+   "   >&nbsp;Link&nbsp;named:&nbsp;</TD>
+   "<TD><INPUT TYPE="text"  NAME="linkname" SIZE=20></TD>
+#end
+
+"<TR><TD></TD>
+"<TR><TD></TD><TD></TD><TD><B>An embedded:</B></TD>
+   " <TD><INPUT TYPE="radio" NAME="utype" VALUE="img"    >&nbsp;Image</TD>
+   " <TD><INPUT TYPE="radio" NAME="utype" VALUE="imgr"   >&nbsp;Right-Image</TD>
+   " <TD><INPUT TYPE="radio" NAME="utype" VALUE="iframe" >&nbsp;IFrame</TD>
+
+"<TR><TD></TD>
+"<TR><TD></TD><TD></TD><TD><B>An archive:</B></TD>
+"    <TD><INPUT TYPE="radio" NAME="utype" VALUE="zip" 
+"        >&nbsp;Zip file (unzip it)&nbsp;</TD>
+"</TABLE>
+
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD><TD><B>&nbsp;3.&nbsp;</B></TD>
+"<TD>Press&nbsp; </TD>
+"<TD><INPUT TYPE="submit" NAME="submit" VALUE="Attach!"
+"    onClick="pop_up('upld');"></TD>
+"</TABLE>
+
+"</FORM>
+
+#include $(main)/trailer.i   upload   Attach File
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

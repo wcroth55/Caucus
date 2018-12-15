@@ -1,0 +1,105 @@
+#
+#---babylon.cml.   Launch Babylon chat/whiteboard tool.
+#
+#   Argument usage:
+#     $arg(1)       cache-defeater
+#     $arg(2)       room (0=current conf, n=conf# n, anything else is room name)
+#     $arg(3)       current conference
+#     $arg(4)       chat options string
+#
+#: CR 06/18/03 New file.
+#: CR 07/23/03 param servername must be host name only, no port #.
+#: CR 08/15/03 Many mods to match new %chattool() macro.
+#: CR 08/22/03 Add backcolor, buttoncolor, ignore params.
+#: CR 01/03/06 Modify for C5.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i babylon.cml
+end
+
+#---(Re)parse chat options, in case there's more than one invocation
+#   of %chattool() on the same page.
+include $(main)/chatoptions.i  $arg(4)
+
+#---Determine "username" as seen by Babylon, both for display 
+#   and authentication.
+set username $userid()
+if $(chat_fullnames)
+   set username  $user_info($userid() fname) $user_info($userid() lname)
+end
+
+#---Force babylon authentication 
+include $(main)/chat_auth.i  $quote($(username))
+
+#---Floating window?  Changes how we invoke the applet.
+set float $equal ($(chat_type) float)
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+if $(float)
+   "<script language="javascript">
+   "function blurAlarm() {
+   "   setTimeout ("blurMe();", 8000);
+   "}
+   "function blurMe() {
+   "   window.blur();
+   "}
+   "</script>
+end
+"</head>
+
+"<body bgcolor="#FFFFFF" $ifthen ($(float) onLoad="blurAlarm();")>
+"<center>
+"<applet archive="babylon.jar" code="babylonApplet.class"
+"        codebase="$(http)://$host()/~$caucus_id()/BABYLON/"
+if $(float)
+"        width="1" height="1">
+end
+else
+"        width="$(chat_width)" height="$(chat_height)">
+end
+
+"     <param name="username"     value="$replace(32 01 $(username))">
+"     <param name="password"     value="$(babylon_passwd)">
+"     <param name="servername"   value="$word (1 $replace(: 32 $host()))">
+"     <param name="portnumber"   value="$config(babylon_port)">
+"     <param name="autoconnect"  value="yes">
+"     <param name="chatroom"     value="$(room)">
+"     <param name="xsize"        value="$(chat_width)">
+"     <param name="ysize"        value="$(chat_height)">
+"     <param name="usepasswords" value="yes">
+"     <param name="locksettings" value="yes">
+"     <param name="hidecanvas"   value="$if ($(chat_whiteboard) no yes)">
+"     <param name="embed"        value="$if ($(float) no yes)">
+"     <param name="pageuser"     value="$if ($(chat_pageuser) yes no)">
+"     <param name="im"           value="$if ($(chat_im)       yes no)">
+"     <param name="help"         value="$if ($(chat_help)     yes no)">
+"     <param name="ignore"       value="$if ($(chat_ignore)   yes no)">
+if $not_empty ($(chat_buttoncolor))
+   "  <param name="buttoncolor"  value="$(chat_buttoncolor)">
+end
+if $not_empty ($(chat_backcolor))
+   "  <param name="backcolor"    value="$(chat_backcolor)">
+end
+"</applet>
+
+if $(float)
+   "&nbsp;<br>
+   "<p>
+   "<small>
+   "Loading chat...
+   "<p>
+   "<a href="#" onClick="self.close();  return false;">Close Chat</a>
+   "</small>
+   "<script language="javascript">
+   "   window.blur();
+   "</script>
+end
+
+"</center>
+"</body>
+"</html>
+#------------------------------------------------------------------------

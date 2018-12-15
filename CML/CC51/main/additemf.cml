@@ -1,0 +1,207 @@
+#
+#---additemf.cml.  Evaluate form w item text, and actually add item.
+#
+#   arg(4)   x => normal create top level item.
+#            b => create breakout item from pop-up.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/16/02 Update conf var 'modified' (time-last-modified)
+#: CR 01/12/03 Add ebox stuff (submitpv).
+#: CR 05/30/03 Add $logevent(additem)
+#: CR 08/26/03 Add "assignment item" code to store dates & group/confs.
+#: CR  8/08/04 Add restricted date range for responding.
+#: CR 11/09/04 Post-process richtext for blueing URLS.
+#: CR 10/02/05 Replace old $ad_item() call with $add_item().
+#: CR 06/20/06 Add breakout capability.
+#: CR 05/13/08 Add word, responses limits.
+#-------------------------------------------------------------------
+
+set is_breakout $not_equal ($arg(4) x)
+
+if $empty ($(mainurl))
+   set tx_resp $form(resp)
+   set tp_resp $form(tp)
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i member $arg(3)
+
+set nch $unique()
+
+#---If assignment, temporarily save userid, start/stop time, group/conf first.
+if $equal ($arg(3) $(assign_cnum))
+   set assignment_temp $userid() \
+                       $epoch ($form(d0day)-$form(d0month)-$form(d0year)) \
+                       $epoch ($form(d1day)-$form(d1month)-$form(d1year)) \
+                       $form (who)
+end
+
+##---Handle uploads...
+#if $not_empty ($form(upload.x))
+#   set tx_resp $form(tx_resp)
+#   set tp_resp $form(tp_resp)
+#   set ti_resp $form(ti_resp)
+#   "%location($(mainurl)/upload.cml?$(nch)+$arg(2)+\
+#              $arg(3)+-1+$arg(5)+x+$arg(7)+$arg(8))
+#   return
+#end
+
+#---Figure out who called additem.
+set caller $page_caller (1 $arg(2))
+
+#---Shrink or Expand...
+if $not_empty ($form(shrink.x)$form(expand.x))
+   include $(main)/boxsizef.i resp # 1
+   return
+end
+
+#---If no title, go back and complain.
+if $empty ($form(ti_resp))
+   set tx_resp $form(tx_resp)
+   set tp_resp $form(tp_resp)
+   "%location($(mainurl)/additem.cml?$(nch)+$(caller)+$arg(3)+$arg(4)+$arg(5)+\
+              $arg(6)+$arg(7)+$arg(8)+tx_resp+$(tp_resp)+x)
+   return
+end
+
+#---Actually add item.
+if $and ($not_empty ($form(tx_resp) ) \
+         $not_equal ( x$form(unique_box) x$(last_unique))  )
+   set textprop $minus ($tablefind ($form(tp_resp) format literal html cml) 1)
+   if $equal ($(textprop) 1)
+      eval $set_wrap ($plus ($(cols) 1))
+   end
+   set bits 0
+   if 0$form(anon)
+      set bits 32
+   end
+
+   #---Special filtering for ebox_ek (Ekit) generated text.
+   set temp $form(tx_resp)
+   if $(ebox_ek)
+      set ekfilter head,prohibit,all html,prohibit,tag body,prohibit,tag
+      set temp $cleanhtml (ekfilter $(temp))
+      set temp $words (1 $minus ($sizeof($(temp)) 1) $(temp))
+   end
+
+   #---Special filtering for ebox_rt (richtext) generated text.
+   if $(ebox_rt)
+      set temp $addtarget ($(temp))
+      set temp     $h2url ($(temp))
+   end
+
+#  set newitem $add_item ($arg(3) $(textprop) $userid() \
+#                         $quote(%per_name($userid())) \
+#                         $quote($form(ti_resp)) 0 $(temp))
+   set parents 0 0
+   if $(is_breakout)
+      set parents $arg(7) $arg(8)
+   end
+   set newitem $item_add ($arg(3) $(parents) $userid() $form(ti_resp))
+   eval $resp_add ($arg(3) $(newitem) $userid() $(textprop) $(bits) 0 $(temp))
+
+   if $empty($form(latlong))
+      include $(main)/updateRespEditIdAndTime.i $(newitem) 0 1
+   end
+   else
+      include $(main)/updateRespEditIdAndTime.i $(newitem) 0 0
+      set query UPDATE resps SET ip='$ip_addr()', lat_long='$form(latlong)', location='$form(location)' \
+                 WHERE items_id=$(newitem) AND rnum=0 AND version=$(currentVersion)
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+#     eval  $append (/tmp/geoloc h=$(h), query=$(query)$newline())
+   end
+   eval $set_wrap (0)
+
+   include $(main)/ebox_chosen.i
+
+   #---If item add succeeded...
+   if $greater ($(newitem) 0)
+      set type item
+      if $equal ($arg(7) w)
+         set type wiki
+      end
+      if $or ($equal ($arg(7) f) $equal($arg(4) f))
+         set type freeblog
+      end
+      if $or ($equal ($arg(7) m) $equal($arg(4) m))
+         set type modblog
+      end
+
+      if $tablefind ($(type) wiki freeblog modblog)
+         set query UPDATE items SET type='$(type)' WHERE id=$(newitem)
+         set h $sql_query_open ($(query))
+         eval  $sql_query_close($(h))
+         set approved $equal ($(type) freeblog)
+         set query UPDATE resps SET versioned=1, approved=$(approved) \
+                    WHERE items_id=$(newitem) AND rnum=0
+         set h $sql_query_open ($(query))
+         eval  $sql_query_close($(h))
+      end
+
+      #---If restricted date range, save it.
+      if $not_empty ($form(rdate0))
+         eval $set_site_data ($arg(3) $(newitem) rdate0 \
+                             %epochOfyyyy(%yyyymmddOf($form(rdate0))))
+      end
+      if $not_empty ($form(rdate1))
+         eval $set_site_data ($arg(3) $(newitem) rdate1 \
+                             %epochOfyyyy(%yyyymmddOf($form(rdate1))))
+      end
+
+      eval $set_site_data ($arg(3) $(newitem) wordLimit $form(wordLimit))
+      eval $set_site_data ($arg(3) $(newitem) respLimit $form(respLimit))
+
+      #---If assignment, save permanent assignment info.
+      if $equal ($arg(3) $(assign_cnum))
+         eval $set_site_data  ($arg(3) - modified $time())
+         eval $set_site_data ($(assign_cnum) - assign$(newitem) \
+                              $(assignment_temp))
+         set assignment_temp
+      end
+
+      #---rename dir for uploaded files.
+      eval $logevent (additem $(iface) $minus ($time() $(time_additem))  \
+                      $strlen($(temp)) $arg(3) $(newitem))
+
+#     set libbase $caucus_lib()/%lowname($arg(3))/$userid()
+#     set olddir P$word(2 $replace (/ 32 $pid()))
+#     set newdir $str_sub(0 $minus(4 $strlen($(newitem))) 000)$(newitem)0000
+
+      set libbase $caucus_lib()/ITEMS
+      eval $rename ($(libbase)/P$userid() $(libbase)/$(newitem))
+
+      #---And update time-last-modified for the conference.
+      eval $set_site_data  ($arg(3) - modified $time())
+   end
+
+   set last_unique $form(unique_box)
+
+   if $or ($equal ( $form(submit)   Create+View) \
+           $equal (x$form(submitpv) x1))
+      "%location($(mainurl)/viewitem.cml?$(nch)+$(caller)+$arg(3)+$(newitem)+\
+                         0+0+x+x)
+      return
+   end
+end
+
+if $(is_breakout)
+   "Content-type: text/html
+   "
+   "<html>
+   "<body>
+   "<script type="text/javascript" language="javascript">
+   "   window.opener.location.reload();
+   "</script>
+   "</div>
+"</body>
+   "</html>
+end
+else
+   "%location($(mainurl)/$page_return($(caller) \
+              # center.cml?$(nch)+0+x+x+x+x+x+x))
+end
+#-------------------------------------------------------------------

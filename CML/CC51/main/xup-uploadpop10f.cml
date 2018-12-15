@@ -1,0 +1,121 @@
+#
+#---uploadpop10f.cml   Handle uploading zip file.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/25/06 New file.
+#------------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+set nch $unique()
+
+"<html>
+"<head>
+"<script type="text/javascript" language="javascript">
+"</script>
+include $(main)/css.i
+"</head>
+
+"<body bgcolor="#FFFFFF">
+"<b>Attaching Multiple Files</b>
+"<p/>
+
+#---Item/resp uploads go into a two level directory structure underneath
+#   the Caucus library directory: ITEMS/item_id/rnum.  If the item
+#   does not exist yet, item_id = Pprocess_id.  If the response does
+#   not exist yet, rnum=Pprocess_id.
+#
+#   Quiz file uploads go into two-level dir: QUIZ/pkey (problem key #).
+
+set rdir   P$userid()/0
+set isresp 1
+if $not ($tablefind ($arg(4) x b))
+   set isresp 1
+  
+   set rdir $arg(4)/$arg(5)
+   if $not ($arg(6))
+      set rdir $arg(4)/P$userid()
+   end
+end
+if $empty ($arg(7))
+   set libdir  ITEMS/$(rdir)
+end
+elif $equal ($str_sub(0 1 $arg(7)) A)
+   set isresp  ap
+   set libdir  $arg(7)
+end
+else
+   set isresp  qp
+   set libdir  $arg(7)
+end
+
+"<form METHOD=POST ACTION="xup-uploadpop10g.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)" name="boxes">
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top>
+"<td><table cellspacing=0 cellpadding=0 border=0>
+"<tr><td colspan=2>Files you attached:</td>
+"<td>&nbsp;&nbsp;</td>
+count i 1 10
+   if $not_empty ($form(name.upload$(i)))
+      set libname $(libdir)/$form(name.upload$(i))
+      set name_upload $form(name.upload$(i))
+
+      set ul_file $form(upload$(i))
+      if 0$config(uploadLog)
+         eval $append ($caucus_path()/public_html/uploads.csv $dateof($time()), \
+                       $userid(), $cl_name($arg(3)), $arg(4), $(ul_file), \
+                       $word (1 $xshell(1 1 1 /bin/ls --size $(ul_file))), \
+                       $(name_upload)$newline())
+      end
+
+      include $(main)/virus_checker.i $(ul_file) $(libname) virus_file
+      if $empty ($(virus_file))
+         set url   $copy2lib ($(ul_file) $(libname))
+         include   $(main)/uploadcheck.i $(libdir) $(name_upload)
+         set fname $replace (/ 32 $(url))
+         set fname $word ($sizeof($(fname)) $(fname))
+   
+         "<tr><td>&nbsp;&nbsp;</td> <td>$(fname)</td>
+         "<input type="hidden" name="uploaded$(i)" value="$(url)">
+      end
+   end
+end
+"</table></td>
+
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+
+"<td><table cellspacing=0 cellpadding=0 border=0>
+"<tr><td colspan=2>Show them as:</td>
+"<tr><td>&nbsp;&nbsp;<input type="radio" name="showas" value="links"></td>
+"    <td>Links</td>
+"<tr><td>&nbsp;&nbsp;<input type="radio" name="showas" value="urls"></td>
+"    <td>Full URLs</td>
+"<tr><td>&nbsp;&nbsp;<input type="radio" name="showas" value="img"></td>
+"    <td>Images</td>
+if $not_empty ($config(convertDir))
+   "<tr><td>&nbsp;&nbsp;<input type="radio" name="showas" value="gal"></td>
+   "    <td>Gallery of Thumbnails
+   "       <input type="text" name="gwidth"  size="3" value="150"> x 
+   "       <input type="text" name="gheight" size="3" value="100"></td>
+   "<tr><td></td> <td>(Linked to full sized images)</td>
+end
+
+"<tr><td>&nbsp;</td>
+"<tr><td colspan=2><input type="submit" name="submit" value="Continue"></td>
+"</table></td>
+"</table>
+
+"</form>
+
+
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

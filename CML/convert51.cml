@@ -1,0 +1,226 @@
+#
+#---convert51.cml   Convert Caucus 5.0 item-related data into Caucus 5.1 tables.
+#
+#   To-do's:
+#   2. Translating linked task item numbers into item_ids.
+#
+#:CR 03/18/2006 first version
+#:CR 06/25/2006 many updates for first beta-test release.
+#:CR 03/08/2007 Do not copy attached files for deleted items.
+#---------------------------------------------------------------------------
+
+set delete_old_files 0
+set main CC51/main
+
+#---%yyyymmddOf (date)
+#   Convert common date formats to yyyy-mm-dd.
+eval $mac_define (yyyymmddOf  \
+        \$includecml (\$(main)/yyyymmddof.i @@))
+
+for cnum in $cl_list()
+   if $less ($group_access ($userid() CONF $(cnum)) 40)
+      set grkey $sql_sequence(grouprules)
+      set q INSERT INTO grouprules (grkey, owner, name, userid, access) \
+             VALUES ($(grkey), 'CONF', '$(cnum)', '$userid()', 40)
+      set h $sql_query_open ($(q))
+      eval  $sql_query_close($(h))
+      eval  $group_update_rule ($userid() $quote(CONF $(cnum)))
+   end
+
+   #---Convert conf specific switches to site_data rows.
+   eval $set_site_data  ($(cnum) - co_change $co_change($(cnum)))
+   eval $set_site_data  ($(cnum) - co_add    $co_add   ($(cnum)))
+
+   #---Get list of members of this conference.
+   set query \
+       SELECT userid FROM groups WHERE owner='CONF' AND name='$(cnum)' \
+          AND access >= 10  AND active=1
+   set users $sql_query_select($(query))
+
+   "
+   "$(cnum):
+   set delete_items
+   count i 1 $it_last($(cnum))
+      if $it_exists ($(cnum) $(i))
+         set item $item_add ($(cnum) 0 0 $re_owner($(cnum) $(i) 0) \
+                                         $re_title($(cnum) $(i) 0))
+         if $less ($(item) 0)
+            "   $(cnum): $(i) failed: $(item)
+            continue
+         end
+
+
+         "   $(cnum): $(item) has $it_resps($(cnum) $(i))
+         count r 0 $it_resps($(cnum) $(i))
+            if $re_exists($(cnum) $(i) $(r))
+               set prop $re_prop ($(cnum) $(i) $(r))
+               set bits $re_bits ($(cnum) $(i) $(r))
+               set rnum $resp_add($(cnum) $(item) \
+                           $re_owner($(cnum) $(i) $(r)) \
+                           $(prop) $(bits) 0  $re_text ($(cnum) $(i) $(r)))
+               "      rnum($(r))=$(rnum)
+               set when $re_time($(cnum) $(i) $(r))
+               set when %yyyymmddOf($word (1 $(when))) $word (2 $(when))
+               set when $replace (10 32 $(when))
+               eval $resp_set ($(item) $(rnum) time $(when))
+               "resp_set ($(item) $(rnum) time $(when)) $(when)
+            end
+            else
+               set rnum $resp_add($(cnum) $(item) roth 0 0 0 deleted)
+               eval     $resp_del($(cnum) $(item) $(rnum))
+            end
+         end
+
+         set hide $it_hidden($(cnum) $(i))
+         if   $equal ($(hide) 1)
+            eval $item_set ($(cnum) $(item) hidden  1)
+         end
+         elif $equal ($(hide) 2)
+            eval $item_set ($(cnum) $(item) retired 1)
+         end
+         eval $item_set ($(cnum) $(item) frozen $it_frozen ($(cnum) $(i)))
+      end
+      else
+         set item $item_add ($(cnum) 0 0 roth deleted)
+         set delete_items $(delete_items) $(item)
+      end
+   end
+ 
+   for item in $(delete_items)
+      eval $item_del ($(cnum) $(item))
+   end
+
+   #---Add user's participation records.
+   for uid in $(users)
+      "uid=$(uid)
+      count i 1 $it_last($(cnum))
+         if $it_exists ($(cnum) $(i))
+            set howmuch $it_howmuch ($(cnum) $(i) $(uid))
+            eval $item_set_seen ($(cnum) $item_id($(cnum) $(i))  \
+                                 $(uid) $(howmuch))
+         end
+      end
+   end
+end
+
+#---Convert all item variables, from item label to item id.
+set q SELECT cnum, inum, name, value FROM site_data WHERE inum !='-'
+set h $sql_query_open ($(q))
+while $sql_query_row  ($(h))
+   set   id   $item_id ($(cnum)  $(inum))
+   eval $set_site_data ($(cnum)  $(inum) $(name))
+   eval $set_site_data ($(cnum) -$(id)   $(name) $(value))
+end
+eval  $sql_query_close($(h))
+
+set q SELECT cnum, inum, name, value FROM site_data WHERE inum LIKE '-_%'
+set h $sql_query_open ($(q))
+while $sql_query_row  ($(h))
+   eval $set_site_data ($(cnum) $(inum) $(name))
+   set   inum $str_sub(1 1000 $(inum))
+   eval $set_site_data ($(cnum) $(inum) $(name) $(value))
+end
+eval  $sql_query_close($(h))
+
+
+#---Convert any "copied from..." response information.
+for cnum in $cl_list()
+   count i 1 $it_last($(cnum))
+      if $it_exists ($(cnum) $(i))
+         count r 0 $it_resps($(cnum) $(i))
+            set copied $re_copied ($(cnum) $(i) $(r))
+            if $not_empty ($(copied))
+               set c  $cl_num($word (1 $(copied)))
+               set id $item_id ($(c) $word(2 $(copied)))
+#              "Copied: id=$(id) item_id($(c) $word(2 $(copied)))
+               set when %yyyymmddOf($word (4 $(copied))) $word (5 $(copied))
+               set when $replace (10 32 $(when))
+               set show $word (1 $word(6 $(copied)) 0)
+               if $greater ($(id) 0)
+                  set q UPDATE resps SET \
+                           copy_rnum=$word(3 $(copied)), \
+                           copy_item=$(id),  \
+                           copy_time='$(when)',  \
+                           copy_show=$minus(1 $(show)),  \
+                           copier='$re_copier($(cnum) $(i) $(r))' \
+                        WHERE rnum=$(r) AND items_id=$item_id($(cnum) $(i))
+                  set h $sql_query_open ($(q))
+                  eval  $sql_query_close($(h))
+#                 "Copied: $(cnum):$(i):$(r) = $(h) $(q)
+#                 "$item_id($(cnum) $(i))/$(r) is a copy of \
+#                           $(id)/$word(3 $(copied))
+               end
+            end
+         end
+      end
+   end
+end
+
+#---Copy over attached files.  Should we delete the old ones?
+set toplist $dirlist (2 $caucus_lib())
+for name size isdir in $dirlist (2 $caucus_lib())
+   if $and ($(isdir) $equal ($lower($(name)) $(name)))
+      set cnum $cl_num($(name))
+      if $greater ($(cnum) 0)
+
+         set userids $dirlist (2 $caucus_lib()/$(name))
+         for uid size isuser in $(userids)
+            if $(isuser)
+               set items $dirlist (2 $caucus_lib()/$(name)/$(uid))
+               for rdir size isitem in $(items)
+                  if $and ($(isitem) $numeric($(rdir)))
+                     for file size isdirectory in \
+                         $dirlist(2 $caucus_lib()/$(name)/$(uid)/$(rdir))
+                        if $(isdirectory)
+                           "DIR: $(name)/$(uid)/$(rdir)/$(file)
+                           continue
+                        end
+                        set item $str_sub (0 4 $(rdir))
+                        set resp $plus($str_sub (4 4 $(rdir)) 0)
+                        set item_id $item_id ($(cnum) $(item))
+                        if $gt_equal ($(item_id) 0)
+                           "$(name)/$(uid)/$(rdir)/$(file)  $(item)->$(item_id):$(resp)
+                           set oldfile $caucus_lib()/$(name)/$(uid)/$(rdir)/$(file)
+                           set copied $copy2lib ($(oldfile) \
+                              ITEMS/$(item_id)/$(resp)/$(file))
+                           if $and ($(delete_old_files) $not_empty($(copied)))
+                              eval $delfile $(oldfile)
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+#---Convert notebook item # entries
+set q SELECT userid, value  FROM user_data where name='mark_categories'
+set h $sql_query_open($(q))
+while $sql_query_row ($(h))
+   for name center in $(value)
+      set replace
+      set changed 0
+      for page args anchor title switch in $user_data ($(userid) mark_$(name))
+         if $equal($(page) viewitem.cml)
+            set args $replace(+ 32 $(args))
+            set ilabel $word(3 $(args))
+            set id $item_id($word(2 $(args)) $(ilabel))
+            "$(userid): $(name): $(page) $(args) item$(ilabel) -> $(id)
+            set args $word(1 $(args))+$word(2 $(args))+$(id)+$word(4 $(args))+\
+                     $word(5 $(args))+$word(6 $(args))+$word(7 $(args))
+            set changed 1
+         end
+         set replace $(replace) $(page) $(args) $(anchor) $(title) $(switch)
+      end
+      if $(changed)
+         eval $set_user_data ($(userid) mark_$(name) $(replace))
+      end
+   end
+end
+eval $sql_query_close($(h))
+"--------------------------------------------------------
+"$errors()
+"--------------------------------------------------------

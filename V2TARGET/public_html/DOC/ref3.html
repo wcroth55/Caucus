@@ -1,0 +1,177 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 3: What's in a CML page?</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 3:&nbsp; What's in a CML page?</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref2.html">PREV</A>]
+   [<A HREF="ref4.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<P>
+Each CML page (or file) describes a page that will appear on the
+user's Web browser.&nbsp;  
+(In some cases it just produces an HTTP &quot;Location&quot;
+directive which points in turn to another CML or HTML file.)&nbsp;
+CML can be thought of as a superset of HTML.&nbsp;  More precisely,
+HTML is embedded in CML scripts; swebs does not actually understand
+or parse the HTML codes.&nbsp;  A CML page contain five kinds of text:
+
+<P>
+<OL>
+<LI>Comments.&nbsp;  In the Unix tradition, all lines beginning with
+&quot;#&quot; are comments and are ignored.&nbsp;  Entirely blank lines
+are also ignored.
+
+<P>
+<LI>HTML code.&nbsp;  All lines beginning with a double quote (&quot;)
+are parsed for CML functions and macros, but are otherwise passed on to the
+browser unchanged.&nbsp;  (The quote is removed.)&nbsp;  There may be leading
+blanks before the quote; they are ignored.
+
+<P>
+<LI>CML functions.&nbsp;  Strings of the form $xyz(), $xyz(value), or
+$(value) are parsed by swebs, and replaced by the appropriate
+Caucus values.
+
+<P>
+<LI>CML macros.&nbsp;  Strings of the form %abc(args)
+are macro invocations, and are expanded by swebs.&nbsp;
+See <A HREF="ref31.html">CML macro definitions and expansions</A>
+for more information.
+
+<P>
+<LI><A HREF="ref5.html">CML directives</A>.&nbsp;  
+    Directives are like C program code: they describe
+actions to be taken.&nbsp;  Directives start with one of the keywords
+"if", "elif", "else", "for",
+"count", "while", "set", "include",
+"return", "quit", "break", or "end".
+</OL>
+
+<P>
+A single logical line in a CML file may be broken across several
+physical lines; a &quot;\&quot; as the last character means &quot;continued
+on next (physical) line&quot;.&nbsp;  Most of the time this is not needed,
+since HTML mostly ignores line boundaries.&nbsp;  However, the &quot;\&quot;
+is useful for assembling long lines that will appear inside HTML
+&lt;PRE&gt; code, or to improve readability of the CML code.
+
+<P>
+Here's a sample CML page, typical of a page a Web Caucus user
+would see early on:
+</BLOCKQUOTE>
+
+<P>
+<PRE>
+#
+#---CENTER.CML.   "Caucus Center" Page.
+#
+#   Overview of (and initial entry to) conferences.
+#
+#-----------------------------------------------------------------------
+
+if $empty ($(href))
+   include $cml_dir()/startup.i center.cml
+end
+
+set nch $unique()
+set nxt $page_save (1 center.cml \
+              $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+              # $(center_name) )
+set last_conf x
+
+#---HTML declaration, header, and BODY tag.
+"Content-type: text/html
+"
+"&lt;HTML&gt;
+"&lt;HEAD&gt;
+"&lt;TITLE&gt;$(center_name)&lt;/TITLE&gt;
+"&lt;/HEAD&gt;
+
+"&lt;BODY $(body_bg) &gt;
+
+#---Caucus header.
+include $(dir)/header.i
+
+#---Tell the user what this page is about.
+"&lt;P&gt;
+"&lt;TABLE WIDTH=100% CELLSPACING=0 CELLPADDING=0&gt;
+"&lt;TR&gt;
+"&lt;TD&gt;&lt;FONT SIZE=+1&gt;&lt;B&gt;Caucus Center&lt;/B&gt;&lt;/FONT&gt;&lt;/TD&gt;
+"&lt;TD ALIGN=right&gt;
+   include $(dir)/youare.i
+"&lt;/TD&gt;
+"&lt;/TABLE&gt;
+
+"&lt;P&gt;
+"From here, you may go to specific conferences, or 
+"&lt;A HREF="$(href)/allconfs.cml?$(nch)+$(nxt)+x+x+x+x+x+x"&gt;
+"see a list of &lt;B&gt;all&lt;/B&gt; conferences&lt;/A&gt; on this host.
+"&lt;P&gt;
+
+#---Prepare to actually put up various kinds of links to the
+#   conferences.  Create some variables with lists of 
+#   conference names.  Apply $cl_list() to the entire list
+#   of conferences.
+#     L_CONFS are the "popular" conferences.
+#     M_CONFS are from the user's personal conference list
+set l_confs $file($(inc)/l_confs.i)
+set m_confs $user_var($userid() my_confs)
+set ignore  $cl_list ( $(l_confs) $(m_confs) )
+
+#---The various ways of getting to the conferences all appear
+#   as numbered entries, within one large table.
+#   To avoid unpleasant spacing, and because the "JOIN" choice requires
+#   being in a &lt;FORM&gt;, the entire table must be inside a &lt;FORM&gt;.
+"&lt;FORM METHOD=POST ACTION="$(href)/centerf.cml?$(nch)+$(nxt)" NAME="joiner"&gt;
+
+"&lt;TABLE CELLSPACING=0 CELLPADDING=0 &gt;
+
+#---Personal conference list access:
+set way_in 1
+include $(dir)/cen_pers.i $(way_in)
+
+
+#---"Popular" conference access:
+if $sizeof ($(l_confs))
+   include $(dir)/cen_pop.i way_in
+end
+
+
+#---Type a conference name directly:
+set way_in $plus ($(way_in) 1)
+include $(dir)/cen_type.i $(way_in)
+
+
+#---See a list of all conferences:
+#set way_in $plus ($(way_in) 1)
+#include $(dir)/cen_all.i $(way_in)
+
+"&lt;/TABLE&gt;
+"&lt;/FORM&gt;
+"&lt;P&gt;
+
+#---Advertisement:
+include $(dir)/cen_adv.i
+
+</PRE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

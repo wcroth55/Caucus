@@ -1,0 +1,148 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>resps&nbsp;&nbsp;&nbsp;</span>Responses  
+<p/><b>Categories: </b>
+<a href='_Responses.html'>Responses</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Contains the actual responses (aka comments or postings).  Each response belongs to one, and only one, item.  The primary key for a response  is the combination of its response number (label), and the id of its containing  item.  Thus the first response in each item is always number 0, the second is  number 1, and so forth.  If responses are deleted, the response numbers do  not change (shift).  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>rnum</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>items_id</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> author FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row1'>
+<td>text</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<tr valign=top class='row0'>
+<td>time</td>
+<td>datetime </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> creation time  <br></td>
+<tr valign=top class='row1'>
+<td>prop</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> old-style text "property", 3=CML, 2=HTML, 1=Literal, 0=word-wrapped  <br></td>
+<tr valign=top class='row0'>
+<td>bits</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> old-style "bits": 32=anonymous, 16=by-organizer(?), ... ?  <br></td>
+<tr valign=top class='row1'>
+<td>copy_rnum</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> original response copied from  <br></td>
+<tr valign=top class='row0'>
+<td>copy_item</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> original item copied from  <br></td>
+<tr valign=top class='row1'>
+<td>copier</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> userid of copier FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row0'>
+<td>copy_time</td>
+<td>datetime </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> date/time copied  <br></td>
+<tr valign=top class='row1'>
+<td>copy_show</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1=show, 0=don't show "copied" notice  <br></td>
+<tr valign=top class='row0'>
+<td>copy_cnum</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> original conference copied from  <br></td>
+<tr valign=top class='row1'>
+<td>deleted</td>
+<td>int(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> epoch time when this conf was marked deleted, else 0  <br></td>
+<tr valign=top class='row0'>
+<td>author_shows_as</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Author name, overrides any other value.  Usually gets set by    email participation.  Normally NULL (empty).  <br></td>
+<tr valign=top class='row1'>
+<td>version</td>
+<td>smallint </td>
+<td>(pk) </td>
+<td></td>
+<td>0</td>
+<td> 1 is oldest version, 2 next oldest... but 0 is current version.  <br></td>
+<tr valign=top class='row0'>
+<td>edittime</td>
+<td>datetime </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> time edited  <br></td>
+<tr valign=top class='row1'>
+<td>editid</td>
+<td>varchar(24) </td>
+<td></td>
+<td></td>
+<td></td>
+<td> userid of editor  <br></td>
+</table>
+</body>
+</html>

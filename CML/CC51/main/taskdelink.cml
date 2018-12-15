@@ -1,0 +1,35 @@
+#
+#---taskdelink.cml   Delete a conf/item/resp link to a task.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  tid
+#   4  cnum
+#   5  inum
+#   6  rnum
+#   
+# Notes:
+#   1. Enforce ownership rules in case someone tinkered with arg(9)
+#      in the URL
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/08/05 New file.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i taskx.cml
+end
+ 
+include $(main)/secure.i open
+
+set query DELETE FROM task_links \
+           WHERE tid=$arg(3) AND cnum=$arg(4) AND inum=$arg(5) AND rnum=$arg(6)
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+"%location($(mainurl)/$page_return ($arg(2) # tasks.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------------------------

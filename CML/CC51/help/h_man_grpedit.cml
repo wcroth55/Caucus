@@ -1,0 +1,74 @@
+#
+#---H_MAN_GRPEDIT.I    Help about "Manage User Groups Matrix" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_groups.cml $quote(Help on Manage User Groups Matrix)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The User Groups Matrix page allows authorized managers 
+"to edit the membership of user groups in a matrix, or table
+"layout.&nbsp;
+"Groups are named collections of users that conference
+"organizers can use when creating conference user lists.
+"<p>
+"Groups are also used to control access to other features,
+"such as tables and 
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x">$lower($(filesafe_name))(s)</A>.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Manage User Groups</U>.&nbsp;
+"If your site has the user group matrix feature installed,
+"click on "Edit any group", or on any specific group
+"shown under the "matrix" column 
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"The whole purpose of this page is to allow you a convenient,
+"graphical way of looking at, and editing, which users belong
+"to which groups.
+"<p>
+"Start by selecting a list of people from the first pull-down menu
+"on the left.&nbsp;  "Entire site" may be useful, unless you have
+"a very large site -- in which case you'll probably want to avoid
+"this choice!
+"<p>
+"Then select as many groups as you like from the pull-down menus
+"on the right.&nbsp;
+"Check and uncheck the checkboxes as needed to change the membership
+"of each group.
+
+"<p>
+"Some special notes:
+"<ol>
+"<li>If a group contains subgroups, you'll see them near the top
+"of the list, bordered in pink.&nbsp;
+"If group A has subgroup B, you'll see B listed (checked) in group A, but
+"<b>not</b> the people that belong to group B.
+
+"<p>
+"<li>In the first pull-down menu, the choice 'these groups' means
+"<b>all</b> of the groups selected in the remaining pull-down menus
+"to the right.&nbsp; This is a convenient way to see
+"the common membership of all of the groups that you are editing.
+"<p>
+"<li>Wildcards (like "b*" meaning everyone whose id starts with 'b')
+"will show up, but without any specific people or names associated
+"with them.
+
+"<p>
+"<li>If you see small print next to a checkbox, that indicates
+"a particular <a href="$(helpurl)/h_filesafe.cml?x+x#perm">permission</a> 
+"associated with that
+"person in that group.&nbsp;
+"(Click on the link for more information.)
+"</ol>
+
+include $(help)/hb.i

@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.18: Searching</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.18:&nbsp; Searching Conference Text</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref417.html">PREV</A>]
+   [<A HREF="ref419.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Several very specialized functions provide the capability to search
+for and display text in the conference items and responses.
+
+<P>
+<DL>
+
+<P><DT><A NAME="find_in_item">$find_in_item (cnum inum r0 r1 any 
+                inword text)</A>
+<DD>
+Search conference <I>cnum</I>, item <I>inum</I>, responses <I>r0</I>
+through <I>r1</I>.&nbsp;  (If <I>r1</I> is -1, search through the last
+response).&nbsp;  Look for the word (or words) in <I>text</I>.
+
+<P>
+The <I>any</I> and <I>inword</I> arguments modify exactly how
+and when the search succeeds.&nbsp;  If <I>any</I> is 1, the search
+is successful if any of the words in text are found in a response.&nbsp;
+If <I>any</I> is 0, the search succeeds only if all of the words
+in text are found in the same response.&nbsp;  
+
+<P>
+If <I>inword</I>  is
+1, the words in text match no matter where they are found in the
+response -- including in the middle of a word in the response.
+(For example, &quot;the&quot; will match &quot;o<B>the</B>r&quot;.)&nbsp;
+If inword is 0, matches must occur at the beginning of a word.&nbsp;
+(In that case, &quot;the&quot; will not match &quot;other&quot;,
+but it  will match &quot;<B>the</B>sis&quot;.)
+
+<P>
+Find_in_item() searches item <I>inum</I> until one of two things has
+happened:
+<UL>
+<LI>All the responses r0 through r1 have been searched, or
+<LI>It has spent more than pagetime/2 seconds searching 
+    (see <A HREF="ref402.html#pagetime">$pagetime()</A>).
+</UL>
+
+<P>
+Find_in_item() evaluates to a "pickup" triplet, followed by a
+triplet list of responses that had successful
+matches.&nbsp;  
+The pickup triplet is "0 0 0" if all the responses were searched.&nbsp;
+Otherwise it indicates the response <B>after</B> the last response
+searched, i.e. where to "pick up" with searching again on the next
+call to $find_in_item().
+
+<P>
+For example, "0 0 0 17 2 5 17 2 8" means that all the responses
+were searched, and responses 5 and 8 in item 2 in conference 17 
+had successful matches.
+
+
+<P><DT><A NAME="find_it">$find_it (cnum inum r0 r1 any inword text)</A>
+<DD>
+Obsolete form of $find_in_item().&nbsp;
+Searches responses <I>r0</I> through <I>r1</I> without checking
+time.&nbsp;
+Returns just the triplet string of matches, with no "pickup" triplet.
+
+<P><DT><A NAME="search_it">$search_it(cnum inum r0 r1 any text)</A>
+<DD>
+This is an obsolete form of $find_it().&nbsp;  It is equivalent to
+$find_it() with an <I>inword</I> of 0.
+
+<P><DT><A NAME="find_filter">$find_filter(size words... inword text)</A>
+<DD>
+Find_filter is really a text filter.&nbsp;  It is meant to be used
+to display just the &quot;hits&quot; in a response that contains
+a word or words searched for via $search_it().&nbsp;  It boldfaces the
+searched-for words, and displays 3 lines of <I>text</I> around
+each hit.
+
+<P>
+<I>Text</I> is typically the entire text of a response.&nbsp;  <I>Words</I>
+contains the word or words that were searched for.&nbsp;  <I>Size</I>
+is the number of distinct words in <I>words</I>.&nbsp;  <I>Inword</I>
+should have the same value it did in $find_it() -- it controls
+whether matches may be found in the middle of a word (<I>inword</I>
+= 1), or only at the beginning of a word (<I>inword</I> = 0).
+
+
+<P><DT><A NAME="search_filter">$search_filter(size words... text)</A>
+<DD>
+This is an obsolete form of $find_filter().&nbsp;  It is equivalent
+to $find_filter() with an <I>inword</I> of 0.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

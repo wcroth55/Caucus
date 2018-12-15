@@ -1,0 +1,151 @@
+#
+#---FILESAFEF.CML   Process results of filesafe page.
+#
+#   Basically, does the form processing from filesafe.cml, 
+#   handling any one of the four cases:
+#      delete     delete checked files
+#      addfile    add an uploaded file
+#      update     update desc and keywords for an existing file
+#      addlink    add a URL
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/18/01 14:20 New file, based loosely on old FileVault.cml
+#: CR 04/23/02 Add filesafe to CC44.
+#: CR 10/17/02 Massive rewriting, handles uploaded files OR urls!
+#: CR 01/25/03 Fix URL-first bug: use $copy2lib() to create URL file in addlink.
+#: CR 02/10/03 Delete /tmp file; set vname, fdir in addlink section!
+#: CR 06/01/04 Escape double-quotes with $escquote().
+#: CR 10/13/04 Add virus checking.
+#: CR 03/02/05 Call %safename() on uploaded files.
+#: CR 05/07/17 Don't use copy2lib to copy addlink's, it munges %s in file names.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i open
+ 
+set nch  $unique()
+set filesafe_err
+
+if $equal ($form(action) delete)
+   set vname $form(section)
+   set fdir  $caucus_path()/public_html/LIB/FILESAFE/$(vname)
+
+   set fileset $dirlist(0 $(fdir))
+   for x in $(fileset)
+      if $not_empty($form(cb_$replace([ _ $replace(] _ $replace(% _ $(x))))))
+
+         #---Decide if this user can delete this file.  'manager' is
+         #   inherited from filesafe.cml.
+         set delete 0$(manager)
+         if $not ($(delete))
+            set ifile $open($(fdir)/.$(x) r)
+            eval $readln($(ifile) uid)
+            eval $close ($(ifile))
+            set delete $equal ($(uid) $userid())
+         end
+         if $(delete)
+            eval $delfile ($(fdir)/$(x))
+            eval $delfile ($(fdir)/.$(x))
+         end
+         else
+            set filesafe_err Some files could not be deleted.
+         end
+      end
+   end
+end
+
+#---If Add, copy uploaded file to proper place, and write "dotfile"
+#   in same place with owner/date/description.
+if $equal ($form(action) addfile)
+   set vname $form(section)
+   set fdir  $caucus_path()/public_html/LIB/FILESAFE/$(vname)
+   set name_upload $word (1 %safename($form(name.upload)))
+   set dotname $(fdir)/.$(name_upload)
+
+   include $(main)/filesafeupd.i
+
+   if $(update)
+      set libname FILESAFE/$(vname)/$(name_upload)
+      include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+      if $empty ($(virus_file))
+         set url     $copy2lib ($form(upload) $(libname))
+         set fil $open($(dotname) w)
+         eval    $writeln($(fil) $(uid))
+         eval    $writeln($(fil) $word(1 $dateof($time())))
+         eval    $writeln($(fil) $escquote($form(desc)))
+         eval    $writeln($(fil) $escquote($form(keyw)))
+         eval    $close  ($(fil))
+      end
+   end
+end
+
+if $equal ($form(action) update)
+   set vname $form(section)
+   set fdir  $caucus_path()/public_html/LIB/FILESAFE/$(vname)
+   set dotname $(fdir)/.$form(flink)
+
+   include $(main)/filesafeupd.i
+
+   if $(update)
+      set fil $open($(dotname) w)
+      eval    $writeln($(fil) $(uid))
+      eval    $writeln($(fil) $word(1 $dateof($time())))
+      eval    $writeln($(fil) $escquote($form(desc)))
+      eval    $writeln($(fil) $escquote($form(keyw)))
+      eval    $close  ($(fil))
+   end
+end
+
+if $equal ($form(action) addlink)
+   set vname $form(section)
+   set fdir  $caucus_path()/public_html/LIB/FILESAFE/$(vname)
+
+   set slash2   $str_index (// $form(flink))
+   set name     $str_sub   ($plus ($(slash2) 2) 1000 $form(flink))
+   set fullname $replace   (/ _ $(name))
+   set fullname $replace   (? _ $(fullname))
+   set fullname $replace   (~ _ $(fullname))
+   set fullname $replace   (= _ $(fullname))
+   set dotname  $(fdir)/.$(fullname)
+
+   include $(main)/filesafeupd.i
+
+   if $(update)
+      eval $write (/tmp/$(fullname) $form(flink))
+      set  libname FILESAFE/$(vname)/$(fullname)
+      include $(main)/virus_checker.i $(ul_file) $(libname) virus_file
+      if $empty ($(virus_file))
+
+         #---Write it out manually, copy2lib munges %'s in links.
+         set fullLibPath $caucus_lib()/$(libname)
+         eval $write($(fullLibPath) $form(flink))
+         eval         $delfile  (/tmp/$(fullname))
+   
+         set fil $open($(dotname) w)
+         eval    $writeln($(fil) $(uid) 1)
+         eval    $writeln($(fil) $word(1 $dateof($time())))
+         eval    $writeln($(fil) $escquote($form(desc)))
+         eval    $writeln($(fil) $escquote($form(keyw)))
+         eval    $close  ($(fil))
+      end
+   end
+end
+
+#---IE 5 & 6 bug: tends to strip off "#anchor" from end of URL in
+#   %location() below (but only after a file upload -- weird!).  So
+#   we attach the anchorname as arg(10), and let filesafe.cml fix
+#   itself on the fly.
+set anchor #$(vname)
+if $(is_explorer5)
+   set anchor +$(vname)
+end
+
+"%location($(mainurl)/filesafe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                              $arg(6)+$arg(7)+$arg(8)+$arg(9)$(anchor))
+#-----------------------------------------------------------------------

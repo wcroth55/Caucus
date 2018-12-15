@@ -1,0 +1,99 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>grade_tasks&nbsp;&nbsp;&nbsp;</span> Graded tasks  
+<p/><b>Categories: </b>
+<a href='_Courses.html'>Courses</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Conferences that are marked as "courses" have gradeable tasks  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>taskkey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>class</td>
+<td>varchar(80) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>cnum</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>title</td>
+<td>varchar(80) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>type</td>
+<td>varchar(20) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> ??  <br></td>
+<tr valign=top class='row1'>
+<td>added</td>
+<td>date </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>due</td>
+<td>date </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>points</td>
+<td>decimal(8,2) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>weight</td>
+<td>decimal(5,2) </td>
+<td></td>
+<td></td>
+<td>'1.00'</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>comment</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>asnkey</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> FK to <a href='assignments.html'>assignments</a>  <br></td>
+</table>
+</body>
+</html>

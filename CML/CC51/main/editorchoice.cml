@@ -1,0 +1,49 @@
+#
+#---editorchoice.cml
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+"Content-type: text/html
+"
+"<html>
+"<body bgcolor="#FFFFFF">
+"<b>Editor Choices</b>
+"<p>
+"This version of Caucus offers the choice of several different
+"text editors for writing or editing your responses:
+#"You can try out a new editor immediately by clicking on 
+#"one of the links below:
+"<p>
+"<ul>
+"<li><a href="$(mainurl)/editorf.cml?$unique()+1">Richtext</a>: 
+"   a word processor-like editor for IE 5.5+.
+"<li><a href="$(mainurl)/editorf.cml?$unique()+2">Applet</a>: 
+"   a word processor-like applet editor for most browsers.
+"<p>
+"<i><b>Note:</b>&nbsp; both the richtext and applet editors are 
+"still officially
+"in beta-test: use them at your own risk!&nbsp;
+"The applet may require a one-time download of about 5 megabytes,
+"which installs an update java run-time.&nbsp; It will
+"download and install automatically.</i>
+"<p>
+"<li><a href="#" onClick="window.close();">Textbox</a>: 
+"   the usual HTML text box.
+"</ul>
+
+"<p>
+"You can change your editor choice at any time by clicking on your
+"own name, and scrolling down to the "Settings" section.
+
+"<form>
+"<center>
+"<input type="button" value="Close" onClick="window.close();">
+"</center>
+"</form>
+
+"</div>
+"</body>
+"</html>

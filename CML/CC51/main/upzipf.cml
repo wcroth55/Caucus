@@ -1,0 +1,66 @@
+#
+#---UPZIPF.CML    Process result of upzip.cml, and go on to viewitem.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i upzip.cml
+end
+
+include $(main)/secure.i open
+
+set nch  $unique()
+
+count num 1 $form(num)
+  if $not_empty($form(FILE$(num)))
+
+    if $equal ($form(utype) url)
+       if $equal ($(tp_resp) html)
+          set tx_resp $(tx_resp)$newline()\
+              <BR> \%liblink2($userid() $(isresp) $form(FILE$(num)))$newline()
+       end
+       else
+          set tx_resp $(tx_resp) $newline()\
+                        \%liblink2($userid() $(isresp) $form(FILE$(num)))
+       end
+    end
+ 
+    elif $equal ($form(utype) link)
+       set linkname $form(linkname$(num))
+       if $empty($(linkname))
+          set linkname $form(FILE$(num)) 
+       end
+       if $equal ($(tp_resp) html)
+         set tx_resp $(tx_resp) $newline()\
+             <BR>\%libname2($userid() $(isresp) $form(FILE$(num)) $(linkname))
+       end
+       else
+         set tx_resp $(tx_resp) $newline()\ 
+             \%libname2($userid() $(isresp) $form(FILE$(num)) $(linkname))   
+       end
+    end
+
+    elif $equal ($form(utype) img)
+       set tx_resp $(tx_resp) \%libimg2($userid() $(isresp) $form(FILE$(num)))
+    end
+
+  end
+end
+
+#---To return to the "calling" page, we need to disassemble the
+#   URL, and add the tx_resp and tp_resp args onto the end, and
+#   aim it at the "textbox" anchor.
+set saved $page_get ($arg(2))
+
+#---(Handle degenerate case)
+if $empty ($(saved))
+   set saved center.cml 0+x+x+x+x+x+x
+end
+
+set base $word (1 $(saved))?$(nch)+$word(2 $(saved))
+"%location($(mainurl)/$(base)+tx_resp+$(tp_resp)+ti_resp#textbox)
+#-----------------------------------------------------------------------

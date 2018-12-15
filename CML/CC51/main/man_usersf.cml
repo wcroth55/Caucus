@@ -1,0 +1,152 @@
+#
+#---man_usersf.cml.    Handles manager user changes
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/14/02 15:30 Add integration calls.
+#: CR 06/18/03 Delete also deletes babylon userid.
+#: CR 05/02/2004 Use new deletion script.
+#: CR 09/27/2004 Fix delete_userid.i call.
+#: CR 10/08/2005 C5 changes, use userids_delete.i call.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userDelete passwordChangeUsers \
+                         passwordChangeManagers passwordChangeAnyone
+
+set nch $unique()
+
+if $not_empty($form(create))
+   set what create
+end
+elif $not_empty($form(delete))
+   set what delete
+end
+elif $not_empty($form(password))
+   set what password
+end
+else
+   set what $(onehit)
+end
+
+if $empty($form($(what)_userid))
+   set $(what)_error You must provide a userid.
+   "%location($(mainurl)/man_users.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+x#$(what))
+   "
+   return
+end
+
+include $(main)/local_man_usersf.i
+
+#---If the Create button was pressed:
+
+if $equal($(what) create)
+   if $not_equal($form(create_password) $form(create_verify))
+      set create_error Please re-enter the password and verification.
+      set save_create_userid $form(create_userid)
+     "%location($(mainurl)/man_users.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+x#$(what))
+     "
+      return
+   end
+
+   set error $pw_add($form(create_userid) $form(create_password) 0)
+end
+
+#---If the Delete button was pressed:
+elif $equal($(what) delete)
+   set dellist $form(delete_userid)
+   include $(main)/userids_delete.i dellist
+end
+
+#---If the Password button was pressed:
+else
+   if $not_equal($form(password_password) $form(password_verify))
+      set password_error Please re-enter the password and verification.
+      set save_password_userid $form(password_userid)
+     "%location($(mainurl)/man_users.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+x#$(what))
+     "
+      return
+   end
+
+#   set perms $word (2 $mgr_list($form(password_userid)))
+
+#   if $and ($not_equal ($(perms) 274)  $bit_and ($(perms) 16))
+#      if $not_equal($word(2 $mgr_list($userid())) -1)
+#         set password_error Only the primary manager can change \
+#                            $form(password_userid)'s password.
+#         "%location($(mainurl)/man_users.cml?$arg(1)+$arg(2)+$arg(3)+\
+#                     x+x+x+x+x#$(what))
+#         return
+#      end
+#   end
+   set userid_source $user_data ($form(password_userid) auth_source)
+   set error $pw_change($form(password_userid) $form(password_password) \
+                        $(userid_source))
+end
+
+if $not_equal($(error) 0)
+   if $equal($(error) -1)
+      set $(what)_error You are not permitted to perform this action.
+   end
+   elif $equal($(error) 1)
+      set $(what)_error There has been a program error. \
+                        Please contact your Caucus administrator.
+   end
+   elif $equal($(error) 2)
+      set $(what)_error The userid $form(create_userid) already exists.
+   end
+   elif $equal($(error) 3)
+      set $(what)_error The userid \
+               '$form(delete_userid)$form(password_userid)' does not exist.
+   end
+   elif $equal($(error) 6)
+      set $(what)_error The specified password is too long.
+   end
+   elif $equal($(error) 7)
+      set $(what)_error The specific password contains something other than \
+                        letters and numbers.
+   end
+   elif $equal($(error) 8)
+      set $(what)_error The password database has had a lock failure. \
+                        Contact your Caucus administrator.
+   end
+   elif $equal($(error) 9)
+      set $(what)_error The password database cannot be read. \
+                        Contact your Caucus administrator.
+   end
+   elif $equal($(error) 10)
+      set $(what)_error The password database cannot be modified. \
+                        Contact your Caucus administrator.
+   end
+   elif $equal($(error) 11)
+      set $(what)_error SYSTEM ERROR -- The disk may be full. \
+                        Contact your Caucus administrator.
+   end
+   elif $equal($(error) 12)
+      set $(what)_error The authentication source for this user \
+                        does not permit or support this action.
+   end
+
+   "%location($(mainurl)/man_users.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+x#$(what))
+   "
+   return
+end
+
+#---Integration with outside app, if appropriate.
+if   $equal ($(what) password)
+   include $(main)/intg_encpass.i  $form(password_userid)    other_pw
+   include $(main)/intg_change.i   $form(password_userid)  $(other_pw)
+end
+elif $equal ($(what) delete)
+   include $(main)/intg_encpass.i  $form(password_userid)    other_pw
+   include $(main)/intg_delete.i   $form(delete_userid)
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # \
+                                 manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+#------------------------------------------------------

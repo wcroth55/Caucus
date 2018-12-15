@@ -1,0 +1,99 @@
+#
+#---peoplelist.cml  List of members of any group.
+#
+#   arg(6)  type of group ("CONF", "Caucus4", etc.)
+#   arg(7)  group "name" (conf is cnum)
+#   arg(8)  $quote()d list of optional fields (or "none")
+#  
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/06 New file, largely hacked from members.cml
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i peoplelist.cml
+end
+
+#include $(main)/secure.i member $arg(3)
+#---need to limit this to group members, or managers, tho!
+
+set groupType $if ($equal($arg(6) System) Caucus4 $arg(6))
+set pos $tablematch ($(groupType) Caucus4 Filesafe MGR Quiz CONF)
+if $less ($(pos) 0)
+   set pname $arg(6)-&gt;$arg(7)
+end
+elif $equal ($(groupType) CONF)
+   set pname %displayed_conf_name($arg(7))
+end
+else
+   set pname $word ($(pos) System Filesafe Manager Quiz)-&gt;$arg(7)
+end
+
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+eval      %onnow_check()
+
+set nxt   $page_save (1 peoplelist.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$(groupType)+$arg(7)+$arg(8) \
+                      # Members of $(pname))
+
+include $(main)/head.i $arg(3)  $quote(Members of $(pname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     peoplelist   $quote(Members of $(pname))
+
+set last
+
+if $or ($mgr_in_group ($userid() userReports systemAllPrivileges) \
+        $gt_equal ($group_access ($userid() $(groupType) $arg(7)) $priv(minimum)))
+
+   set otherFields
+   for x in $unquote($arg(8))
+      if $and ($not_equal ($(x) none)  $str_index(- $(x)))
+         set otherFields $(otherFields), u.$(x)
+      end
+   end
+   set query SELECT u.userid, u.lname, u.fname, u.email, u.laston \
+                    $(otherFields) \
+               FROM user_info u, groups g \
+              WHERE u.active >= 10 \
+                AND u.userid  = g.userid \
+                AND g.owner='$(groupType)' AND g.name='$arg(7)' \
+                AND g.access >= $priv(minimum)
+
+   if $equal ($arg(6) CONF)
+      set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, \
+                       c.lastin $(otherFields) \
+                  FROM (user_info u, groups g) \
+                  LEFT JOIN user_in_conf c \
+                    ON (c.userid = g.userid AND c.cnum=$arg(7)) \
+                 WHERE u.active >= 10 \
+                   AND u.userid  = g.userid \
+                   AND g.owner='$(groupType)' AND g.name='$arg(7)' \
+                   AND g.access >= $priv(minimum)
+   end
+
+#set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, c.lastin \
+#            FROM (user_info u, groups g) \
+#            LEFT JOIN user_in_conf c \
+#              ON (c.userid = g.userid AND c.cnum=$(cnum)) \
+#           WHERE u.active >= 10 \
+#             AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+#             AND g.access >= 10
+
+   "<table cellspacing=0 cellpadding=0 border=0>
+   include $(main)/peoplelist.i peoplelist.cml 1 query 0 0 lname,fname $arg(8)
+   "</table>
+   
+   if $(trailerbar)
+      include $(main)/trailer.i members $quote(Members of $(pname))
+   end
+end
+
+"</BODY>
+"</HTML>

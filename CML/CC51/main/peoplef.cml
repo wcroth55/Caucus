@@ -1,0 +1,156 @@
+#
+#---PEOPLEF.CML.   Process results of form in PEOPLE.CML.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/25/02 21:35 Added e-mail display
+#: CR 01/29/02 13:00 Filter out "last in cname" if arg3==x !
+#: CR 10/09/02 Use src_bullet.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 12/26/03 Use %onnow_user() for "is user on now?" display.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 10/13/04 Use CSS.
+#: CR 02/05/05 Show list of matches, even if only 1 match.
+#: CR 02/28/06 Major rewrite to use sortable columns.
+#: CR 03/13/11 Modify query to include c.lastin.
+#: CR 04/03/11 Handle all 3 possible queries; thisconf, isconf, center-only
+#-------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i people.cml
+end
+
+include $(main)/secure.i open
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set isconf $not_equal ($arg(3) x)
+
+#---Use PEO_WHO and PEO_INCONF to save state of this page, in case we
+#   return to it w/o traversing the input form again.
+if $not_empty ($form(people))
+   set peo_who     $form(who)
+   set peo_inconf  $form(inconf)
+end
+
+set thisconf $and ($not_empty($(peo_inconf))  $(isconf) )
+#set match    $userids_byname($if ($(thisconf) $arg(3) 0) $(peo_who))
+set match    $peo_names($if ($(thisconf) $arg(3) 0) $(peo_who))
+
+#---List all matches, and let user choose.  (If there was only 1 match,
+#   we used to pop-up a window for that match immediately, but that ran
+#   afoul of pop-up blockers.)
+
+set nxt  $page_save (1 peoplef.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # List of People )
+eval %onnow_check()
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>List of People</TITLE>
+"<link rel="icon"          href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+"<link rel="shortcut icon" href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+
+include $(main)/popup.i
+include $(main)/css.i
+"</HEAD>
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     peoplef  List of People
+set can_save_page 0
+
+#---Header
+#"<H2>List of People</H2>
+#"<P>
+#"<pre>
+#"thisconf=$(thisconf)<br>
+#"isconf  =$(isconf)<br>
+#"match   =$(match)<br>
+#"</pre>
+
+if $empty ($(match))
+   "No one 
+   if $(thisconf)
+      "in the $(cname) conference
+   end
+   "matched "<B>$(peo_who)</B>".
+end
+
+else
+   "These people 
+   if $(thisconf)
+      "in the $(cname) conference
+   end
+
+   "matched "<B>$(peo_who)</B>".
+
+   "<P>
+   "<form METHOD=POST ACTION="$(mainurl)/rmpeople.cml?$(nch)+$(nxt)+\
+                     $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+   set is_org    $gt_equal (%access($(cnum)) $priv(instructor))
+   set any_found 0
+
+   set matchin '$word (1 $(match))'
+   for u in $(match)
+      set matchin $(matchin), '$(u)'
+   end
+
+   if $(thisconf)
+      set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, c.lastin \
+                  FROM (user_info u, groups g) \
+                  LEFT JOIN user_in_conf c \
+                    ON (c.userid = g.userid AND c.cnum=$(cnum)) \
+                 WHERE u.active >= 10 \
+                   AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+                   AND g.access >= $priv(minimum) \
+                   AND u.userid in ($(matchin))
+   end
+   elif $(isconf)
+      set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, c.lastin \
+                  FROM user_info u \
+                  LEFT JOIN user_in_conf c \
+                    ON (c.userid = u.userid AND c.cnum=$(cnum)) \
+                 WHERE u.active >= 10 \
+                   AND u.userid in ($(matchin))
+   end
+   else
+      set query SELECT u.userid, u.lname, u.fname, u.email, u.laston \
+                  FROM user_info u \
+                 WHERE u.active >= 10 \
+                   AND u.userid in ($(matchin))
+   end
+
+   "<table cellspacing=0 cellpadding=0 border=0>
+   include $(main)/peoplelist.i peoplef.cml $(isconf) query 0 0 lname,fname
+   "</table>
+
+#  if $and ($(is_org) $(any_found))
+#     "<P>
+#     "<INPUT TYPE=SUBMIT NAME=submit VALUE="Remove"> the checked
+#     " people from the conference.
+#     "<P>
+#     "<UL>
+#     "(Note: if you wish to prevent removed user(s) from re-joining,
+#     "you must specifically exclude them, from the
+#     "<A HREF="$(mainurl)/custom_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#                                        $arg(6)+$arg(7)+$arg(8)">Customize
+#     "Users</A> page.)
+#     "</UL>
+#  end
+   "</form>
+end
+   
+"<P>
+"</div>
+"</body>
+"</HTML>
+#-------------------------------------------------------------------

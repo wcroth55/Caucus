@@ -1,0 +1,459 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 5: CML Directives</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 5:&nbsp; CML Directives</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">PREV</A>]
+   [<A HREF="ref6.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<P>
+CML pages are like mini-programs.&nbsp;  They contain directives which
+control which lines of HTML code will actually get sent to the
+browser, or control how many times a set of HTML lines will be
+evaluated.&nbsp;  
+
+<P>
+The directives are:
+<TABLE>
+<TR VALIGN=top>
+<TD>
+   <OL>
+   <LI><A HREF="#for">For</A>
+   <LI><A HREF="#count">Count</A>
+   <LI><A HREF="#while">While</A>
+   <LI><A HREF="#if">If</A>
+   <LI><A HREF="#elif">Elif</A>
+   </OL>
+</TD>
+<TD>&nbsp;</TD>
+<TD>
+   <OL START=6>
+   <LI><A HREF="#else">Else</A>
+   <LI><A HREF="#set">Set</A>
+   <LI><A HREF="#copy">Copy</A>
+   <LI><A HREF="#include">Include</A>
+   <LI><A HREF="#return">Return</A>
+</OL>
+</TD>
+<TD>&nbsp;</TD>
+<TD>
+   <OL START=11>
+   <LI><A HREF="#quit">Quit</A>
+   <LI><A HREF="#break">Break</A>
+   <LI><A HREF="#continue">Continue</A>
+   <LI><A HREF="#eval">Eval</A>
+   </OL>
+</TD>
+</TABLE>
+
+Plus an "<B>end</B>" directive, that closes the
+"for", "count", "while", "if", "elif", and "else" directives.
+
+<P>&nbsp;<P>
+<A NAME="for"><B>5.1 For</B></A>
+
+<P>
+The CML "for" loop evaluates a set of lines multiple
+times.&nbsp;  It looks like:
+
+<P>
+<PRE>
+
+     <B>for</B> <I>variable1</I> [<I>variable2</I> ... ] <B>in</B> <I>list</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+</PRE>
+
+<P>
+where <I>variable1, variable2</I> etc. are names, and <I>list</I>
+is a list of words or values.&nbsp;  Typically <I>list</I> may be the
+result of a CML function.&nbsp;  The for loop evaluates the lines between
+"for" and "end", substituting the words in
+<I>list</I> as the values of <I>variable1</I>, <I>variable2</I>, etc.&nbsp;
+(The brackets simply mean that <I>variable2</I>, etc. are
+optional.&nbsp;  The brackets would not actually appear in the syntax
+of the for loop.)
+
+<P>
+For example, the loop:
+
+<P>
+<PRE>
+     <B>for</B> x <B>in</B> abc qrs xy
+          ...
+     end
+</PRE>
+
+<P>
+will evaluate the lines between "for" and "end"
+three times, using each word in <I>list</I>.&nbsp;  (If there are no
+words, the lines will be skipped.)&nbsp;  The first time through the
+loop, <I>x</I> will have as its value "abc".&nbsp;
+The second time it will have the value "qrs", and so on.
+
+<P>
+A different example shows the use of multiple <I>variables</I>:
+
+
+<PRE>
+     <B>for</B> one two <B>in</B> alpha beta delta gamma
+         ...
+     end
+</PRE>
+
+<P>
+The first time through the loop, <I>one</I> will have the value
+"alpha" and <I>two</I> will have the value "beta".&nbsp;
+The second time, <I>one</I> will have the value "delta",
+and so on.
+
+<P>
+The indenting of each line as shown above is not necessary, but
+it is a good idea.&nbsp;  It helps make the CML code much more readable.
+
+<P>&nbsp;<P>
+<A NAME="count"><B>5.2 Count</B></A>
+
+<P>
+The CML "count" loop is similar to the "for"
+loop.&nbsp;  It looks like:
+
+<P>
+<PRE>
+     <B>count</B> <I>variable</I> <I>x y</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+</PRE>
+
+<P>
+where <I>variable</I> is a name, and <I>x</I> and <I>y</I> are
+numeric values or expressions.&nbsp;  The count loop will evaluate the
+lines between "count" and "end" one time for
+each integer value between <I>x</I> and <I>y</I>, inclusive.&nbsp;
+The first time, variable will have the value <I>x</I>.&nbsp;  
+Then <I>x</I>+1,
+and so on, up to and including <I>y</I>.&nbsp;  If <I>y</I> is less
+than <I>x</I>, the lines will be skipped entirely.
+
+
+<P>&nbsp;<P>
+<A NAME="while"><B>5.3 While</B></A>
+
+<P>
+The CML "while" loop is perhaps the simplest loop control
+directive.&nbsp;  It has the form:
+
+<P>
+<PRE>
+     <B>while</B> <I>expression</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+</PRE>
+
+<P>
+The "while" loop evaluates <I>expression</I>, and examines
+the first word of the result.&nbsp;  If it is a number, not equal to
+0, all of the lines between "while" and "end"
+are evaluated.&nbsp;  The loop then repeats, re-evaluating <I>expression</I>,
+and so on.&nbsp;  The "while" loop will continue to execute
+as long as <I>expression</I> is non-zero, so be careful!
+
+<P>&nbsp;<P>
+
+<A NAME="if"><B>5.4 If</B></A>
+
+<P>
+The CML "if" statement evaluates a set of lines if a
+certain condition is true.&nbsp;  It looks like:
+
+<P>
+<PRE>
+     if <I>condition</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+</PRE>
+
+where <I>condition</I> is some expression.&nbsp;  If there is at least
+one word in <I>condition</I>, and the first word is a non-zero
+number, then the enclosed set of lines will be evaluated once.&nbsp;
+Otherwise they will be skipped.&nbsp;  (Also see the related functions
+<A HREF="ref405.html#if">$if()</A> and
+<A HREF="ref405.html#ifthen">$ifthen()</A>.)
+
+
+<P>&nbsp;<P>
+<A NAME="elif"><B>5.5 Elif</B></A>
+
+<P>
+The "if" statement may be extended to handle multiple
+exclusive cases with the "elif" directive.&nbsp;  It looks
+like:
+
+<P>
+<PRE>
+     if <I>condition1</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+
+     <B>elif</B> <I>condition2</I>
+          ...
+     end
+</PRE>
+
+<P>
+The lines between "elif" and "end" are evaluated
+when the previous "if" <I>condition1</I> failed (was
+0 or did not exist) and the first word of <I>condition2</I> is
+a non-zero number.
+
+<P>
+Multiple "elif"s may be strung together, one after another.&nbsp;
+Only one of the blocks of CML code between the if/end and elif/end
+pairs will be executed.
+
+
+<P>&nbsp;<P>
+<A NAME="else"><B>5.6 Else</B></A>
+
+<P>
+There is an (optional) matching "else" to the CML "if"
+and "elif" statements.&nbsp;  It looks like:
+
+<P>
+<PRE>
+     if <I>condition</I>
+          (HTML code or other CML directive code)
+          ...
+     end
+
+     <B>else</B>
+          ...
+     end
+</PRE>
+
+<P>
+The lines between "else" and "end" are evaluated
+if <I>condition</I> is 0, or does not exist at all.&nbsp;
+<I>Note</I>: <I>the "if" must have its own "end"!&nbsp;
+</I>"Else" may be used with just an "if", 
+or a series of "if"s
+and "elifs".&nbsp;  If the latter, it must be the last of
+the series.
+
+
+<P>&nbsp;<P>
+<A NAME="set"><B>5.7 Set</B></A>
+
+<P>
+The "for" and "count" directives define the
+value of a variable during iterations of the lines between the
+"for" or "count", and the matching "end"
+directive.&nbsp;  Outside of those loops, the variable is undefined.
+
+<P>
+A variable may also be defined across the evaluation of all CML
+pages, using the "set" directive.&nbsp;  It looks like:
+
+<P>
+<PRE>
+     <B>set</B> <I>variable</I> <I>x</I>
+</PRE>
+
+where <I>variable</I> is a name (or an expression that evaluates
+<b>to</b> a name), and <I>x</I> is some expression.&nbsp;
+For the rest of this session, <I>variable</I> has the value <I>x</I>
+(unless changed by another "set" directive).&nbsp;  Variables
+defined by "set" are considered "global" in
+scope, i.e. the variables are available in all subsequently evaluated
+CML pages.
+<P>
+(Also see the related function 
+<A HREF="ref407.html#set">$set()</A>.)
+
+<P>&nbsp;<P>
+<A NAME="copy"><B>5.8 Copy</B></A>
+
+<P>
+The Copy directive is identical to the Set directive,
+except that it preserves leading spaces (after the
+one space required to separate the directive from
+the expression).&nbsp;
+Spaces, in this context, include blanks, tabs, newlines,
+and Kanji double-wide spaces.
+<P>
+For example, if the "struck-out" letter 
+<FONT COLOR=BLUE><STRIKE>b</STRIKE></FONT>
+represents a space, then
+<P>
+<PRE>
+   set  abc<FONT COLOR=BLUE><STRIKE>bbb</STRIKE></FONT>hello
+   copy xyz<FONT COLOR=BLUE><STRIKE>bbb</STRIKE></FONT>goodbye
+</PRE>
+<P>
+sets abc to "Hello", and xyz to 
+"<FONT COLOR=BLUE><STRIKE>bb</STRIKE></FONT>goodbye".
+
+
+<P>&nbsp;<P>
+<A NAME="include"><B>5.9 Include</B></A>
+
+<P>
+The "include" directive includes the text of a CML file
+at the current point.&nbsp;  It has the syntax:
+
+<P>
+<PRE>
+     <B>include</B> filename  <I>[ arg1 [ arg2 ... ] ]</I>
+</PRE>
+
+<P>
+where <I>filename</I> is the name of a file, or a set of CML functions
+that evaluate to the name of a file.&nbsp;  <I>Filename</I> is relative
+to the CML_Path directory specified in the swebd.conf file.&nbsp;  (See
+the Caucus installation guide for details.)&nbsp;  The brackets indicate
+that arguments <I>arg1</I>, <I>arg2</I>, and so on are optional
+(they are not actually part of the syntax).&nbsp;  If the arguments
+are present, they are available inside the included file via the
+<A HREF="ref401.html#inc">$inc(n)</A> function.
+
+<P>
+Include directives are evaluated according to the current context.&nbsp;
+For example:
+
+<P>
+<PRE>
+     count x 1 3
+          <B>include</B> file.$(x)
+     end
+</PRE>
+
+<P>
+would include the contents of the files <B>file.1</B>, <B>file.2</B>,
+and <B>file.3</B>.
+
+<P>
+Include understands the "quoting" of multiple words as one <I>arg</I>.&nbsp;
+See <A HREF="ref407.html#quote">$quote()</A> for details.
+
+
+<P>&nbsp;<P>
+<A NAME="return"><B>5.10 Return</B></A>
+
+<P>
+The "return" directive immediately "returns" from the current
+CML file or CML include file.&nbsp;  When encountered in
+a CML file, it terminates processing of that file, as if
+it had "run off the end" of the file.&nbsp;
+If encountered in an <A HREF="#include">include</A>d file,
+it immediately "returns" to the includ<B>ing</B> file,
+and continues with the line after the include directive.
+<P>
+Return is particularly useful in CML include files that
+handle multiple conditions.&nbsp;  Return can be used to
+say "I'm done with this section", rather than use if/else if
+combinations to exclusively handle different conditions.&nbsp;
+For example:
+
+<P>
+<PRE>
+     if <I>condition 1</I>
+        <I>do something</I>
+        <B>return</B>
+     end
+
+     if <I>condition 2</I>
+        <I>do something else</I>
+        <B>return</B>
+     end
+
+     "etc...
+</PRE>
+
+A return in a main CML file has the same effect as a 
+<A HREF="#quit">quit</A>.
+
+
+<P>&nbsp;<P>
+<A NAME="quit"><B>5.11 Quit</B></A>
+
+<P>
+The "quit" directive immediately ceases processing
+of the current page, whether in a main CML <B>or</B> an 
+<A HREF="#include">include</A> file.&nbsp;  
+No more processing is done of that file, or any file that may
+have "included" the file.
+<P>
+It is particularly useful in CML pages
+that need to handle special case or "error" conditions.&nbsp;
+For example:
+
+<P>
+<PRE>
+     if <I>some "error" condition</I>
+          "Location: http://www.xyz.com/errorpage.html
+          "
+          <B>quit</B>
+     end
+
+     #---OK, go on with the main case here...
+     "Content-type: text/html
+     "
+
+     "etc...
+</PRE>
+
+
+<P>&nbsp;<P>
+<A NAME="break"><B>5.12 Break</B></A>
+
+<P>
+The "break" directive immediately exits the innermost
+"for", "count", or "while" loop,
+and continues execution of the CML script after the closing "end"
+of that loop.
+
+<P>&nbsp;<P>
+<A NAME="continue"><B>5.13 Continue</B></A>
+
+<P>
+The "continue" directive immediately starts the next iteration
+of the innermost containing "for", "count", or "while" loop.
+
+<P>&nbsp;<P>
+<A NAME="eval"><B>5.14 Eval</B></A>
+
+<P>
+The "eval" directive simply evaluates any CML functions
+on the rest of the line.&nbsp;  Any results from the evaluation are
+ignored (thrown away).&nbsp;
+<P>
+Eval is really just a more straight-forward way of saying 
+"set ignore some_function".
+
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,354 @@
+#
+#---man_statwizf.cml.    Handles manager usage statistics wizard form submit
+#
+#   define all the input parameters (Yeesh!)
+#
+#   Notes:
+#      Activity report counts deleted responses as "readable".
+#      This will get cured in C5 when we eventually have a response table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 07/18/03 New file.
+#: CR 09/11/04 Add "by week" option.
+#: CR 04/25/05 Add "activity report" option.
+#: CR 05/15/05 Add "posts/reads" report.
+#: CR 08/29/05 Fix date_add calculations in MySQL (use "FROM (select 1) a")
+#: CR 02/17/06 Activity report: calculate visits, time t, two different ways.
+#: CR 03/06/06 Add row #s, color bars, skip zero calculation includes all cols.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_statwizf.cml
+end
+
+#include $(main)/secure.i manage 512
+
+
+#---If user is still working their way through the form, reload it
+#   with the appropriate values.
+if $empty ($form(restype))
+   "%location($(mainurl)/man_statwiz.cml?\
+        $unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+\
+        $epoch($form(d0day)-$form(d0month)-$form(d0year))+\
+        $epoch($form(d1day)-$form(d1month)-$form(d1year))+\
+        $form(who))
+   quit
+end
+
+if 0
+   "Content-type: text/plain
+   "
+   "restype='$form (restype)'
+   "$form (d0day) - $form(d0month) - $form(d0year)
+   "$form (d1day) - $form(d1month) - $form(d1year)
+   "who    ='$form (who)'
+   "confs  ='$form (confs)'
+   "report ='$form (report)'
+   "users  ='$form (users)'
+   "list   ='$(list)'
+   "egType ='$(egType)'
+   "egName ='$(egName)'
+   "period ='$form(period)'
+end
+
+#---Calculate SQL "userid in ()" string
+include $(main)/man_andusers.i
+
+#---Calculate SQL "conference in ()" string.
+set and_confs
+for conf in $form(confs)
+   set and_confs $(and_confs) $(conf)
+end
+if $not_empty ($(and_confs))
+   set and_confs AND (e.conf IS NULL  OR  \
+                      e.conf in ($replace (32 , $(and_confs))))
+end
+
+#---Translate month names into month numbers.
+set month_names Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
+set d0mNum $tablefind ($form(d0month) $(month_names))
+set d0mNum $if ($less ($(d0mNum) 10) 0$(d0mNum) $(d0mNum))
+set d1mNum $tablefind ($form(d1month) $(month_names))
+set d1mNum $if ($less ($(d1mNum) 10) 0$(d1mNum) $(d1mNum))
+
+#---Activity report (complicated!)
+if $equal ($form(report) a)
+
+   #---Conf num and name.
+   set cnum  $word (1 $form(confs))
+   set cname $replace (_ 32 $cl_name ($(cnum)))
+
+   #---Output display header row.
+   include $(main)/statwizopen.i
+   include $(main)/statwizhead.i 9  $quote(\
+      Activity Report: $(cname)  \
+      ($form(d0year)-$(d0mNum)-$form(d0day) thru \
+       $form(d1year)-$(d1mNum)-$form(d1day)))
+   include $(main)/statwizhead.i
+
+   include $(main)/statwizhead.i 2
+   include $(main)/statwizhead.i 1
+   include $(main)/statwizhead.i 1
+   include $(main)/statwizhead.i 1
+   include $(main)/statwizhead.i 1  Has
+   include $(main)/statwizhead.i 1  Read
+   include $(main)/statwizhead.i 1  Has
+   include $(main)/statwizhead.i 1  Read
+   include $(main)/statwizhead.i 1  Added
+   include $(main)/statwizhead.i
+
+   include $(main)/statwizhead.i 2  Name
+   include $(main)/statwizhead.i 1  Email
+   include $(main)/statwizhead.i 1  Visits
+   include $(main)/statwizhead.i 1  Hours
+   include $(main)/statwizhead.i 1  Items
+   include $(main)/statwizhead.i 1  Items
+   include $(main)/statwizhead.i 1  Resps
+   include $(main)/statwizhead.i 1  Resps
+   include $(main)/statwizhead.i 1  Resps
+   include $(main)/statwizhead.i
+
+   #---Make sure we have the "nums" table filled up to 10000.
+   if $empty ($sql_query_select (SELECT num FROM nums WHERE num=1))
+      set sql CREATE TABLE nums (num int, primary key(num))
+      set h $sql_query_open ($(sql))
+      eval  $sql_query_close($(h))
+      count i 0 10000
+         set h $sql_query_open (INSERT INTO nums VALUES($(i)))
+         eval  $sql_query_close($(h))
+      end
+   end
+
+   #---Count the number of visible items and responses.
+   set items $sql_query_select (\
+       SELECT count(*) FROM conf_has_items h \
+        WHERE h.cnum=$(cnum) AND h.hidden=0 AND h.retired=0)
+
+   set resps $sql_query_select (\
+       SELECT count(*) FROM resps r, conf_has_items h \
+        WHERE h.cnum=$(cnum) AND h.hidden=0 AND h.retired=0 \
+          AND h.items_id=r.items_id AND r.deleted=0 AND r.version = \
+            (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+        )
+
+   set parity 1
+   set peopleCount 0
+   for uid in $(list)
+
+      #---Calculate approximate time 't' spent in conference, number of 
+      #   'visits' to the conf.  Since some users never hit Quit, we try
+      #   to calculate this two different ways, and then take the maximums.
+      set sql SELECT count(*) visits0, SUM(e.duration)/3600 t0 FROM events e \
+               WHERE e.event  = 'leftconf' \
+                 AND e.userid = '$(uid)'  \
+                 AND e.time  >= '$form(d0year)-$(d0mNum)-$form(d0day)' \
+                 AND e.time  <  '$form(d1year)-$(d1mNum)-$form(d1day)' \
+                 $(and_confs)
+      set t0
+      set h $sql_query_open ($(sql))
+      eval  $sql_query_row  ($(h))
+      eval  $sql_query_close($(h))
+
+      set sql SELECT count(DISTINCT e.sessionid) visits1, \
+                     SUM(e.duration)/3600 t1 \
+                FROM events e WHERE e.event = 'leftitem' \
+                 AND e.userid = '$(uid)'  \
+                 AND e.time  >= '$form(d0year)-$(d0mNum)-$form(d0day)' \
+                 AND e.time  <  '$form(d1year)-$(d1mNum)-$form(d1day)' \
+                 $(and_confs)
+      set t1
+      set h $sql_query_open ($(sql))
+      eval  $sql_query_row  ($(h))
+      eval  $sql_query_close($(h))
+
+      set visits $max($(visits0) $(visits1))
+      set t      $max($(t0)      $(t1))
+
+      #---Number of distinct items_read.
+      set sql SELECT count(DISTINCT e.item) FROM events e \
+               WHERE e.event = 'read' \
+                 AND e.userid = '$(uid)'  \
+                 AND e.time >= '$form(d0year)-$(d0mNum)-$form(d0day)' \
+                 AND e.time <  '$form(d1year)-$(d1mNum)-$form(d1day)' \
+                 $(and_confs)
+      set items_read $sql_query_select ($(sql))
+
+      #---Number of items or responses added.
+      set sql SELECT COUNT(*) FROM events e \
+               WHERE e.event IN ('additem', 'addresp') \
+                 AND e.userid = '$(uid)' \
+                 AND e.time >= '$form(d0year)-$(d0mNum)-$form(d0day)' \
+                 AND e.time <  '$form(d1year)-$(d1mNum)-$form(d1day)' \
+                 $(and_confs)
+      set newresps $sql_query_select ($(sql))
+
+
+      #---Count number of responses read.
+      set sql SELECT e.item, count(distinct n.num) seen FROM nums n, events e \
+               WHERE e.event  = 'read' \
+                 AND e.userid = '$(uid)' \
+                 AND e.time >= '$form(d0year)-$(d0mNum)-$form(d0day)' \
+                 AND e.time <  '$form(d1year)-$(d1mNum)-$form(d1day)' \
+                 AND n.num  >= e.r0 AND n.num <= e.rn \
+                 $(and_confs) \
+               GROUP BY e.item
+      set readresps 0
+      set h $sql_query_open ($(sql))
+      while $sql_query_row  ($(h))
+         set readresps $plus ($(readresps) $(seen))
+      end
+      eval  $sql_query_close($(h))
+
+      set name $user_info ($(uid) lname), $user_info ($(uid) fname)
+      set size $sizeof($(name))
+
+      if $and (0$form(skip0)  \
+               $equal ($plus($(visits) $(items_read) $(newresps)) 0))
+         continue
+      end
+
+      if $equal ($form(restype) w)
+         set parity $minus (1 $(parity))
+         "<tr class="peoplelist$(parity)">
+         set peopleCount $plus($(peopleCount) 1)
+         "<td align=right>$(peopleCount).&nbsp;</td>
+         "<td>$(name)&nbsp;</td>
+         "<td>$user_info ($(uid) email)</td>
+         "<td align=right>$(visits)</td>
+         "<td align=right>$(t)</td>
+         "<td align=right>$(items)</td>
+         "<td align=right>$(items_read)</td>
+         "<td align=right>$(resps)</td>
+         "<td align=right>$(readresps)</td>
+         "<td align=right>$(newresps)</td>
+      end
+      else
+         eval $writeln ($(fd) $(name)$char(9)$user_info($(uid) email)$char(9)\
+                 $(visits)$char(9)$(t)$char(9)$(items)$char(9)\
+                 $(items_read)$char(9)$(resps)$char(9)\
+                 $(readresps)$char(9)$(newresps))
+      end
+   end
+   include $(main)/statwizclose.i
+end
+
+#---Reads/Posts report (complicated only by time period).
+if $equal ($form(report) r)
+
+   #---Conf num and name.
+   set cnum  $word (1 $form(confs))
+   set cname $replace (_ 32 $cl_name ($(cnum)))
+
+   #---Output display header row.
+   include $(main)/statwizopen.i
+   include $(main)/statwizhead.i 20  $quote(Reads and Posts in: $(cname))
+   include $(main)/statwizhead.i
+
+   #---Get list of dates...
+   set dates
+   set heads
+   set date0 $form(d0year)-$(d0mNum)-$form(d0day)
+   set dlast $form(d1year)-$(d1mNum)-$form(d1day)
+   set period $form(period)
+   if $equal ($(period) total)
+      set dates $(date0) $(date1)
+      set heads Total
+   end
+   else
+      set date1 x
+      while $not_empty ($(date1))
+#        "date0: $(date0)    date1: $(date1)   dlast: $(dlast)
+         set query \
+            SELECT date_add('$(date0)', interval $(period)) FROM (select 1) a \
+             WHERE date_add('$(date0)', interval $(period)) <= '$(dlast)'
+#        "query: $(query)
+         set date1 $sql_query_select ($(query))
+#        "date1='$(date1)'
+         set dates $(dates) $(date0) $word (1 $(date1) $(dlast))
+         set heads $(heads) $(date0)
+         set date0 $(date1)
+      end
+   end
+   
+   include $(main)/statwizhead.i 2 User
+   for x in $(heads)
+      set x $replace (- 32 $(x))
+      include $(main)/statwizhead.i 2 $word(2 $(x))/$word(3 $(x))
+   end
+   if $not_equal ($(period) total)
+      include $(main)/statwizhead.i 2 TOTALS
+   end
+   include $(main)/statwizhead.i
+
+   set parity 1
+   set peopleCount 0
+   for uid in $(list)
+      set html
+      if $equal ($form(restype) w)
+         set html <td><nobr>$user_info ($(uid) lname), $user_info ($(uid) fname)</nobr></td>
+      end
+      else
+         set line $user_info ($(uid) lname), $user_info ($(uid) fname)
+      end
+      set totalReads 0
+      set totalPosts 0
+
+      for d0 d1 in $(dates)
+         set query SELECT SUM(e.rn - e.r0)  reads FROM events e \
+                    WHERE e.userid = '$(uid)'  \
+                      AND e.event  = 'read'  \
+                      $(and_confs)  \
+                      AND e.time >= '$(d0)'  AND e.time <  '$(d1)'
+         set reads      $sql_query_select($(query))
+         set totalReads $plus ($(totalReads) $(reads))
+
+         set query SELECT COUNT(*) posts FROM events e \
+                    WHERE e.userid = '$(uid)'  \
+                      AND e.event IN ('additem', 'addresp')  \
+                      $(and_confs)  \
+                      AND e.time >= '$(d0)'  AND e.time <  '$(d1)'
+         set posts      $sql_query_select($(query))
+         if $not ($plus ($(posts) $(reads)))
+            set posts
+         end
+         set totalPosts $plus ($(totalPosts) $(posts))
+
+         if $equal ($form(restype) w)
+            set html $(html)<td align=right>$(reads)</td>
+            set html $(html)<td align=right>$(posts)</td>
+         end
+         else
+            set line $(line)$(reads)$char(9)$(posts)$char(9)
+         end
+
+      end
+
+      if $and (0$form(skip0)  $equal ($plus($(totalReads) $(totalPosts)) 0))
+         continue
+      end
+      if $equal ($form(restype) w)
+         set parity $minus (1 $(parity))
+         "<tr class="peoplelist$(parity)">
+         set peopleCount $plus ($(peopleCount) 1)
+         "<td align=right>$(peopleCount).&nbsp;</td>
+         "$(html)
+         "<td align=right>$(totalReads)</td>
+         "<td align=right>$(totalPosts)</td>
+      end
+      else
+         set line $(line)$(totalReads)$char(9)$(totalPosts)$char(9)
+         eval $writeln ($(fd) $(line))
+      end
+   end
+
+   include $(main)/statwizclose.i
+end
+
+if $(mod_stat)
+   include $(main)/man_statwizextrasf.i
+end
+
+#------------------------------------------------------

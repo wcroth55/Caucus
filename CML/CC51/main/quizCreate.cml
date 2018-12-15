@@ -1,0 +1,108 @@
+#
+#---quizCreate.cml.   Create a new Quiz.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+# arg(7) if not x, create as breakout from this item id
+# arg(8) if not x, create as breakout from this resp.
+# arg(9) empty=>quiz, s=>survey
+#
+#: CR 04/21/07 New file.
+#: CR 10/06/09 Remove $sql_sequence(quiz)
+#: CR 08/22/10 Add survey type.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quizCreate.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+set nch   $unique()
+set cnum  $arg(3)
+
+set type quiz
+if $equal (x$arg(9) xs)
+   set type survey
+end
+set typeName $upper1($(type))
+
+#---Creating new quizzes.
+if $not_empty ($form(newtitle))
+   set query INSERT INTO quiz (qkey, userid, title, visible0, visible1) VALUES \
+             (NULL, '$userid()', '$escsingle($form(newtitle))', \
+             now(), date_add(curdate(), interval 1 year))
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   set qkey $sql_last_insert()
+#  "<p/>h=$(h), query=$(query)
+
+   set textprop 2
+   set bits 0
+
+   set parents 0 0
+   if $not_equal ($arg(7) x)
+      set parents $arg(7) $arg(8)
+   end
+   set newitem $item_add ($arg(3) $(parents) $userid() $form(newtitle))
+   eval $resp_add ($arg(3) $(newitem) $userid() $(textprop) $(bits) 0 &nbsp;)
+   set qq UPDATE items SET qkey=$(qkey), type='$(type)' WHERE id=$(newitem)
+   set qh $sql_query_open ($(qq))
+   eval   $sql_query_close($(qh))
+
+   "%location($(mainurl)/quiz.cml?$(nch)+$(nxt)+$arg(3)+$(newitem)+x+x+x+x)
+   quit
+end
+
+
+
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 quizCreate.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Create&nbsp;$(typeName) )
+
+include $(main)/head.i $arg(3)  $quote(Create&nbsp;$(typeName))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  quizCreate Create&nbsp;$(typeName)
+
+
+"<script type="text/javascript" language="javascript">
+"function validateTitle() {
+"   if (document.quiz.newtitle.value != '')  return true;
+"   confirm ("Please enter a name for the new $(typeName).");
+"   return  false;
+"}
+"</script>
+
+"<p/>
+
+
+"<ul>
+"<form name="quiz" method="post" 
+"    onSubmit="return validateTitle();"
+"    action="quizCreate.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$arg(9)">
+
+"<table border=0>
+   "<tr><td></td>
+   "<td>Enter the title of the new $(typeName) item:</td>
+   "<tr><td></td>
+   "<td><input type="text" name="newtitle" size=30></td>
+   "<td>&nbsp;&nbsp;</td>
+   "<td colspan=2><input 
+   "   type="submit" name="submit" Value="Create"></td>
+
+"</table>
+"</form>
+"</ul>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

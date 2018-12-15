@@ -1,0 +1,94 @@
+#
+#---sqlreport.cml    SQL Report
+#
+#   arg(1)    /tmp file containing SQL text
+#   arg(2)    /tmp file for output
+#   arg(3)    type: html or xls
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/15/03 New file.
+#: CR 10/13/04 Use CSS.
+#: CR 04/28/05 Rewrite to flow through REG/stats.cgi.
+#-------------------------------------------------------------------
+
+set query $readfile (/tmp/$arg(1))
+
+#---Pluck out the header for each column from the query, and prepare
+#   to display them at the top of the results.
+set from    $tablefind (from $lower($(query)))
+set headers $words (2 $minus ($(from) 2) $(query))
+set headers $replace (, 32 $quote($(headers)))
+
+
+eval $output (/tmp/$arg(2)_ 644)
+
+#---For html output, just rewrite the $arg(2) file with the results.
+if $equal ($arg(3) html)
+   "<html>
+   "<head>
+   include $(main)/css.i
+   "</head>
+   "<body BGCOLOR="#FFFFFF">
+   "<p>
+   "<center>
+   
+   "&nbsp;<br>
+   "<form>
+   "<table>
+   "<tr>
+   "<td><b><big>Query Results</big></b></td>
+   "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   "<td><input type="button" value="Close" onClick="self.close();"></td>
+   "</table>
+   "<p>
+   "<table cellpadding=4 border=1>
+   "<tr>
+   for header in $(headers)
+      set header $unquote ($(header))
+      set last   $sizeof  ($(header))
+      "<td><b>$word ($(last) $(header))</b></td>
+   end
+   
+   #---Now show the actual results.
+   for row in $sql_select ($(query))
+      "<tr>
+      for col in $sql_row ($(row))
+         "<td>$sql_col ($(col))</td>
+      end
+   end
+   "</table>
+   
+   "</center>
+   "<p>
+   "</div>
+"</body>
+   "</html>
+end
+
+#---xls file
+else
+   set  line
+   for header in $(headers)
+      set header $unquote ($(header))
+      set last   $sizeof  ($(header))
+      set line $(line)$word ($(last) $(header))$char(9)
+   end
+   "$(line)
+   
+   #---Now show the actual results.
+   for row in $sql_select ($(query))
+      set line
+      for col in $sql_row ($(row))
+          set line $(line)$sql_col ($(col))$char(9)
+      end
+      "$(line)
+   end
+end
+
+eval $output()
+eval $delfile(/tmp/$arg(1))
+eval $rename (/tmp/$arg(2)_ /tmp/$arg(2))
+#------------------------------------------------------

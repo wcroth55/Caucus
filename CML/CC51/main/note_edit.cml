@@ -1,0 +1,99 @@
+#
+#---NOTE_EDIT.CML.   Modify a notebook entry
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i note_edit.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+
+set nxt  $page_save (1 note_edit.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Edit a Notebook Entry)
+
+include $(main)/head.i $arg(3)  $quote(Edit a Notebook Entry)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  note_edit  Edit a Notebook Entry
+
+set cat $word($minus($mult($arg(6) 2) 1) $user_data($userid() mark_categories))
+set list $rest($minus($mult($arg(7) 5) 4) $user_data($userid() mark_$(cat)))
+
+set page      $word(1 $(list))
+set arguments $word(2 $(list))
+set anchor    $word(3 $(list))
+set name      $unquote ($replace(182 32 $word(4 $(list))))
+set watch     $word(5 $(list))
+
+"Use this page to modify or delete the notebook entry you selected.<P>
+
+"<FORM METHOD=POST ACTION="note_editf.cml?$(nch)+$(nxt)+\
+              $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+if $equal($(page) viewitem.cml)
+   set icnum $word(2 $(arglist))
+   set it_id $word(3 $(arglist))
+   set ititle %item_title($(it_id))
+   set arglist $replace(+ 32 $(arguments))
+   if $empty($(ititle))
+      "<B>The item or response that this entry refers to has been deleted.
+      "You should probably remove it from your notebook.</B><P>
+   end
+   else
+      "This notebook entry refers to 
+      if $word(4 $(arglist)) 
+         "response $word(4 $(arglist)) of
+      end 
+      "item $item_label($(icnum) $(it_id))
+      "($(ititle))
+      "in the conference 
+      "<b>%displayed_conf_name ($(icnum))</b>.<p>
+   end
+end
+
+"This entry is called:<P>
+"<INPUT NAME="name" TYPE=TEXT SIZE=75 VALUE="$(name)"><P>
+
+"It is listed in the category:<BR>
+"<SELECT NAME="category">
+for category center in $user_data($userid() mark_categories)
+   "<OPTION $if($equal($(category) $(cat)) SELECTED)>$replace(_ 32 $(category))</OPTION>
+end
+if $empty($user_data($userid() mark_categories))
+   "<OPTION>Default category</OPTION>
+end
+"<OPTION VALUE="new">---New category called---&gt;</OPTION>
+"</SELECT>
+"<INPUT NAME="categoryname" TYPE=TEXT SIZE=24>
+"<P>
+
+if $equal($(page) viewitem.cml)
+   "<INPUT NAME="monitor" TYPE=CHECKBOX $if($(watch) CHECKED)> Monitor this item for future activity.<P>
+end
+else
+   "<INPUT NAME="monitor" TYPE=HIDDEN VALUE=0>
+end
+
+"<INPUT TYPE=SUBMIT NAME="change" VALUE="Change this entry"> or
+"<INPUT TYPE=SUBMIT NAME="delete" VALUE="Delete this entry"> or
+"<INPUT TYPE=SUBMIT NAME="cancel" VALUE="No changes"> 
+
+"</FORM>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------------------

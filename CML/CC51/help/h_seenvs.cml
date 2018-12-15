@@ -1,0 +1,62 @@
+#
+#---H_SEENVS.CML.   Help about Seen vs. New
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_seenvs.cml $quote(Help on Seen vs. New)
+"<P>
+
+"<B>What Is It?</B><BR>
+"An item or response is "new" if you have not yet "seen" it&#151;that
+"is, if Caucus has never displayed it to you.&nbsp;
+"In other words, any item or response
+"is either "new" to you or has been "seen" by you.&nbsp;
+"It must be one or the other.
+
+"<P>
+"Caucus changes an item or response from "new" to "seen" once it presents it to
+"you, but you too can change an item's status.&nbsp; 
+"You may wish to mark an item
+"you've "seen" as "new" in order to return to it later.&nbsp; 
+"<P>
+"You may wish to mark all
+"the items in a conference as "seen" if you've just joined a conference that's
+"been underway for a while, and you'd prefer not to read the whole conference
+"history.&nbsp; 
+"Or conversely, you may <B>want</B> to read an entire conference (or 
+"specific items), so you might mark one or more (or all) items as "new."
+
+"<P>
+"<B>How Do I Change It?</B><BR>
+"Reading a page of an item marks the item (and all the responses in 
+"that page) as "seen".
+
+"<P>
+"Next to each response you will see a checkbox. Check the first one that
+"you want to set new and then select the <A HREF====acton+Act_On_Checked_Responses>Act on checked responses</A> link at the bottom of the page. Use 
+"the <B>Mark first one (and following) as "new"</B> option in the dialog to
+"make that response (and everything that follows it) "new" again.
+
+"<P>
+"From the conference home page, you can mark <B>all</B> items as
+""seen", or as "new".&nbsp;
+"Or you can click on "mark each item <U>individually</U>"
+"to only mark selected items.
+
+
+"<P>
+"The difference between "new" and "seen" items and responses is probably the
+"most difficult concept in Caucus&#151;it takes a while to become comfortable with
+"it.&nbsp; 
+"Feel free to experiment with marking items and responses either "new" or
+""seen" in the Demonstration conference.&nbsp; 
+"It will become natural very quickly.
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------
+

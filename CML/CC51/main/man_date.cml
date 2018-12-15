@@ -1,0 +1,102 @@
+#
+#---MAN_DATE.CML.   Manager listing and deleting userids by date.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 10/07/05 Simplify for C5.
+#-----------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userDelete userReports
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_date.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: User Management by Date)
+
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : User Management by Date)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i      man_date  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    User Management by Date</A>
+
+"<P/>
+"<blockquote>
+
+"Use this page to list (and optionally delete) users by the
+"date of their last access to Caucus.
+"<P>
+
+#---Get tomorrow's date in pieces; use it to mark tomorrow as SELECTED in the
+#   date pull-down menu.
+set tomor $lower ($replace (- 32 %datetz($dateof ($plus ($time() 86400)))))
+set tday  $plus (0 $word (1 $(tomor)))
+set tmon  $upper1 ($word (2 $(tomor)))
+set tyear          $word (3 $(tomor))
+
+#---Put up the form to get # users, before/after, and date.
+"<form NAME=expdate METHOD=POST 
+"    ACTION="man_date2.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+"<UL>
+"<TABLE>
+"<TR VALIGN=top>
+"<TD COLSPAN=5>List up to&nbsp;
+"  <INPUT TYPE=TEXT NAME=howmany SIZE=5 VALUE="  200">
+" of the users last on Caucus&nbsp; </TD>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+"<TD ROWSPAN=2 VALIGN=bottom><INPUT NAME=submit TYPE=SUBMIT VALUE="Go!"></TD>
+"<TR>
+"<TD><SELECT NAME=lusers>
+"       <OPTION VALUE=0>before</OPTION>
+"       <OPTION VALUE=1>after</OPTION>
+"    </SELECT>&nbsp;&nbsp;&nbsp;</TD>
+"<TD><SELECT NAME=lday>
+     count mday 1 31
+        set m0day $if ($less($(mday) 10) 0$(mday) $(mday))
+"       <OPTION VALUE=$(m0day) $if ($equal ($(mday) $(tday)) SELECTED)>\
+                      $(mday)</OPTION>
+     end
+"    </SELECT></TD>
+"<TD><SELECT NAME=lmonth>
+     for month in 01 02 03 04 05 06 07 08 09 10 11 12
+        set mname $word ($(month) \
+                         Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+"       <OPTION VALUE=$(month) $if ($equal ($(month) $(tmon)) SELECTED)>\
+                      $(mname)</OPTION>
+     end
+"    </SELECT></TD>
+"<TD><SELECT NAME=lyear>
+     count year 1993 2020
+"       <OPTION VALUE=$(year) $if ($equal ($(year) $(tyear)) SELECTED)>\
+                      $(year)</OPTION>
+     end
+"    </SELECT>&nbsp;&nbsp;&nbsp;</TD>
+"</TABLE>
+"</UL>
+
+#"<P/>
+#"(If for some reason the list of users does not 
+#"    appear, try a smaller number of users.)
+
+"</FORM>
+
+"</blockquote>
+"<P/>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

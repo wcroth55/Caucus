@@ -1,0 +1,63 @@
+#!/bin/sh
+#
+#---autocsnap:   Automatically take a "csnap" snapshot of sets of conferences
+#
+#   Invoked: from 'cron', every 5 minutes.  No arguments.
+#
+#   Purpose:
+#      Provides a way to automatically take Caucus "csnap" snapshots of 
+#      different sets of conferences, at regular intervals.  To add
+#      new sets, add "autoconf" lines as shown in the commented example
+#      below.
+#
+#   How it works:
+#      Runs every 5 minutes, from cron.
+#
+#      Manually edit the section below to add conferences, as per
+#      the instructions.
+#
+#      Calls 'autoconf' to do the real work for each set of conferences.
+#
+#   History of revisions:
+#: CR 12/17/02 First version.
+#: CR  7/23/03 Replace whoami with $LOGNAME.
+#----------------------------------------------------------------------
+
+cd $HOME
+PUB=$HOME/public_html
+
+#---Check for a lock, indicating that a previous autocsnap is still running.
+uid=$LOGNAME
+lock=/tmp/autosnap_lock_$uid
+if test -f $lock; then
+   exit
+fi
+date >$lock
+
+#---Get current time t, as the number of minutes since midnight.
+hour=`date +"%k"`
+mins=`date +"%M"`
+t=`echo "$hour * 60 + $mins" | bc`
+
+#---Take snapshots of groups of conferences at the appropriate time
+#   intervals, and put them in the target directories.
+#
+#   target-dir  is the target directory, where the webserver can see the files
+#
+#   mins        is the frequency of making (refreshing) the snapshot,
+#                  e.g. "20" means "every 20 minutes", all day/night long.
+#
+#   interface   is the Caucus interface that should be used
+#
+#   "$t"        is the current time (must be there, as is)
+#
+#   conferences is the list of conferences that should be included in the
+#                  snapshot.  You can continue the list onto multiple lines
+#                  by ending each line with a space and a backslash.
+#
+#./autoconf target-dir     mins interface     conferences
+# --------- -------------- ---- ---------     --------------------------
+#./autoconf $PUB/test       20    CC44     $t test demonstration
+
+rm -f $lock
+#----------------------------------------------------------------------

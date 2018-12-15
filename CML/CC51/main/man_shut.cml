@@ -1,0 +1,68 @@
+#
+#---MAN_SHUT.CML.   Shutdown Caucus.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/00 20:21 Add recommendation about bulletins.  See man_bull.cml.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage systemShutdown
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_shut.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Shut Down Caucus )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Shut Down Caucus)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_shut  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    Shutdown Caucus</A>
+
+"<BLOCKQUOTE>
+"Use this page to shutdown all Caucus processes.&nbsp;
+"Note that this means that all users, <B>including yourself</B>,
+"will be immediately stopped from using Caucus!
+"<P>
+"It is strongly recommended that you use the 
+"<A HREF="man_bull.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)">Display bulletin to all users</A>
+"feature to give your users some warning before shutting down Caucus.
+
+"<P>
+"<OL>
+"<LI><A HREF="man_shutf.cml?0">Shutdown Caucus Now</A>.
+"<P>
+"<LI><A HREF="man_shutf.cml?1">Shutdown Caucus, and
+"Restart</A>.
+
+"<P>
+"This second option restarts the Caucus server, if possible, from the
+"'$caucus_id()' userid.&nbsp;
+"<B>Warning!</B>&nbsp;
+"If you normally start Caucus from "root", or from an 'rc'
+"or equivalent file at system boot time, do <B>not</B> use
+"this option.&nbsp;
+"Contact your system manager for more information.
+"</OL>
+
+"</BLOCKQUOTE>
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

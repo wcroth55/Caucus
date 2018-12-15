@@ -1,0 +1,4 @@
+#!/bin/sh
+
+java CaucusMacroDoc ../CML/CC51/main/macros.i macroDoc.html
+cp macroDoc.html ~/public_html/website/TECH

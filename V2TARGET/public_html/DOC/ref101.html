@@ -1,0 +1,196 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<P>
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 1.1:&nbsp; What's new in version 4.0</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref1.html">UP</A>]
+</TD>
+</TABLE>
+
+<P>
+<A NAME="new">
+<B>1.1 Incompatible Changes in 4.0</B></A>
+<P>
+For the most part, CML pages written for Caucus version 3.1 
+will work properly under version 4.0.&nbsp;
+There is only one known change in version 4.0 that may cause
+incompatibilities.&nbsp;
+
+The shell functions 
+    <A HREF="ref404.html#shell">$shell()</A>,
+    <A HREF="ref404.html#jshell">$jshell()</A>, 
+    <A HREF="ref404.html#silent">$silent()</A>, and
+    <A HREF="ref404.html#asynch">$asynch()</A>
+    now always execute as the <B>real</B> userid of the
+    Caucus subserver process (rather than, in some cases in 3.1, as the
+    effective userid).
+    <P>
+    To run a shell command as the effective userid, use the
+    new <A HREF="ref404.html#xshell">$xshell()</A> function.
+
+<P>
+<B>1.2 What's New in version 4.0</B>
+<P>
+The following functions and features have been added since Caucus
+version 3.1.
+
+<P>
+<TABLE CELLSPACING=0 CELLPADDING=0>
+<TR><TD>New </TD><TD COLSPAN=2>item & response functions</TD>
+<TR><TD></TD>
+    <TD><A HREF="ref414.html#re_epoch">$re_epoch()</A></TD>
+    <TD>response time in seconds</TD>
+<TR><TD></TD>
+    <TD><A HREF="ref414.html#re_bits">$re_bits()</A></TD>
+    <TD>special property bits of response</TD>
+<TR><TD></TD><TD><A HREF="ref414.html#re_copied">$re_copied()</A></TD>
+    <TD>Information about "copied" responses</TD>
+<TR><TD></TD><TD><A HREF="ref414.html#re_copier">$re_copier()</A></TD>
+    <TD>Who copied a "copied" response?</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>logic, math, and string functions</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#bit_and">$bit_and()</A></TD>
+    <TD>bitwise and</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#bit_or">$bit_or()</A></TD>
+    <TD>bitwise or</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#bit_not">$bit_not()</A></TD>
+    <TD>bitwise negation</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#hex2dec">$hex2dec()</A></TD>
+    <TD>hexadecimal to decimal conversion</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#dec2hex">$dec2hex()</A></TD>
+    <TD>decimal to hexadecimal conversion</TD>
+<TR><TD></TD><TD><A HREF="ref406.html#random">$random()</A></TD>
+    <TD>Produce a random number</TD>
+<TR><TD></TD><TD><A HREF="ref407.html#epoch">$epoch()</A></TD>
+    <TD>Convert date to epoch timing</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#timezone">$timezone()</A></TD>
+    <TD>Difference in seconds to UTC</TD>
+<TR><TD></TD><TD><A HREF="ref407.html#dateof">$dateof()</A></TD>
+    <TD>Convert epoch time to full date</TD>
+<TR><TD></TD><TD><A HREF="ref407.html#quote">$quote()</A></TD>
+    <TD>quote text as one word</TD>
+<TR><TD></TD><TD><A HREF="ref407.html#unquote">$unquote()</A></TD>
+    <TD>undoes effect of $quote()</TD>
+<TR><TD></TD><TD><A HREF="ref407.html#asc2dec">$asc2dec()</A></TD>
+    <TD>decimal values of characters in string</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>conference creation and manipulation 
+                               functions</TD>
+<TR><TD></TD><TD><A HREF="ref409.html#create_conf">$create_conf()</A></TD>
+    <TD>create a new conference</TD>
+<TR><TD></TD><TD><A HREF="ref409.html#co_remove">$co_remove()</A></TD>
+    <TD>delete an existing conference</TD>
+<TR><TD></TD><TD><A HREF="ref409.html#co_makeorg">$co_makeorg()</A></TD>
+    <TD>add yourself as an organizer to a conference</TD>
+<TR><TD></TD><TD><A HREF="ref409.html#co_rename">$co_rename()</A></TD>
+    <TD>rename a conference</TD>
+
+<TR><TD></TD><TD><A HREF="ref404.html#jshell">$jshell()</A></TD>
+    <TD>japanese shell output</TD>
+<TR><TD></TD><TD><A HREF="ref404.html#xshell">$xshell()</A></TD>
+    <TD>Comprehensive shell access function</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>file access functions</TD>
+<TR><TD></TD><TD><A HREF="ref403.html#rename">$rename()</A></TD>
+    <TD>rename a file</TD>
+<TR><TD></TD><TD><A HREF="ref403.html#dirlist">$dirlist()</A></TD>
+    <TD>list contents of a directory</TD>
+<TR><TD></TD><TD><A HREF="ref403.html#delfile">$delfile()</A></TD>
+    <TD>delete a file</TD>
+<TR><TD></TD><TD><A HREF="ref403.html#file_data">$file_data()</A></TD>
+    <TD>check contents of file against a range of values</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>CML directives and language features</TD>
+<TR><TD></TD><TD><A HREF="ref5.html#eval">Eval</A></TD>
+    <TD>New directive (to replace "set ignore")</TD>
+<TR><TD></TD><TD><A HREF="ref5.html#quit">Quit</A></TD>
+    <TD>Immediately cease CML page processing</TD>
+<TR><TD></TD><TD><A HREF="ref31.html">Macros</A></TD>
+    <TD>Dynamically defineable and expandable macros</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>system, license, and state information 
+                               functions</TD>
+<TR><TD></TD><TD><A HREF="ref420.html#admin_mail">$admin_mail()</A></TD>
+    <TD>Administrator E-mail</TD>
+<TR><TD></TD><TD><A HREF="ref420.html#opsys">$opsys()</A></TD>
+    <TD>host server operating system</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#caucus_lib">$caucus_lib()</A></TD>
+    <TD>Caucus library directory path</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#disk_failure">$disk_failure()</A></TD>
+    <TD>Did a disk-write error occur?</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#cml_path">$cml_path()</A></TD>
+    <TD>CML directory path<BR></TD>
+<TR><TD></TD><TD><A HREF="ref402.html#caucus_path">$caucus_path()</A></TD>
+    <TD>full pathname of Caucus home directory</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#http_lib">$http_lib()</A></TD>
+    <TD>full URL of Caucus library directory</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#lice_max_users">$lice_max_users()</A>&nbsp;</TD>
+    <TD>total # users allowed by license</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#lice_act_users">$lice_act_users()</A></TD>
+    <TD>actual # users</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#lice_expires">$lice_expires()</A></TD>
+    <TD>epoch time when license expires</TD>
+<TR><TD></TD><TD><A HREF="ref412.html#all_users">$all_users()</A></TD>
+    <TD>list of all caucus userids</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#new_win">$new_win()</A></TD>
+    <TD>set size of windows created
+        by <A HREF="ref416.html#t2url">$t2url()</A></TD>
+<TR><TD></TD><TD><A HREF="ref402.html#browser_format">$browser_format()</A></TD>
+    <TD>browser language code</TD>
+<TR><TD></TD><TD><A HREF="ref402.html#set_browser_format">$set_browser_format()</A></TD>
+    <TD>set browser language code</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>sorting functions</TD>
+<TR><TD></TD><TD><A HREF="ref405.html#gen_sort">$gen_sort()</A></TD>
+    <TD>sort arbitrary list of words</TD>
+<TR><TD></TD><TD><A HREF="ref405.html#num_sort">$num_sort()</A></TD>
+    <TD>sort arbitrary list of numbers</TD>
+<TR><TD></TD><TD><A HREF="ref405.html#triplet_sort">$triplet_sort()</A></TD>
+    <TD>sort triplet list of item numbers</TD>
+<TR><TD></TD><TD><A HREF="ref405.html#item_sort">$item_sort()</A></TD>
+    <TD>sort items by title, author, response date</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>management functions</TD>
+<TR><TD></TD><TD><A HREF="ref420.html#mgr_list">$mgr_list()</A></TD>
+    <TD>display list of managers and their capabilities</TD>
+<TR><TD></TD><TD><A HREF="ref420.html#set_mgr_list">$set_mgr_list()</A></TD>
+    <TD>set list of managers and capabilities</TD>
+<TR><TD></TD><TD><A HREF="ref421.html#pw_can_add">$pw_...()</A></TD>
+    <TD>new password functions</TD>
+<TR><TD></TD><TD><A HREF="ref410.html#per_delete">$per_delete()</A></TD>
+    <TD>delete person</TD>
+
+<TR><TD>&nbsp;</TD>
+<TR><TD>New </TD><TD COLSPAN=2>miscellaneous functions</TD>
+<TR><TD></TD><TD><A HREF="ref408.html#cl_visible">$cl_visible()</A></TD>
+    <TD>is conference visible to this user?</TD>
+<TR><TD></TD><TD><A HREF="ref417.html#clear_user_var">$clear...()</A></TD>
+    <TD>clear user/conf/item/site variable caches</TD>
+</TABLE>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

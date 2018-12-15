@@ -1,0 +1,209 @@
+#!/bin/sh
+#
+#-- CSETPERM.   Set permissions for Caucus files.
+#
+#   Invoked as:
+#      csetperm  [nocheck]  [fast]
+#
+#   Parameters:
+#      nocheck    Don't check ownership of files.
+#      fast       Skip setting permissions on user & conference data files.
+#
+#   Purpose:
+#      Sets the permissions on various files for a Unix Caucus site.
+#      May also check for proper ownership of files.
+#
+#      Automatically used by 'cinstall' script during installation to
+#      set initial file permissions.
+#
+#      It is also intended to be used by the Caucus administrator to "fix" 
+#      file permissions if they have been changed for some reason (after 
+#      a restore from a backup, for example).
+#
+#   How it works:
+#      Must be run in the top level directory where Caucus is installed.
+#
+#      Checks ownership of all files against current userid.  If any
+#      such files (other than ones with permission 777 in TEXT001) are
+#      found, it complains.
+#
+#      The ownership checking is skipped if csetperm is invoked with
+#      the "nocheck" argument.  The user and conference directory
+#      permission setting is skipped if csetperm is invoked with 
+#      the "fast" argument.
+#
+#   Known bugs:
+#
+#   History of revisions:
+#: CR  9/01/93 17:00 First version.
+#: CK  9/22/93 18:46 Add expuser, listuser, expuser.sh scripts.
+#: CP 11/11/93 14:47 Add CaucusLink file permission settings, FAST option.
+#: CB 12/02/93 12:52 Add dtush, dtu_x.
+#: CR  2/16/94 19:52 Add sz/rz.
+#: CR 11/13/02 Update for 4.4
+#: CR  4/02/03 Add metamail stuff.
+#: CR 10/12/05 C5 changes.
+#----------------------------------------------------------------------------
+
+#---Set NOCHECK, FAST options from command line.
+nocheck=no
+fast=no
+if test "x$1" = "xnocheck" -o "x$2" = "xnocheck"; then
+   nocheck=yes
+fi
+if test "x$1" = "xfast"    -o "x$2" = "xfast"; then
+   fast=yes
+fi
+
+
+#========Section A: set permissions on regular Caucus files & directories.
+
+#---PMASK is permission mask for Caucus data files.
+#   CMASK is the Caucus program permission mask.
+pmask=0700
+cmask=4711
+#
+#---(Some older versions that used set-group-id needed:
+#      pmask=0770
+#      cmask=2711
+#   This information is retained here in case we even need to go back
+#   to such a clumsy scheme.)
+
+#---Set permissions on fundamental directories.
+chmod    711 .
+chmod $pmask MISC       MISC/*
+chmod $pmask USER[0-9]* C[0-9]*
+chmod   777  TEXT[0-9]*
+chmod   711  SCRIPTS
+
+#---Set permissions on scripts meant only to be used by Caucus manager.
+chmod  700   fixdate    fixmaster  testconf
+chmod  755   SCRIPTS/metasend      SCRIPTS/mimenecode           2>/dev/null
+chmod  755   SCRIPTS/splitmail     SCRIPTS/send_tab_spreadsheet 2>/dev/null
+chmod  700   autocsnap  autoconf
+#
+#---Set permissions on scripts meant for all users.
+chmod  755   amiroot
+chmod  755   SCRIPTS/dtush        2>/dev/null
+
+
+#========Section B: Set permissions on individual user files.
+
+#---Try to set permissions on all individual user directory files.
+#   Since some Unixes cannot handle many files on a single command
+#   line, it is broken up into loops.
+if test "$fast" = "no"; then 
+   echo
+   echo "Setting user file permissions..."
+   chmod -R 700 USER[0-9]*
+#  for USERNNN in USER[0-9]*; do
+#     cd $USERNNN
+#     for letter in "[0-9]" a b c d e f g h i j k l m n o p q r s t u v w x y z _
+#     do
+#        for userid in $letter*; do
+#           chmod 700 $userid $userid/* 2>/dev/null
+#        done
+#     done
+#     cd ..
+#  done
+
+   chmod -R 700 TEXT0*
+#  for TEXTNNN in TEXT[0-9]*; do
+#     cd $TEXTNNN
+#     for letter in "[0-9]" a b c d e f g h i j k l m n o p q r s t u v w x y z _
+#     do
+#        for userid in $letter*; do
+#           chmod 777 $userid   2>/dev/null
+#        done
+#     done
+#     cd ..
+#  done
+
+fi
+
+
+#========Section C: Set permissions on conference data files.
+
+#---Set the permissions on all the data files in the conference directories.
+#   This is done in a loop for the same reasons as above.
+if test "$fast" = "no"; then
+   echo
+   echo "Setting conference file permissions..."
+   chmod -R 700 C[0-9]*
+#  digits="0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q s t u v w x y z"
+#  for CONFNNN in C[0-9]*; do
+#     cd $CONFNNN
+#     for d in $digits; do
+#        chmod 700 $d*   2>/dev/null
+#        chmod 700 rt$d* 2>/dev/null
+#     done
+#     chmod 700 r[a-s]*  2>/dev/null
+#     chmod 700 r[u-z]*  2>/dev/null
+#     cd ..
+#  done
+
+fi
+
+#========Section D: Set permissions on web-interface & 4.4 related files
+chmod -R 755 CML
+chmod -R 777 CML/TMP
+rm -f        CML/TMP/*
+
+chmod -R 755 public_html
+chmod -R 755 REG
+chmod -R 755 SCRIPTS
+chmod    711 SWEB
+chmod    700 SWEB/*
+chmod   4711 SWEB/swebd SWEB/swebsock SWEB/swebs
+chmod    755 SWEB/*.cgi SWEB/.htaccess
+
+chmod -R 700 MISC
+chmod    700 SOCKET
+chmod -R 700 ARCHIVE
+
+chmod 700 add2maillist archiver cinstall findzero fixconf
+chmod 700 fixmm fixtext intg_* manager_new mkcauhtml? mkhtaccess
+chmod 700 mkswebconf proclist restart_caucus stopcaucus unarchiver
+chmod 700 warnadmin  csnap ureport enotify cinstall.log
+chmod 700 locksyst allusers
+chmod 755 www_hostname
+chmod 644 caucus_passwd*
+
+#========Section E: check ownership of all Caucus files.
+
+#...unless "nocheck" argument specified.
+if test "$nocheck" = "yes"; then
+   exit
+fi
+
+userid=$LOGNAME
+echo
+echo "Is your userid \"$userid\"? (y/n) "
+read answer
+if test "$answer" != 'y'; then
+   echo "Please edit 'csetperm' to get your userid properly and"
+   echo "try running it again."
+else
+   echo
+   echo " ... checking file ownerships... "
+   badowner=/tmp/bad$$
+   rm -f $badowner
+   find . ! -user $userid -a ! -perm 777 -exec ls -ld {} \; >$badowner
+   
+   if test -s $badowner; then
+      echo
+      echo "WARNING!  Some files are not owned by the id \"$userid\".  This"
+      echo "can cause Caucus to fail.  These files include: "
+      echo
+      more  $badowner
+      echo
+      echo "The list of these files can be found in $badowner.  You should"
+      echo "probably have the system manager change the ownership of these"
+      echo "files to \"$userid\"."
+      echo 
+   else
+      rm -f $badowner
+   fi
+fi
+#----------------------------------------------------------------------------
+

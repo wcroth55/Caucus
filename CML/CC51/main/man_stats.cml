@@ -1,0 +1,123 @@
+#
+#---MAN_STATS.CML.   Manager, usage statistics
+#
+#   arg(8)  query name
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  6/13/03 New script.
+#: CR 10/13/04 Make sure SQL works.
+#: CR 10/15/05 C5 changes.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_stats.cml
+end
+
+include $(main)/secure.i manage userReports
+
+set nch   $unique()
+set nxt   $page_save (2 man_stats.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Usage Statistics )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Usage Statistics)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+"<script type="text/javascript" language="javascript">
+"function copyquery() {
+"   document.display.query.value = document.saveas.query.value;
+"   return true;
+"}
+"</script>
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_stat  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Usage&nbsp;Statistics
+
+"<BLOCKQUOTE>
+"Use this page to display statistics about Caucus usage.&nbsp;
+"The statistics are computed by executing SQL ("structured query language")
+"queries against a "user events" database.&nbsp;
+"See the <a href="javascript: \
+   pop_up('help', '$(helpurl)/h_man_stat.cml?x+x+1');">on-line help</a>
+"for an explanation of what this means.
+"<p>
+"You may use the predefined queries, or write your own and add them
+"to the list of locally defined queries.
+
+
+"</blockquote>
+"<p>
+"<form METHOD=POST  name="saveas"
+"   ACTION="man_statsf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+$arg(8)">
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr valign=top>
+"<td>&nbsp;&nbsp;</td>
+"<td><table cellspacing=0 cellpadding=0 border=0>
+"    <tr><td bgcolor="#FFE0E0"><ul><b><small>Predefined queries</small></b>
+      for query in $list_site_data (0 - QuerySys_)
+         "<li><a href="man_stats.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+$(query)"
+         "    >$replace(_ 32 $str_sub (9 1000 $(query)))</a>&nbsp;&nbsp;
+      end
+"    </ul></td>
+
+"    <tr><td><small>&nbsp;</small></td>
+"    <tr>
+"    <td bgcolor="#E0E0FF"><ul><b><small>Locally defined queries</small></b>
+      for query in $list_site_data (0 - QueryLcl_)
+         "<li><a href="man_stats.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+$(query)"
+         "    >$replace(_ 32 $str_sub (9 1000 $(query)))</a>
+      end
+"     </ul>
+"     </td>
+"     </table></td>
+
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+"<td align=right>
+"   <table cellspacing=0 cellpadding=0 border=0>
+"   <tr><td><input type="submit" name="submit" value="Save">
+"           this query as: <input type="text" name="queryname" size=40"
+    if $not_equal ($arg(8) x)
+       " value="$str_sub (9 1000 $arg(8))"
+    end
+"           >&nbsp;&nbsp;<input type="submit" name="submit" value="Delete"></td>
+"   <tr><td><img $(src_clear) width="1" height="4"></td>
+"   <tr><td><TEXTAREA WRAP=virtual NAME="query" ROWS="14" COLS="60"
+"           >$ifthen ($not_equal ($arg(8) x) $site_data (0 - $arg(8)))</textarea>
+"   </td>
+"   </table>
+"</td>
+"</table>
+"</form>
+
+
+"<form METHOD=POST  name="display"  target="query" 
+"   onSubmit="copyquery();  %js_open_win (query) "
+"   ACTION="man_statdf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+$arg(8)">
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td>&nbsp;</td>
+"<td align=right
+"  >Display results: <input type="submit" name="submit" value="As web page"
+"    >&nbsp;&nbsp;&nbsp;<input type="submit" name="submit" 
+"     value="As spreadsheet"></td>
+"</table>
+"<input type="hidden" name="query">
+"</form>
+
+"</BLOCKQUOTE>
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+
+set error
+#------------------------------------------------------------------------

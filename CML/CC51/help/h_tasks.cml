@@ -1,0 +1,56 @@
+#
+#---H_TASKS.I    Help about the "tasks" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/28/09 New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_tasks.cml $quote(Help on Tasks)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"A Task is just what it sounds like: something to be done.&nbsp;
+"You can create tasks for your self, or for someone else,
+"or a group.&nbsp;
+"You can also link a task to a particular item or response,
+"so that you can discuss the progress of your task(s).
+
+"<p/>
+"<b>What Is On This Page?</b><br>
+"From the main Tasks page, you'll see
+"a list of tasks that have been assigned to
+"you, or that you have access to.&nbsp;
+"You can:
+"<ul>
+"<li>Click on the title to see the full description of the task.
+"<li>Click on a column header to sort your tasks by that column.
+"<li>Click on "create a new task".
+"</ul>
+
+"<p/>
+"Each task has many properties.&nbsp; Most of them are optional,
+"just fill in the ones that you need.&nbsp;
+"You can always add or edit them later.
+"<ol>
+"<li>A title
+"<li>A category.&nbsp; You may put many tasks in the same category.
+"<li>A lead userid -- the person in charge of accomplishing the task.
+"<li>An assigner userid -- the person who assigned the task.
+"<li>A group -- literally a group of people who can see and edit
+"the task.
+"<li>A target date (e.g. 12/31/2010)
+"<li>A priority.
+"<li>A status -- one or two words of your choice
+"<li>Some text, usually a more detailed description of the task.&nbsp;
+"You enter or edit this in what looks like a normal blue-edged Caucus 
+"text editor box.
+"<li>Item links.&nbsp; A link to a specific item or response.&nbsp;
+"These are normally created <b>from</b> the item or response, using
+"the little "select" link at the top right of the item or response.
+"</ol>
+
+include $(help)/hb.i

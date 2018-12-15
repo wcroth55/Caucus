@@ -1,0 +1,357 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.2: Browser &amp; Server</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 4.2:&nbsp; Browser &amp; Server Information</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref401.html">PREV</A>]
+   [<A HREF="ref403.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<DL>
+<P><DT><A NAME="userid">$userid()</A>
+<DD>
+ Userid of the current user.&nbsp;
+Defaults to effective userid of Caucus if no access-authorization
+userid supplied.&nbsp;
+See <A HREF="#http_remote_user">$http_remote_user()</A>.
+
+<P><DT><A NAME="cml_dir">$cml_dir()</A>
+<DD>
+ Evaluates to the directory name of the current CML file.&nbsp;  For
+example, if the URL is
+
+<P>
+<FONT SIZE=-1>
+<TT>http://screenporch.com/spi/swebsock/0008404/0083664/SP31/center.cml?1+x+x
+</TT></FONT>
+
+<P>
+then $cml_dir() will evaluate to &quot;SP31&quot;.
+
+<P><DT><A NAME="cml_page">$cml_page(url)</A>
+<DD>
+Given a full <I>url</I>, evaluates to the name of the CML or HTML file
+that is part of the <I>url</I>.&nbsp;
+(All other information, including host, directory, query string,
+and page fragment, are removed.)
+
+<P><DT><A NAME="cml_path">$cml_path()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the full pathname of the top level CML directory,
+as set in swebd.conf.
+
+<P><DT><A NAME="caucus_path">$caucus_path()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the full pathname of the Caucus home directory,
+as set in swebd.conf.
+
+<P><DT><A NAME="caucus_lib">$caucus_lib()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the full pathname of the Caucus library directory,
+as set in swebd.conf.
+
+<P><DT><A NAME="config">$config(xyz)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<DD>
+
+Evaluates to the content of the parameter <B><TT>Config xyz</TT></B>
+in swebd.conf.&nbsp;
+Use Config and $config() to define arbitrary values in swebd.conf and pass them
+to (any of) the CML interface(s).
+
+<P><DT><A NAME="pagetime">$pagetime()</A>
+<DD>
+Evaluates to the PageTime parameter,
+as set in swebd.conf.&nbsp;
+(In general, each CML page must complete within PageTime seconds.)
+
+<P><DT><A NAME="page_flush">$page_flush()</A>
+<DD>
+"Flushes" any buffered output accumulated by swebs, passing it through
+swebsock and on to the user's browser.&nbsp;
+Use $page_flush() in pages that may take a long time to complete.&nbsp;
+<P>
+<DL>
+<DT><B>Technical Details</B>:
+<DD> See the 
+<A HREF="arch.html">Caucus Architecture Description</A> for 
+background on the processes and programs that interoperate to
+make Caucus work.&nbsp;
+Swebsock waits for output from swebs for PageTime seconds; if it
+hasn't heard anything in that time, it assumes swebs is dead,
+and tries to start up a brand new Caucus session (a new swebs process).
+<P>
+If you have a page that takes a long time to complete, you can use
+$page_flush() to send incremental output on to swebsock.&nbsp;
+Each call to $page_flush() resets the "clock" to 0, which then
+begins to count up to PageTime again.&nbsp;
+<I>Warning</I>: using $page_flush() slows down things even further,
+so use it carefully.&nbsp;
+(One possibility is to use the <A HREF="#time">$time()</A> 
+and $pagetime() functions to determine
+when you truly need to call $page_flush().)
+
+</DL>
+
+
+<P><DT><A NAME="http_lib">$http_lib()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the full URL of the Caucus library directory,
+as set in swebd.conf.
+
+<P><DT><A NAME="http_user_agent">$http_user_agent()</A>
+<DD>
+Contents of the CGI environment variable HTTP_USER_AGENT.&nbsp;  Usually
+a multi-word string that describes the browser client program.
+
+<P><DT><A NAME="http_remote_user">$http_remote_user()</A>
+<DD>
+Evaluates to the userid supplied by the user, either
+through the browser pop-up dialog box
+(old login method), or through the cookie-based new
+login box.&nbsp;
+(Generally indistinguishable from 
+<a href="ref402.html#userid">$userid()</a>.)
+
+<P><DT><A NAME="http_referer">$http_referer(which)</A>
+<DD>
+If <I>which</I> is 1 (or is not supplied), evaluates to the 
+URL of the HTTP "referer"
+page (i.e., the page that led here, the page previous to this page).&nbsp;
+If <I>which</I> is 0, evaluates to the URL of the referring page
+that entered Caucus (the page before the 1st page of the Caucus session).
+
+<P><DT><A NAME="http_accept">$http_accept()</A>
+<DD>
+Evaluates to the contents of the HTTP "accept" string, 
+which is the list of file types that this browser is known to accept
+(handle) natively.&nbsp;
+(Plug-ins are handled in a different manner.)
+
+<P><DT><A NAME="request_uri">$request_uri()</A>
+<DD>
+Evaluates to the HTTP "request_uri" string, which is the
+portion of the current page URL that follows the
+hostname, e.g. "/reg/swebsock/0006353/0299534/CC44/main/center.cml?3+0+x+x+x+x+x+x".
+
+<P><DT><A NAME="browser_format">$browser_format()</A>
+<DD>
+Evaluates to the browser language code number, as originally set by the
+parameter BROWSER_FORMAT in swebd.conf.
+
+<P><DT><A NAME="set_browser_format">$set_browser_format(code)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets the browser format to language code number <I>code</I>, 
+overriding the original value from swebd.conf.
+
+<P><DT><A NAME="timeout">$timeout(secs)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the most recent value of the Timeout parameter.&nbsp;
+(After a CML page is evaluated, if Timeout seconds pass without a request 
+for another page, the dedicated swebs process exits automatically.&nbsp;  
+See swebd.conf for the initial value of this parameter).
+<P>
+If <I>secs</I> is specified, Timeout is set to <I>secs</I>.&nbsp;
+This function is frequently used to (a) effectively terminate the
+swebs process (setting Timeout to a very low value), 
+or (b) where specific CML pages are invoked (such as a Caucus item page) 
+from an outside (static) web page, and the resulting swebs should not "live"
+very long.
+
+
+<P><DT><A NAME="goodbye">$goodbye()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+<B>Obsolete</B>.&nbsp;
+See <A HREF="#timeout">$timeout()</A>.&nbsp;
+Tells the swebs server dedicated to this user to change its timeout
+period to one minute.&nbsp;  (Equivalent to $timeout(60).)&nbsp;
+This is a graceful way to exit Caucus,
+and lowers system load.&nbsp;  It is not required, the swebs server
+will eventually timeout by itself.
+
+<P><DT><A NAME="new_win">$new_win(width height)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Functions like <A HREF="ref416.html#t2url">$t2url()</A>
+translate URLs into HTML code that pops up a new window
+containing the URL.&nbsp;
+New_win() sets the size of such a new window to be
+<I>width</I> pixels wide by <I>height</I> pixels high.&nbsp;
+If <I>width</I> or <I>height</I> are not specified, 
+new window size is left unchanged.
+<P>
+Evaluates to the new window width and height, respectively,
+separated by a space.
+
+<P><DT><A NAME="unique">$unique()</A>
+<DD>
+Return a unique number each time.&nbsp;  Useful for tagging distinct
+instances of a particular page.
+
+<P><DT><A NAME="version">$version()</A>
+<DD>
+Returns version number of Caucus server software (e.g., &quot;3.1.04&quot;).
+
+<P><DT><A NAME="is_passwd">$is_passwd()</A>
+<DD>
+<B>Obsolete.</B>&nbsp;
+See <A HREF="ref421.html">new password functions</A>.&nbsp;
+Evaluates to '1' if a password changer program was defined in
+the configuration file swebd.conf, and '0' otherwise.
+
+<P><DT><A NAME="reval">$reval(string)</A>
+<DD>
+Recursively evaluates <I>string</I> for CML functions.&nbsp;  If <I>string</I>
+contains a CML function, which when evaluated expands to a CML
+function, reval() makes sure that <I>string</I> is continually
+interpreted until no CML functions remain.
+
+<P>
+Without reval(), CML text is scanned only once for CML functions.
+
+<P><DT><A NAME="protect">$protect(string)</A>
+<DD>
+Prevents certain CML functions from taking effect.&nbsp;  Any CML functions
+in <I>string</I> operate in a &quot;protected&quot; mode.&nbsp;  This
+is useful, for example, in evaluating CML code that may have been
+placed (by a user) in the text of an HTML response.
+
+<P>
+Functions which have no effect when evaluated inside $protect()
+include: shell(), silent(), passwd(), set_wrap(), any set_co...(),
+any set_it...(), any set_my...(), any ad_...(), any chg_...(),
+mac_define(), 
+set_user_var(), and set_conf_var().
+
+<P><DT><A NAME="time">$time()</A>
+<DD>
+Returns the current time on the server, in &quot;epoch&quot;
+timing, i.e. an integral number of seconds since 00:00 Jan 1, 1970 GMT.&nbsp;
+(See <A HREF="ref407.html#epoch">$epoch()</A>.)
+
+<P><DT><A NAME="timems">$timems()</A>
+<DD>
+Returns the current time in milliseconds on the server, in &quot;epoch&quot;
+timing, i.e. since 00:00 Jan 1, 1970 GMT.&nbsp;
+
+<P><DT><A NAME="timezone">$timezone()</A>&nbsp;&nbsp; <I>(4.06)</I>
+<DD>
+Returns the difference, in seconds, between the local timezone
+and UTC (aka GMT).&nbsp;
+This includes the effect of daylight savings time.&nbsp;
+For example, for a host using Eastern Standard (not Daylight)
+Time, $timezone() returns -18000.
+
+<P><DT><A NAME="dst">$dst()</A>&nbsp;&nbsp; <I>(4.06)</I>
+<DD>
+Evaluates to "1" if daylight savings time is in effect in
+the server's local timezone, else "0".
+
+<P><DT><A NAME="lice_max_users">$lice_max_users()</A>
+<DD>
+Evaluates to the total number of Caucus users (or "seats") allowed by
+this license.&nbsp;
+(A value of 0 means "unlimited".)
+
+<P><DT><A NAME="lice_act_users">$lice_act_users()</A>
+<DD>
+Evaluates to the actual number of users who have "registered"
+with Caucus.
+
+<P><DT><A NAME="lice_expires">$lice_expires()</A>
+<DD>
+Returns the epoch time at which this license expires, 
+or 0 if it does not expire.
+
+<P><DT><A NAME="lice_customer">$lice_customer()</A>
+<DD>
+Evaluates to the 7 character customer code (5 digits of customer
+number plus a two letter operating system code).
+
+<P><DT><A NAME="lice_confs">$lice_confs()</A>
+<DD>
+Evaluates to the maximum number of conferences allowed by this
+license (or 0 for unlimited).
+
+<P><DT><A NAME="opsys">$opsys()</A>
+<DD>
+Evaluates to a string describing the operating system of the host
+server.&nbsp;
+The first word is either "unix" or "nt".&nbsp;
+Subsequent words describe the particular version or platform.
+
+<P><DT><A NAME="disk_failure">$disk_failure()</A>
+<DD>
+Normally this function evaluates to an empty string.&nbsp;
+If Caucus encounters a disk-write error (such as caused by
+a suddenly completely full disk), $disk_failure() evaluates
+to an error code number, followed by the full pathname of the
+file at which the error was encountered.
+
+<P><DT><A NAME="reloaded">$reloaded()</A>
+<DD>
+Evaluates to 1 if the current page is a RELOAD of a recent page, 
+(or if $cache_clear() was just called), 
+and 0 otherwise.&nbsp;
+<P>
+Typically this means the user pressed the RELOAD button on
+their browser, or pressed BACK several times and then
+hit RELOAD.&nbsp;
+"Recent" means within the last 10 CML pages (which may
+translate to a smaller number of pages displayed in the
+browser.)
+
+<P><DT><A NAME="cache_timeout">$cache_timeout(secs)</A>
+<DD>
+Sets the "cache timeout" to <I>secs</I> seconds.&nbsp;
+Caucus caches certain information (specifically the
+number of items and responses in a conference), and
+forces a reload of this cache after a certain time.&nbsp;
+The default value for this timeout is 300 seconds;
+use $cache_timeout() to set it to a different value.
+
+<P><DT><A NAME="cache_clear">$cache_clear()</A>
+<DD>
+Immediately clears the cache 
+(see <A HREF="#cache_timeout">$cache_timeout</A>).&nbsp;
+Causes <A HREF="#reloaded">$reloaded()</A> to return 1
+for the rest of this page.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

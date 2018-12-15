@@ -1,0 +1,100 @@
+#
+#---THEM.CML.   View & Change another person's info.  (Contrasted to me.cml)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/07/00 20:42 Add space for urc macro field.
+#: RL 07/05/00 16:49 Added _x variable type to display
+#: CR 07/05/00 23:37 Wrapped $t2esc() around _x.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR 05/16/08 Add map handling.
+#===========================================================
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i them.cml
+end
+
+include $(main)/secure.i manage userEdit
+include $(main)/requiredinfo.i
+
+include $(main)/urcbase.i
+
+set nch   $unique()
+set cname %displayed_conf_name ($arg(3))
+set nxt   $page_save (1 them.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+               # %per_name($arg(9)) )
+
+include $(main)/head.i $arg(3)  $quote(%per_name($arg(9)))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');closeEditWin();"
+
+include $(main)/header.i me %per_name($arg(9))
+
+"<script language="javascript">
+"   var editWin;
+"   function closeEditWin() {
+"      if (editWin)  editWin.close();
+"   }
+"</script>
+
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td><H2>Personal Information for %per_name($arg(9))</H2></td>
+"<td align=right
+"   ><NOBR>%person($arg(9) $quote(See How This Person Looks To Others))</NOBR
+"   ></td>
+"</table>
+
+"<p/>
+"Use this page to change any of %per_name($arg(9))'s personal information.&nbsp;
+"<FONT COLOR=RED>Asterisks</FONT> mean a field is required.
+
+#-------------------------------------------------------------
+# General Information
+
+"<P>
+"<form METHOD=POST ENCTYPE="multipart/form-data" name="register"
+"      ACTION="themf.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+
+if $not_empty ($(regerrs))
+   "<TR><TD></TD><TD></TD><TD>
+   "   <TABLE BORDER>
+   "   <TR><TD><TABLE>
+   "   <TR VALIGN=top><TD></TD><TD><B><BLINK>Error:</BLINK></B></TD>
+   "   <TD>$(regerrs)</TD>
+   "   </TABLE></TD></TABLE></TD>
+end
+#=====================================================================
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND on_mgr > 0 \
+           ORDER BY position
+set skipnames {none} {Password} {Verify-PW} {Error-msg} {Toolbar} userid laston registered
+include $(main)/reguser.i $arg(9) 0 $quote($(query)) $quote($(skipnames))
+
+"<TR><TD>&nbsp;</TD>
+"<TR><TD></TD>
+"<TD COLSPAN=2><INPUT TYPE="submit" VALUE="Change User's Information"></TD>
+"</TABLE>
+"</blockquote>
+
+"</form>
+
+if $(trailerbar)
+   include $(main)/trailer.i    me %per_name($arg(9))
+end
+
+"</div>
+"</body>
+"</HTML>

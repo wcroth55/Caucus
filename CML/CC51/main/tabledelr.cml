@@ -1,0 +1,18 @@
+#
+#---TABLEDELR.CML.   Delete a column while editing a table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/12/01 09:30 Dynamic tables.
+#
+#  arg(1) tablename
+#  arg(2) col
+#---------------------------------------------------------------
+
+eval $array_remove ($arg(1) 1 $arg(2))
+eval $array_store  ($arg(1))
+
+"Location: $(mainurl)/tableedit.cml?$unique()+$arg(1)
+"

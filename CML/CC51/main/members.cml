@@ -1,0 +1,82 @@
+#
+#---MEMBERS.CML.   List of members of this conference.
+#
+#   Notes:
+#      This could be made much faster by using a single query, rather
+#      than the service functions %per_name(), %per_laston(), etc.
+#  
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/13/01 21:30 Adapted Gabor Por's mods to show time last on & last in
+#: CR 01/25/02 21:35 Added e-mail display
+#: CR 10/09/02 Use src_bullet.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 12/26/03 Use %onnow_user() for "is user on now?" display.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  5/11/04 Skip users not allowed if confs (even if they were a member)
+#: CR  2/08/05 Use memberlist.i to build list of members.
+#: CR  4/13/05 C5 code merge.
+#: CR 02/28/06 Major rewrite to enable sortable columns.
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i members.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+eval      %onnow_check()
+set is_course $equal (x$site_data($arg(3) - confType) xCourse)
+
+set nxt   $page_save (1 members.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Members of $(cname))
+
+include $(main)/head.i $arg(3)  $quote($(cname) Membership List)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     members   Members
+
+set last
+"<form METHOD=POST ACTION="rmpeople.cml?$(nch)+$(nxt)+\
+                  $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$(uid)">
+set is_org    $gt_equal (%access($(cnum)) $priv(instructor))
+
+
+#set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, \
+#      (SELECT MAX(time) FROM events WHERE conf=$(cnum) AND event='leftconf' \
+#              AND userid=u.userid) lastin \
+#            FROM user_info u, groups g \
+#           WHERE u.active >= 10 \
+#             AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+#             AND g.access >= 10
+#"query=$(query)<br>
+
+set query SELECT u.userid, u.lname, u.fname, u.email, u.laston, c.lastin \
+            FROM (user_info u, groups g) \
+            LEFT JOIN user_in_conf c \
+              ON (c.userid = g.userid AND c.cnum=$(cnum)) \
+           WHERE u.active >= 10 \
+             AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+             AND g.access >= $priv(minimum)
+"<table cellspacing=0 cellpadding=0 border=0>
+include $(main)/peoplelist.i members.cml 1 query 0 0 lname,fname
+"</table>
+"</form>
+
+if $(trailerbar)
+   include $(main)/trailer.i members Members
+end
+
+"</div>
+"</body>
+"</HTML>

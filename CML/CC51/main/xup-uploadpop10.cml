@@ -1,0 +1,74 @@
+#
+#---XUP-UPLOADPOP10.CML   Upload a file to a response.
+#
+#   arg(3)   cnum
+#   arg(4)   inum
+#   arg(5)   rnum
+#   arg(6)   0=new text, 1=old text
+#   arg(7)   base for uploaded files
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/25/06 New file.
+#------------------------------------------------------------------------
+
+set nch $unique()
+set upload_failed 0
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<title>Attach a file to your $if ($arg(5) response item)</title>
+include $(main)/css.i
+"<script type="text/javascript" language="javascript">
+"function showname() {
+"   var fslash = document.popform.upload.value.lastIndexOf("/");
+"   var bslash = document.popform.upload.value.lastIndexOf("\\");
+"   var slash  = Math.max (bslash, fslash);
+"   document.popform.linkname.value = 
+"      document.popform.upload.value.substring(slash+1);
+"}
+"function handleOne() {
+"   var dh = document.popform.howmany;
+"   if (dh.options[dh.selectedIndex].value == "1") {
+"      location.href = "xup-uploadpop.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)";
+"   }
+"}
+"</script>
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+"<form ENCTYPE="multipart/form-data" METHOD=POST name="popform"
+"      ACTION="xup-uploadpop10f.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                       $arg(6)+$arg(7)">
+
+"<table cellspacing=1 cellpadding=0>
+count i 1 10
+   "<tr><td><INPUT NAME="upload$(i)" TYPE="file" size="24"></td>
+
+   if $equal ($(i) 1)
+      "<td>
+      "&nbsp;&nbsp;to select 
+      "<select name="howmany" onChange="handleOne();">
+      "   <option value="1">a file</option
+      "   <option value="10" selected>10 files</option>
+      "</select>
+      "</td>
+   end
+end
+
+"<tr><td>&nbsp;</td>
+"<tr>
+"<td align=right><input type="submit" name="submit" value="Continue"></td>
+"</table>
+
+"</form>
+
+"</div>
+"</body>
+"</html>
+#------------------------------------------------------------------

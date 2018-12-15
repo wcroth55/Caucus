@@ -1,0 +1,20 @@
+#
+#---blogApprover.cml
+#
+#   Simple pass-through that sets the approved value for
+#   a blog item, and then returns to the viewitem page.
+#
+#   vi_inum
+#
+#----------------------------------------------------------
+
+include $(main)/getCurrentVersionOfResponse.i $(vi_inum) 0
+
+set apQuery \
+       UPDATE resps SET approved=$arg(1) \
+        WHERE items_id = $(vi_inum) AND rnum=0 \
+          AND version =  $(currentVersion)
+set h $sql_query_open ($(apQuery))
+eval  $sql_query_close($(h))
+
+"%location(viewitem.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8))

@@ -1,0 +1,31 @@
+#
+#---H_ORGAN.CML.   Help about Organizer
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_organ.cml $quote(Help on the Organizer)
+"<P>
+
+"<B>What Is An Organizer?</B><BR>
+"The organizer is the person in charge of a particular conference.&nbsp;
+"He or she is given special abilities to control the conference,
+"including who is allowed to join it, and what
+"participants may do once they are in the conference.
+
+"<P>
+"A conference may have more than one organizer, but the
+"primary (first) organizer is always listed near the top of
+"the conference home page.&nbsp;
+"If you have any questions or suggestions about the running
+"of a conference, contact that person.&nbsp;
+"(You can click on their name to learn more about them,
+"including their e-mail address.)
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

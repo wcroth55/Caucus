@@ -1,0 +1,34 @@
+#
+#---man_follf.cml.    Handles manager "new user follow-up".
+#
+#   Locking???
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/06/00 11:32 New page.
+#: CR 02/05/01 09:53 Changes for interface-based new user registration.
+#----------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_foll.cml
+end
+
+include $(main)/secure.i manage manageInterface
+
+set nch $unique()
+
+#---Determine urcbase and urtbase depending on arg(8).
+set urcbase REG_$arg(8)_
+set urtbase REG_$arg(8)_t_
+
+eval $set_site_data (0 - $(urcbase)sendto   $form(sendto))
+eval $set_site_data (0 - $(urcbase)maillist $form(maillist))
+eval $set_site_data (0 - $(urcbase)welfrom  $form(welfrom))
+eval $set_site_data (0 - $(urcbase)welsubj  $form(welsubj))
+eval $set_site_data (0 - $(urcbase)weltext  $form(weltext))
+
+"%location($(mainurl)/$page_return ($arg(2) # \
+                                 manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+#------------------------------------------------------

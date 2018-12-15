@@ -1,0 +1,326 @@
+
+/* --- caucus5.css ---  Primary stylesheet for Caucus 5.0
+/
+/  Copyright (C) 2004-2005 CaucusCare.com
+/
+/  CR 10/13/04 First version.
+/  CR 11/12/04 Minor mods.
+/  CR 01/21/05 Add scrollable grade table stuff.
+/  CR 02/24/05 Add userface classes.
+/  CR 10/24/05 Add announcement.
+/  CR 12/06/05 Add managerGroup.
+/  CR 02/20/06 Add thumbNail.
+/  CR 02/28/06 Add quiz graphing (.gr rules)
+/  CR 03/15/06 Add .hoverTable and .hoverCell (for %conference() hovertext)
+/  CR 03/24/06 Add .gallerylist0, .gallerylist1.
+/  CR 05/22/06 Add galleryTable.
+/  CR 03/30/07 Add rules for left-box implementation.
+/ */
+
+/*--- Fix for broken-CSS table inheritance. */
+table, caption {
+  font-size:    100%;
+  font-weight:  inherit;
+  font-style:   inherit;
+  font-variant: inherit;
+}
+
+/*--- <A HREF> Links are blue with no underline.  Hovering over them
+/     makes the underline appear.  <A NAME> anchors do *not* get
+/     "hovered" underlines. */
+A:link           { text-decoration: none;       color: blue; }
+A:visited        { text-decoration: none;       color: blue; }
+A:visited:hover  { text-decoration: underline;  }
+A:link:hover     { text-decoration: underline;  }
+
+.pageTitle { font-size: 175%; }
+.bigger    { font-size: 120%; }
+.smaller   { font-size:  80%; }
+
+LI { margin-top: .4em; }
+
+.quizProbRow { padding: .4em; }
+
+.thumbNail {
+   float: right;
+   padding-left: 2em;
+}
+
+.imgRow { margin-top: 10px; }
+
+.hoverTable { background-color: #006B91; }
+
+.hoverCell  { background-color: #CEEAF5;
+              font-family: Arial, Helvetica, sans-serif;
+              font-size: 8pt; }
+
+.vertSpacer { font-size: .6em; }
+
+.galleryTable { background-color: #E0E0E0; }
+
+.liTight { margin-top: 0em; }
+
+/*---Quiz problem graphing classes---- */
+.grLabel   { font-size: .8em;   line-height: 1.1em; }
+.grCell    { font-size: .8em;   line-height: 1.1em;
+             border-left: 1px solid;  border-color: #7f7f7f;  width: 39px;  }
+.grCellTop { font-size: .8em;   line-height: 1.1em;
+             border-left: 1px solid;  border-color: #7f7f7f;  width: 39px;
+             border-top:  1px solid;  border-color: #7f7f7f; }
+.grBottom  { font-size: 0em;
+             border-top:  1px solid;  border-color: #7f7f7f;  width: 40px;
+             height: 2px; }
+.grPcnt    { font-size: 10px;   position: relative;  left: -6px; }
+
+.grBar     { font-size: .8em;   position: absolute;  margin-top: 1px; }
+.grBarText { font-size: .8em;   position: absolute;  margin-top: 1px;
+             line-height: 1.0em;  background-color: white;   z-index: 5; }
+
+.managerGroup { font-weight: bold;
+                background-color: #ddddbb; }
+
+.person_row {
+   background-color: #dddddd;
+}
+
+.userface0 {
+  padding: 2px;
+  background-color: #eef;
+}
+.userface1 {
+  padding: 2px;
+  background-color: #dde;
+}
+
+.peoplelist0 { background-color: #eee; }
+.peoplelist1 { background-color: #fff; }
+
+.gallerylist0 { background-color: #fff; }
+.gallerylist1 { background-color: #fff; }
+
+.resp_tasklink { float: right;  width: 15em;  margin-left: 1em; margin-bottom: 0.5em; }
+.resp_taskback { background-color: #CEEAF5; margin: 3px; }
+
+.itemlist_table {
+  padding:        5px;
+  width: 95%;
+  margin-left:    1px;
+  margin-right:   1px;
+  margin-top:     0px;
+  margin-bottom:  0px;
+}
+
+.itemlist_pad {
+  background-color: #ccf;
+  padding-top: 5px;
+}
+
+.itemlist_selector {
+  background-color: #ccf;
+  margin-left:    0px;
+  margin-right:   0px;
+  margin-top:     5px;
+  margin-bottom:  0px;
+}
+
+.itemlist_header {
+  background-color: #ccf;
+  margin-left:    0px;
+  margin-right:   0px;
+  margin-top:     0px;
+  margin-bottom:  0px;
+  font-weight:    bold;
+}
+
+.itemlist_row0 {
+  /* background-color: #eef; */
+  background-color: #eee;
+}
+
+.itemlist_row1 {
+  /* background-color: #dde; */
+}
+
+.itemlist_row_num {
+  text-align:     right;
+  padding-right:  0.3em;
+  padding-left:   0.5em;
+}
+
+.itemlist_row_text {
+  text-align:    left;
+  padding-left:  0.4em;
+  padding-right: 0.5em;
+}
+
+/*================================================*/
+
+.item_title { /* Big Title at Top of a Discussion */
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.response {
+  padding: 0px;
+  padding-bottom: 6px;
+  margin-bottom: 0px;
+  padding-top: .3em;
+
+  border-top: none;
+  border-bottom: 1px solid #000000;
+/*
+  border-bottom: none;
+  border-top: 1px solid #000000;
+*/
+  width: 100%;
+}
+
+.response_actionbar { /* Set of Links to Right of a Response */
+/*vertical-align: top; */
+  text-align: right;
+/*font-size: 80%; */
+  color: #999;
+/*font-weight: bold; */
+}
+
+.response_body { /* Body of Response Text */
+/* margin-left: 20px; */
+  margin-top: .3em;
+  vertical-align: top;
+}
+  
+.response_author { /* The Link to the Author's Profile */
+  font-weight: bold;
+}
+
+.response_note { /* A note about the author name, e.g. "via email" */
+  font-size: 80%;
+  font-style: italic;
+}
+
+.response_uid {   /* author's uid, if shown  */
+  font-weight: normal;
+}
+
+.response_id  { /* The Response #N: Label */
+  font-weight: bold;
+}
+
+.response_date { /* Date the Response was Posted */
+/*font-size: 80%; */
+  font-style: italic;
+}
+
+/*-----------------*/
+
+.li_spacer { margin-bottom: 1em; }
+
+.bozofiltered { font-weight: bold;  color: red; }
+
+.virus { font-weight: bold;   font-size: 120%;   color: red; }
+
+
+/*================================================*/
+/*  Grade and Assignment styles */
+
+.gradetable { border: 0px;  background-color: white;
+  padding:        0px;
+  margin-top:     5px;
+  margin-bottom:  0px; }
+
+.gradeid { font-size: 80%; }
+
+.graderowh  { background-color: #afa;
+              font-family: Arial, Helvetica, sans-serif;
+              font-weight: bold; }
+
+.graderow0  { background-color: #eef;    height: 1.35em;
+              font-family: Arial, Helvetica, sans-serif; }
+
+.graderow1  { background-color: #dde;    height: 1.35em;
+              font-family: Arial, Helvetica, sans-serif; }
+
+.gradeblank { background-color: transparent; }
+
+.gradenum  {       text-align:   right;
+                   padding-left: 5px;      padding-right: 5px; }
+.gradenum input  { text-align:   right;    border: 0px;
+                   background-color: transparent;   /* font-size: 12px; */ }
+
+.gradedate {       text-align:   right;
+                   padding-left: 5px;      padding-right: 5px; }
+.gradedatesmall {  text-align:   right;
+                   padding-left: 5px;      padding-right: 5px; }
+.gradedate input { text-align:   right;    width: 7em;    border: 0px;
+                   background-color: transparent;   /* font-size: 12px; */ }
+
+.gradetext {       text-align:   left;
+                   padding-left: 5px;      padding-right: 5px; }
+.gradetext input { text-align:   left;     width: 16em;    border: 0px;
+                   background-color: transparent;   /* font-size: 12px; */ }
+
+.gradetype {       text-align:   left;
+                   padding-left: 5px;      padding-right: 5px; }
+.gradetype input { text-align:   left;     width: 4em;    border: 0px;
+                   background-color: transparent;   /* font-size: 12px; */ }
+
+.gradespacer {
+   position: relative;    top: 0em;    color: #afa;
+}
+
+.gradeoverlay    { position: absolute;  top: 0px;  right: 0.0em;
+                   z-index: 15;  color: black;}
+.gradeoverlay_ie { position: absolute;  top: 0px;  right: 0.4em;
+                   z-index: 15;  color: black;}
+
+.courses         { font-family: Arial, Helvetica, sans-serif;
+                   }
+.courses_hdr     { font-family: Arial, Helvetica, sans-serif;
+                    background-color: #afa; }
+
+.courses_row0  { background-color: #eef; }
+
+.courses_row1  { background-color: #dde; }
+
+.courses_non0  { background-color: #fee; }
+.courses_non1  { background-color: #edd; }
+
+.taskrow0  { background-color: #eef;
+              font-family: Arial, Helvetica, sans-serif; }
+
+.taskrow1  { background-color: #dde;
+              font-family: Arial, Helvetica, sans-serif; }
+
+.confHidden { font-style: italic; }
+
+.announcement {   /* announcment pop-overs */
+   position: absolute;
+   width: 300px;
+   height: 300px;
+   background-color: white;
+   border-style: ridge;
+   border-width: 4px;
+   border-color: blue;
+   padding: 1em;
+   visibility: visible;
+   overflow: auto;
+}
+
+.quizAllScores {
+   margin-left:  .3em;
+   margin-right: .3em;
+}
+
+/* ------------- Left box (psuedo-frame) implmentation ------------- */
+div#mainBox {
+   position: relative;
+   padding: 1em;
+}
+
+@media screen {
+   body>div#leftBox {
+      position: fixed;
+   }
+}
+
+

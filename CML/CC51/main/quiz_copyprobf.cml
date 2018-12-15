@@ -1,0 +1,27 @@
+#
+#---quiz_copyprobf.   Copy a problem to another quiz.
+#
+#   arg(9)  problem key
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/01/06 New file.
+#-----------------------------------------------------------------------
+
+set arglist  $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+set pkey $plus (0 $arg(9))
+
+set q1 SELECT pkey, category, title, text, texttype, totalpoints \
+         FROM quizproblems WHERE pkey=$(pkey)
+set h1 $sql_query_open ($(q1))
+eval   $sql_query_row  ($(h1))
+include $(main)/quiz_copyprob.i $(qkey) $(pkey)
+eval   $sql_query_close($(h1))
+
+"%location($(mainurl)/quiz.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8))
+
+#-----------------------------------------------------------------------

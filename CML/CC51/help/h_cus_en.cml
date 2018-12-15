@@ -1,0 +1,61 @@
+#
+#---H_CUS_EN.I    Help about "Customize: E-mail notification" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_cus_en.cml $quote(Help on E-mail notification)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"E-mail notification is a way to send an automatic reminder,
+"via e-mail,
+"about new activity in the conference to all of its members.&nbsp;
+"It is an option; you don't have to use it.&nbsp;
+"It is really meant for conferences where it may be useful
+"to have some sort of reminder that new activity is happening.&nbsp;
+"For example, if many of your members only check in once a week or
+"so, an automatic reminder may help them to be more active and
+"involved.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference
+"that you organize.&nbsp;
+"Then click on <U>customize</U>, underneath your name.&nbsp;
+"If the manager has enabled e-mail notification for your
+"conference, you'll see a link for <U>E-mail Notification</U> 
+"towards the bottom of the page.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"The E-mail Notification page controls the e-mail notification schedule(s)
+"for this conference.&nbsp;
+"You can turn e-mail notification on and off.&nbsp;
+"You can schedule the time and day of the notifications;
+"you can schedule notifications for the entire conference 
+"(all items in the conference), or just for select groups
+"of items.
+
+"<P>
+"The page offers three choices for manipulating notification schedules
+"(item groups):
+"<OL>
+"<LI>Create a new group, and then fill in all of the days and times
+"and select the desired items.
+"<P>
+"<LI>"Quickset option" to create a group that includes all items, and
+"sends out notification every Monday morning at 6 a.m.&nbsp;
+"This is a good way to get started; you can always change this group
+"any time that you like.
+"<P>
+"<LI>If you have any existing groups, they are listed, one per line.&nbsp;
+"Click on a link under <B>Items</B> to edit that item group.
+"</OL>
+
+
+
+include $(help)/hb.i

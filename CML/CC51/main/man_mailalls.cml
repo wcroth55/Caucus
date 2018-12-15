@@ -1,0 +1,141 @@
+#
+#---MAN_MAILALLS.CML.   Forms-processing page for man_mailall.cml,
+#                       to see list of potential recipients.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/06/02 New file.
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 12/26/03 Use %onnow_user() for "is user on now?" display.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  5/11/04 Limit conf member list to those with access.
+#: CR 12/10/04 Include css.i; skip non-existent people.
+#: CR 01/09/06 Rewrite for C5.
+#-----------------------------------------------------------------------
+
+"Content-type: text/html
+"Pragma: no-cache
+"Expires: Thu, 01 Dec 1994 16:00:00 GMT
+"
+"<html>
+"<head>
+include $(main)/popup.i
+include $(main)/css.i
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+eval %onnow_check()
+
+#---We create two temp files, one for the message text, one for
+#   the list of users, both with filenames based on our process id.
+
+set  pid $word (1 $replace (/ 32 $pid()))
+set list
+set title
+set errtext
+
+#"everyone=$form(everyone)<br>
+#"justme=$form(justme)<br>
+#"type=$form(type)<br>
+#"name=$form(name)<br>
+#"range=$form(range)<br>
+
+if $not_empty ($form(everyone))
+   set query1 SELECT fname, lname, email, userid, laston FROM user_info \
+               WHERE (email != ''  AND  email IS NOT NULL) \
+                 AND active >= 10 \
+               ORDER BY lname, fname, userid
+   set query2 SELECT fname, lname, email, userid, laston FROM user_info \
+               WHERE (email = ''   OR   email IS NULL) \
+                 AND active >= 10 \
+               ORDER BY lname, fname, userid
+   set title "for Everyone"
+end
+
+elif 0$form(justme)
+   set query1 SELECT fname, lname, email, userid, laston FROM user_info \
+               WHERE userid='$userid()' \
+                 AND (email != ''  AND  email IS NOT NULL)
+   set query2 SELECT fname, lname, email, userid, laston FROM user_info \
+               WHERE userid='$userid()' \
+                 AND (email = ''   OR   email IS NULL)
+   set title "for Just me"
+end
+
+else
+   set qowner $if ($not_equal ($form(type) USER) $form(type) $form(range))
+   set qbase \
+       SELECT DISTINCT u.fname, u.lname, u.email, u.userid, u.laston \
+         FROM user_info u, groups g \
+        WHERE u.userid = g.userid  \
+          AND g.owner='$(qowner)'  AND  g.name='$form(name)'   \
+          AND g.access >= $priv(minimum)  AND  u.active >= 10
+   set query1 $(qbase) AND (u.email != ''  AND  u.email IS NOT NULL) \
+              ORDER BY lname, fname, userid
+
+   set query2 $(qbase) AND (u.email = ''   OR   u.email IS NULL) \
+              ORDER BY lname, fname, userid
+end
+#"query1=<font color=red>$(query1)</font>
+#"<p/>
+#"query2=<font color=blue>$(query2)</font>
+
+
+"<form>
+"<table cellspacing=0 cellpadding=0 border=0 width="100%">
+"<tr valign=top>
+"<td><font size=+1><b>E-mail Recipient List $(title)</b></font></td>
+"<td align=right
+"   ><input type="button" value="Close" onClick="self.close();"></td>
+"</table>
+
+set h $sql_query_open($(query1))
+#"h=$(h)
+"<table cellspacing=0 cellpadding=0 border=0 width="100%">
+"<tr valign=top><td>&nbsp;</td>
+"<TD><B>Name</B></TD><TD><B>Userid</B></TD>  <TD>&nbsp;</td>
+"<TD><b>Last on Caucus</b></TD>  <td>&nbsp;&nbsp;</td>
+
+#---Write out the list of userids to send to.
+while $sql_query_row ($(h))
+   "<tr valign=top><td></td>
+   "<td><A HREF="javascript: pop_up('person', '$(userid)');" %help(h_name)
+   "   >$(lname), $(fname)</a></td>
+   "<TD>($(userid))</TD><TD></TD>
+   "<TD><small><nobr>%datetz(%epochOfyyyy($(laston)))</nobr></td>
+#  "    $(timezonename) %onnow_user($(uid))</nobr>
+#  "    </small></TD><td></td>
+   "<td><a href="mailto:$(email)">$(email)</a></td>
+end
+eval $sql_query_close ($(h))
+
+#if $not_empty ($(errtext))
+#   "<tr valign=top><td></td><td colspan=7>$(errtext)</td>
+#end
+
+set header <tr valign=top><td colspan=7>&nbsp;<br>\
+           <b>The following people were selected, \
+           but do not have an e-mail address:</b></td>
+set h $sql_query_open ($(query2))
+while $sql_query_row  ($(h))
+   "$(header)
+   set header
+   "<tr valign=top><td></td>
+   "<td><A HREF="javascript: pop_up('person', '$(userid)');" %help(h_name)
+   "   >$(lname), $(fname)</a></td>
+   "<TD>($(userid))</TD><TD></TD>
+   "<TD><small>%datetz (%per_laston($(userid))) 
+   "    $(timezonename) %onnow_user($(userid))</small></td>
+   "<td></td>
+end
+eval $sql_query_close($(h))
+"</table>
+
+"</form>
+
+"</div>
+"</body>
+"</html>

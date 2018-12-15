@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.10: Person Information</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.10:&nbsp; Person Information</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref409.html">PREV</A>]
+   [<A HREF="ref411.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Another family of functions provides information about a particular
+person who is registered with Caucus.&nbsp;  All of these functions
+begin with "$per_" or "$set_per_".
+
+<P>
+<DL>
+
+<P><DT><A NAME="per_name">$per_name(id)</A>
+<DD>
+Evaluates to the full name of the person with userid <I>id</I>.
+
+
+<P><DT><A NAME="per_intro">$per_intro(id)</A>
+<DD>
+Evaluates to the text of the &quot;brief introduction&quot; of
+userid <I>id</I>.
+
+<P><DT><A NAME="per_phone">$per_phone(id)</A>
+<DD>
+Evaluates to the telephone number of userid <I>id</I>.
+
+<P><DT><A NAME="per_laston">$per_laston(id)</A>
+<DD>
+Evaluates to the date and time that userid <I>id</I> was last
+on (last using) Caucus.
+
+<P><DT><A NAME="per_lastin">$per_lastin(id cnum)</A>
+<DD>
+Evaluates to the date and time that userid <I>id</I> was last
+in conference <I>cnum</I>.&nbsp; Evaluates to an empty string
+if <I>id</I> is not a member of the conference.
+
+<P>
+<P><DT><A NAME="per_real">$per_real(id)</A>
+<DD>
+Evaluates  to the &quot;real name&quot; (as registered in the
+server host system password file) of user <I>id</I>.&nbsp;  If there
+is no &quot;real  name&quot;, it evaluates to the empty string.&nbsp;
+(Note: this function is only meaningful when the Web userids
+are derived from the system password file userids.&nbsp;  See the Caucus
+Installation Guide for  more information.)
+
+<P>
+<P><DT><A NAME="per_delete">$per_delete(id)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Delete the Caucus userid <I>id</I>.&nbsp;
+(Requires MGR_RMID manager bit).&nbsp;
+Evaluates to 0 on success, -1 if not allowed, and 1 on other
+error (such as userid does not exist).
+<P>
+Note that this only deletes the information <B>about</B> user <I>id</I>.&nbsp;
+To delete the actual userid & password entry, see
+<A HREF="ref421.html#pw_delete">$pw_delete()</A>.
+
+<P>
+<P><DT><A NAME="set_per_name">$set_per_name(id name)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Changes userid <I>id</I>'s name to <I>name</I>.&nbsp;
+(Creates the new user if s/he does not exist.)&nbsp;
+Requires either MGR_MKID manager bit, or current user = <I>id</I>.&nbsp;
+Evaluates to 1 on success, or 0 on failure.&nbsp;
+(Fails if attempting to create a new user, and the maximum
+total number of users for this license has been reached.)
+
+<P>
+<P><DT><A NAME="set_per_phone">$set_per_phone(id phone)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Changes userid <I>id</I>'s telephone number to <I>phone</I>.&nbsp;
+Requires either MGR_MKID manager bit, or current user = <I>id</I>.&nbsp;
+
+<P><DT><A NAME="set_per_intro">$set_per_intro(id text)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Changes userid <I>id</I>'s brief introduction to <I>text</I>.&nbsp;  (May
+be set to nothing).&nbsp;  <I>Text</I> may contain newlines.&nbsp;
+Requires either MGR_MKID manager bit, or current user = <I>id</I>.&nbsp;
+
+<P><DT><A NAME="set_per_join">$set_per_join(id cnum)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Make userid <I>id</I> a member of conference <I>cnum</I>.&nbsp;
+Evaluates to '1' on success, and 0 otherwise.&nbsp;
+Requires either MGR_MKID manager bit, or current user = <I>id</I>.&nbsp;
+Fails if <I>id</I> is not allowed to join <I>cnum</I>.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

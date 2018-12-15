@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+#---makeForwardCaucusMail
+
+scripts=`dirname $0`
+caucusHome=`dirname $scripts`
+cp $caucusHome/forwardCaucusMail .
+chmod 700      forwardCaucusMail
+
+echo "#!/bin/sh" >forwardCaucusMail.sh
+echo "
+   tmp=/tmp/mailhandler\$\$
+   rm -f \$tmp
+   $HOME/forwardCaucusMail >\$tmp
+   if test -s \$tmp; then
+      /usr/sbin/sendmail -t <\$tmp
+   fi
+
+   rm -f \$tmp"  >>forwardCaucusMail.sh
+chmod 700          forwardCaucusMail.sh
+
+#echo "$HOME/forwardCaucusMail | /usr/sbin/sendmail -t" >>forwardCaucusMail.sh
+echo "| $HOME/forwardCaucusMail.sh" >.forward
+chmod 755 .forward 

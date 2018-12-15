@@ -1,0 +1,125 @@
+#
+#---wikitext.   Pop-up display of a specific version of a wiki item.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#
+#: CR 06/15/06 New file.
+#==================================================================
+
+set  nch   $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i wikitext.cml
+end
+ 
+set nxt   $page_save (1 wikitext.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Wiki)
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set arglist $arg(3)+$arg(4)+$arg(5)
+
+eval %onnow_check()
+
+"Content-type: text/html
+"
+
+if $equal (x$arg(9) xrestore)
+   eval $resp_set ($arg(4) 0 text empty)
+   include $(main)/getCurrentVersionOfResponse.i $arg(4) 0
+
+   set copyColumns rnum, items_id, userid, text, time, prop, bits, copy_rnum, \
+                   copy_item, copier, copy_time, copy_show, copy_cnum, \
+                   deleted, author_shows_as, edittime, editid, versioned, approved
+   set query \
+       REPLACE INTO resps (version, $(copyColumns)) \
+          SELECT $(currentVersion), $(copyColumns) \
+            FROM resps WHERE items_id=$arg(4) AND rnum=0 AND version=$arg(6)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+
+   "<html>
+   "<body>
+   "<script language="javascript">
+   "   window.opener.location = 'viewitem.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+x+x+x';
+   "   self.close();
+   "</script>
+   "</body>
+   "</html>
+   quit
+end
+
+"<html>
+"<head>
+"<title>Wiki</title>
+
+include $(main)/css.i 1
+
+"<script type="text/javascript" language="javascript">
+include $(main)/popup.js
+include $(main)/setsort.js
+
+"function restoreVersion() {
+"   if (confirm ('Make this version the current version of the item?')) {
+"      location.href = location.href + "+restore";
+"   }
+"}
+
+"</script>
+"</head>
+
+"<body >
+
+set title $sql_query_select (SELECT title FROM items WHERE id=$arg(4))
+set rquery SELECT r.userid owner, r.text, r.prop, r.bits, r.editid, r.edittime, \
+                  r.time, r.copy_time, r.author_shows_as, u.fname, u.lname, \
+             FROM resps r \
+             LEFT JOIN user_info u ON (r.userid = u.userid) \
+            WHERE r.items_id=$arg(4) AND r.rnum=$arg(5) AND r.version=$arg(6)
+set h $sql_query_open ($(rquery))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+eval %mpush($arg(3) $arg(4) $arg(5))
+
+"<form>
+"<table cellspacing=0 cellpadding=0 width="100%">
+"<tr>
+"<td><div class="item_title">$t2hbr($unquote($(title)))</div></td>
+"<td align="right"
+"  ><input type="button" value="Restore this version" 
+"       onClick="restoreVersion();"></td>
+"<td align="right"
+"  ><input type="button" value="Close" onClick="self.close();"></td>
+"</table>
+"<p/>
+"<span class="response_id">Item $item_label($arg(3) $arg(4))&nbsp;</span>
+
+include $(main)/setPersonName.i popup
+"<span class="response_author">$(personNameLink)</span>
+"<span class="response_note">$(personNameNote)</span>
+
+"<span class="response_date">
+"%monthDayYearHourTZ ($words (1 2 $(copytime) $(time)))
+"   $(timezonename)</span>
+"&nbsp;&nbsp;&nbsp;
+"(version $arg(6) edited 
+"<span class="response_date">
+"%monthDayYearHourTZ ($(edittime)) $(timezonename)</span>
+" by %personpop($(editid)))
+
+"<p/>
+include $(main)/calculateProhibitedTagLists.i $arg(3)
+include $(main)/getProhibitedTagList.i $(bits)
+include $(main)/showResponseText.i $(prop)
+
+eval %mpop()
+
+"</form>
+"</body>
+"</html>

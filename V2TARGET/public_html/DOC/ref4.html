@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4: CML Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 4: CML Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref3.html">PREV</A>]
+   [<A HREF="ref5.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<P>
+CML contains a large number of functions, 
+which provide much of the power of the language.&nbsp;
+They are grouped
+by category and described in the subsections listed below:
+
+<P>
+<TABLE>
+<TR VALIGN=top>
+<TD>
+<OL>
+<LI><A HREF="ref401.html">CML state functions</A>
+<LI><A HREF="ref402.html">Browser &amp; Server Information</A>
+<LI><A HREF="ref403.html">File Access</A>
+<LI><A HREF="ref404.html">Shell Access</A>
+<LI><A HREF="ref405.html">Comparisons &amp; Logic</A>
+<LI><A HREF="ref406.html">Mathematics</A>
+<LI><A HREF="ref407.html">String &amp; Date Manipulation</A>
+<LI><A HREF="ref408.html">Conference List Information</A>
+<LI><A HREF="ref409.html">Conference Organizer Information</A>
+<LI><A HREF="ref410.html">Person Information</A>
+<LI><A HREF="ref411.html">"My" Information</A>
+<LI><A HREF="ref412.html">Groups of People</A>
+<LI><A HREF="ref413.html">Item Information</A>
+</OL>
+</TD>
+<TD>&nbsp;</TD>
+<TD>
+<OL START=14>
+<LI><A HREF="ref414.html">Response Information</A>
+<LI><A HREF="ref415.html">Adding Items &amp; Responses</A>
+<LI><A HREF="ref416.html">Text Filters</A>
+<LI><A HREF="ref417.html">Conference, User, Item, Site Variables</A>
+<LI><A HREF="ref418.html">Searching Conference Text</A>
+<LI><A HREF="ref419.html">CML Page Functions</A>
+<LI><A HREF="ref420.html">Manager Functions</A>
+<LI><A HREF="ref421.html">Password Functions</A>
+<LI><A HREF="ref422.html">Debugging Functions</A>
+<LI><A HREF="ref423.html">Array Manipulation</A>
+<LI><A HREF="ref424.html">Authentication &amp; Authorisation</a>
+<LI><A HREF="ref425.html">SQL interface</a>
+<LI><A HREF="ref426.html">Caucus 5.0 functions</a>
+</OL>
+</TD>
+</TABLE>
+
+<P>
+CML functions serve several purposes:
+
+<P>
+<OL>
+<LI>Extract data (from the Caucus conference database) for display.
+
+<P>
+<LI>Manipulate or compare data (such as addition, subtraction,
+testing equality, etc.)
+
+<P>
+<LI>Put new data back into the Caucus database.
+
+<P>
+<LI>Maintain &quot;state&quot; information between CML pages.
+</OL>
+
+<P>
+The syntax of a function must always be &quot;$name(arguments)&quot;.&nbsp;
+There must be no spaces between &quot;$&quot; and &quot;name&quot;.&nbsp;
+Spaces may be used freely around the &quot;(&quot; and &quot;)&quot;.&nbsp;
+Anything (including spaces or other functions) may be in the
+<I>arguments</I>.&nbsp;  Some functions have no arguments.
+
+<P>
+If you wish to display a &quot;$&quot; in your HTML text, and
+not have it be confused with a CML function, escape it with a
+preceeding &quot;\&quot;, i.e. &quot;\$&quot;.
+
+<P>
+
+<B>CML variables</B>
+
+<P>
+CML supports one type of variable, that contains arbitrary string
+data.&nbsp;
+To get the contents of a variable (called "evaluating" a variable),
+you use a syntax similar to function evaluation:
+
+<UL>
+$(name)
+</UL>
+
+<P>
+This means &quot;evaluate the variable <I>name</I>, and place
+its value here&quot;.&nbsp;  For more information about variables, see
+the CML directives 
+"<A HREF="ref5.html#for">for</A>", 
+"<A HREF="ref5.html#count">count</A>" and 
+"<A HREF="ref5.html#set">set</A>".
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

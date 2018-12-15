@@ -1,0 +1,22 @@
+#
+#---marknew.cml   Mark response new.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viewitem.cml
+end
+
+include $(main)/secure.i member $arg(3)
+
+set nch    $unique()
+
+eval $item_set_seen ($arg(3) $arg(4) $userid() $minus($arg(5) 1))
+set vi_markseen 0
+
+"%location($(mainurl)/$page_return($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#--------------------------------------------------------

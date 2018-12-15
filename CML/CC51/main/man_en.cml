@@ -1,0 +1,230 @@
+#
+#---MAN_EN.CML.   Manager controls sitewide e-mail notification.
+#
+#   This page is the "head" of a set of pages that control manager-defined
+#   e-mail notification of sitewide new material.  The other files
+#   all begin with the prefix "man_en".
+#
+#   The following conference or user variables are involved:
+#
+#   Global "switch" variables
+#
+#     en_run       run e-notification daemon?
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/23/04 New file.
+#-----------------------------------------------------------------------------
+
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_en.cml
+end
+
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges \
+                                systemEditSwitches
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set title1 Manager&nbsp;Options
+set nxt   $page_save (1 man_en.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title1): Sitewide E-mail Notification )
+
+
+include $(main)/head.i $arg(3)  $quote($(title1) : Sitewide E-mail Notification)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+include $(main)/header.i man_en </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">$(title1)\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   Sitewide&nbsp;E-mail&nbsp;Notification
+
+"<BLOCKQUOTE>
+"<B>Sitewide E-mail Notification</B>
+"lets you automatically notify all of
+"the members of this site,
+"via e-mail, of new activity.&nbsp;
+"More precisely, it will send an email to <b>everyone</b> who uses
+"this interface ($(iface)):
+"<ul>
+"-- when they have new material in any of their conferences<br>
+#"-- that are on their personal conference list<br>
+"-- according to the schedule you set below.<br>
+"</ul>
+#"This can be a very helpful way to "prompt" your members to check
+#"in on the conference.&nbsp;
+#"(But be careful not to over-use it and drown them in e-mail, either.)
+
+if $not_empty ($form(submit))
+   eval $set_site_data  (0 - en_on_$(iface) \
+                         $if ($equal (x$form(submit) xOn) 1 0))
+end
+
+
+"<P>
+"<form NAME="en_on_off" METHOD=POST
+"    ACTION="man_en.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+x+x+x">
+
+set en_on 0$site_data (0 - en_on_$(iface))
+"E-mail notification is currently
+"<B>$if ($(en_on) on off)</B> for this interface ($(iface)).&nbsp;&nbsp;
+"You may turn it
+"<INPUT NAME=submit TYPE=submit VALUE="$if ($(en_on) Off On)">.
+
+"</form>
+
+if $not ($(en_on))
+   "<P>
+   "<HR>
+   "</div>
+"</body>
+   "</HTML>
+   quit
+end
+
+
+if $empty ($user_info ($userid() email))
+   "<P>
+   "<span class="bigger"><B><BLINK>Warning!</BLINK></B>&nbsp;</span>
+   "You have not set your own e-mail address.&nbsp;
+   "Please do so immediately, by clicking on your own name
+   "in the upper right hand corner of the window.
+end
+
+"<p>
+"<form NAME="loginurl" METHOD=POST
+"    ACTION="man_enf.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+x+x+x">
+#"<b>Login URLs</b><br>
+#"The e-mails that your members receive will contain a URL that they 
+#"can click on to login and see the new material.&nbsp;
+#"This can be the "default" URL, or you may specify a special 
+#"login page for your members.&nbsp;
+
+#"<p>
+#set loginurl  $word (1 $site_data (0 - en_loginurl_$(iface))  (default-URL) )
+#"<table cellspacing=0 cellpadding=0>
+#"<tr>
+#"<td>E-mail notifications will use the login URL:&nbsp;&nbsp;</td>
+#"<td><input type=text size=50 name="en_loginurl" value="$(loginurl)">&nbsp;</td>
+#"</table>
+
+
+#"<INPUT TYPE=HIDDEN NAME=summary VALUE="0">
+
+"<P>
+"<b>Notification Schedule</b><br>
+"Choose the days to send e-mail, from either the Monthly <B>or</B>
+" the Weekly calendar (but not both).
+"<P>
+
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR><TD ALIGN=center><B>Monthly</B></TD> 
+"    <TD>&nbsp;&nbsp;<I>or</I>&nbsp;&nbsp;</TD> 
+"    <TD><B>Weekly</B></TD>
+
+set is_week $word (1 $site_data (0 - en_dates-$(iface)))
+"<TR VALIGN=top><TD BGCOLOR="#FF7777">
+
+ #---Monthly table.
+ set chk $ifthen ($not($(is_week)) $rest (2 $site_data (0 - en_dates-$(iface))))
+ "<TABLE CELLSPACING=0 CELLPADDING=0>
+ count day 1 9
+    "$ifthen ($tablefind ($(day) 1 8) <TR>)
+    "<TD ALIGN=right>&nbsp;<FONT COLOR="#FF7777">1</FONT>$(day)<INPUT 
+    "    TYPE=checkbox NAME=md VALUE="$(day)" %chk($(day))></TD>
+ end
+
+ count day 10 31
+    "$ifthen ($tablefind ($(day) 15 22 29) <TR>)
+    "<TD ALIGN=right>&nbsp;$(day)<INPUT TYPE=checkbox NAME=md VALUE="$(day)" 
+    "    %chk($(day))></TD>
+ end
+ "</TABLE>
+"</TD>
+
+"<TD>&nbsp;</TD>
+
+ #---Weekly table.
+ set chk $ifthen ($(is_week) $rest (2 $site_data (0 - en_dates-$(iface))))
+"<TD BGCOLOR="#7777FF">
+"   <TABLE CELLSPACING=0 CELLPADDING=0>
+"   <TR><TD>Mon</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="1" %chk(1)></TD>
+"   <TR><TD>Tue</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="2" %chk(2)></TD>
+"   <TR><TD>Wed</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="3" %chk(3)></TD>
+"   <TR><TD>Thu</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="4" %chk(4)></TD>
+"   <TR><TD>Fri</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="5" %chk(5)></TD>
+"   <TR><TD>Sat</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="6" %chk(6)></TD>
+"   <TR><TD>Sun</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="0" %chk(0)></TD>
+"   </TABLE>
+"</TD>
+"</TABLE>
+
+"<P/>
+"Now choose the time(s) during the selected day(s) when the e-mail should
+"be sent.
+
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0 BGCOLOR="#FF77FF" BORDER=0>
+"<TR>
+"<TD COLSPAN=2>&nbsp;<B>AM</B></TD> <TD COLSPAN=11>&nbsp;</TD> 
+"<TD COLSPAN=2>&nbsp;<B>PM</B></TD> <TD COLSPAN=11>&nbsp;</TD>
+"<TR>
+count hour 1 11
+   "<TD ALIGN=center>$(hour)</TD>
+end
+"<TD ALIGN=center>&nbsp;noon&nbsp;</TD>
+
+"<TD>&nbsp;</TD>
+count hour 1 11
+   "<TD ALIGN=center>$(hour)</TD>
+end
+"<TD ALIGN=center>&nbsp;midnight&nbsp;</TD>
+"<TD>&nbsp;</TD>
+
+set chk $site_data (0 - en_hours-$(iface))
+"<TR VALIGN=top>
+count hour 1 12
+   "<TD><INPUT TYPE=checkbox NAME=hd VALUE="$(hour)"  %chk($(hour))></TD>
+end
+"<TD>&nbsp;</TD>
+for hour in 13 14 15 16 17 18 19 20 21 22 23 0
+   "<TD><INPUT TYPE=checkbox NAME=hd VALUE="$(hour)"  %chk($(hour))></TD>
+end
+"<TD>&nbsp;</TD>
+"</TABLE>
+
+"<p/>
+"<b>Notification Text</b><br>
+"You may edit the text and subject of the email notification
+"as needed to fit the purposes of your site.
+
+set ntext $site_data (0 - en_notetext_$(iface))
+if $empty($(ntext))
+   set ntext Dear %name():$newline()$newline()\
+             There is new activity in your conferences at$newline()\
+             $(http)://$host()/~$caucus_id()/caucus.html?location=/@$(iface)
+end
+
+set nsubj $site_data (0 - en_subject_$(iface))
+if $empty ($(nsubj))
+   set nsubj New material on $host()
+end
+"Subject: <input type="text" name="en_subject" size=40
+"                value="$escquote($(nsubj))"><br>
+"<textarea WRAP=virtual NAME="en_text" ROWS=$(rows) COLS=$(cols)
+">$t2esc($(ntext))</textarea>
+
+"<P>
+"<input type="submit" name="submit" value="Make All Changes">
+"</form>
+
+"</BLOCKQUOTE>
+
+"</div>
+"</body>
+"</HTML>

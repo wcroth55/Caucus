@@ -1,0 +1,119 @@
+#
+#---customhf.cml.  Handle conference customize forms.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/07/04 Allow instructors to use this page ("secure.i ins").
+#: CR 10/13/04 Add default sort order.
+#: CR 10/04/05 Move description to this page.
+#: CR 11/28/05 Add coursetools option.
+#: CR 09/23/07 Add 'private' option.
+#----------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+
+set nch $unique()
+
+#---Default list view
+if $not_equal($quote($site_data ($arg(3) - default_list)) \
+              $quote($form(ikey) $form(idata)))
+
+  eval $set_site_data ($arg(3) - default_list $form(ikey) $form(idata))
+
+  # Clear out previous choice at confhome so organizer will see the results of
+  # any change.
+  set last_key
+  set last_data
+end
+
+#---List view columns
+set columns
+count num 1 7
+   if $not_equal($form(column$(num)) empty)
+      set columns $(columns) $form(column$(num))
+   end
+end
+
+set course0 $if ($equal (x$site_data ($(cnum) - confType) xCourse) 1 0)
+set course1 $if (0$form(coursetools) 1 0)
+if $not_equal ($(course0) $(course1))
+   eval $set_site_data ($arg(3) - confType $ifthen($(course1) Course))
+end
+
+eval $set_site_data ($arg(3) - showThumbNails $plus(0 $form(showThumbNails)))
+eval $set_site_data ($arg(3) - showGeoLoc     $plus(0 $form(showGeoLoc)))
+
+set query UPDATE confs SET private=$plus(0 $form(private)) WHERE cnum=$arg(3)
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+if $not_equal($quote($site_data ($arg(3) - columns)) $quote($(columns)))
+  eval $set_site_data ($arg(3) - columns $(columns))
+end
+
+#---Default sort order.
+if $not_equal($site_data($arg(3) - isort) $form(isort))
+   eval $set_site_data($arg(3) - isort $form(isort))
+   set   last_sort
+   set   last_conf
+end
+
+#---Save description
+if $not_equal($quote($site_data($arg(3) - description)) \
+              $quote($form(description)))
+   eval $set_site_data ($arg(3) - description $form(description))
+end
+
+#---Home page name
+eval $set_site_data ($arg(3) - home_page + $form(home_page))
+
+#---Variant home page info
+eval $set_site_data ($arg(3) - defhome $form(defhome))
+for vnum vname vpage in $(confhome)
+   for bnum bname bpage in $(confhome)
+      if $not_equal ($(vnum) $(bnum))
+         eval $set_site_data ($arg(3) - defhome$(vnum).$(bnum) \
+                               $form(defhome$(vnum).$(bnum)))
+      end
+   end
+end
+
+
+#---Upload goes to its own special page.
+#   (Save the text and type, if the user had started one, because
+#   upload is going to add to the text.)
+
+if $not_empty ($form(upload_greet.x))
+   set tx_resp $form(tx_greet)
+   set tp_resp $form(tp_greet)
+   "%location($(mainurl)/upload.cml?$(nch)+$arg(2)+\
+              $arg(3)+$arg(4)+$arg(5)+x+$arg(7)+$arg(8)+greeting)
+   return
+end
+
+
+#---Shrink or Expand...
+set tp $form(tp_intro)
+if $not_empty ($form(shrink.x)$form(expand.x))
+   include $(main)/boxsizef.i greet #greet 0
+   return
+end
+
+#---Now we're really changing them...
+
+eval $set_site_data    ($arg(3) - greet1   $form(tx_greet))
+eval $set_site_data    ($arg(3) - greet_tp $form(tp_greet))
+
+
+
+
+set caller $page_caller (1 $arg(2))
+"Location: $(mainurl)/$page_return ($(caller) # custom.cml?$(nch)+0+x+x+x+x+x+x)
+"
+#------------------------------------------------------

@@ -1,0 +1,293 @@
+#
+#---CUSTOM_USERS.CML.   Organizer customizing conference user settings
+#
+#  arg(4)   normally x;
+#           may be number of userlist "fields" (textarea boxes)
+#           when self-called to expand the # of boxes.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  5/13/03 Add 'markseen' option.
+#: CR 10/13/04 Add bozofilter.
+#: CR 02/16/05 Add showdeleted.
+#: CR 04/13/05 C5 code merge.
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 07/12/08 Add 'who has seen' control.
+#-------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_users.cml
+end
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 custom_users.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Customize $(cname) : Capabilities)
+
+include $(main)/head.i $arg(3)  $quote(Customize $(cname) : Capabilities)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i  customu </A><A HREF="custom.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+   $(cname)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Capabilities
+
+"<blockquote>
+
+
+"<form METHOD=POST ACTION="customuf.cml?$(nch)+$arg(2)+$arg(3)">
+
+"<P/>
+"<A NAME="capable"><span class="bigger"><B>Member Capabilities</B></span></A>
+"<TABLE border="0">
+
+#---Can users ADD items to the conference?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME=add 
+"   $if (0$site_data($arg(3) - co_add) CHECKED)></TD>
+"<TD> Allow users to add new discussion items?</TD>
+
+if $word (1 $(siteBozoFilter) 1)
+   "<tr>
+   "<td>
+   "<INPUT TYPE=checkbox NAME=confBozoFilter
+   "       $if ($not_equal (x$site_data($arg(3) - confBozoFilter) x0) CHECKED)>
+   "</TD>
+   "<td>Allow users to filter out (not read) responses by other users?</td>
+end
+
+#---Copying in/into this conference?
+"<tr>
+"<TD>
+set allowcopy $word (1 $site_data($arg(3) - allowcopy) $(allow_copy))
+"<INPUT TYPE=checkbox NAME=allowcopy $if ($(allowcopy) CHECKED)>
+"</TD>
+"<TD>Allow copying responses in (and into) this conference?</TD>
+
+
+#---Allow Item creators to Freeze/delete/rename item?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME=icreator
+"       $if ($not_equal (x$site_data($arg(3) - icreator) x0) CHECKED)></TD>
+"<TD> Allow item creator to Freeze, Delete, and <NOBR>Rename Item?</NOBR></TD>
+
+#---Allow anonymous responses?
+"<tr>
+"<TD>
+set allowanon $word (1 $site_data($arg(3) - allowanon) 0)
+"<INPUT TYPE=checkbox NAME=allowanon $if ($(allowanon) CHECKED)>
+"</TD>
+"<TD>Allow selected items to have anonymous responses?</TD>
+
+
+if $or ($(e_notify) 0$site_data ($arg(3) - en_on))
+   "<tr>
+   "<TD><INPUT TYPE=checkbox NAME=i_notify
+   "     $if (0$site_data ($arg(3) - i_notify) CHECKED) VALUE="1"></TD>
+   "<TD>Allow members to set their own e-mail notification schedules?</TD>
+end
+
+#---Allow organizers to create quizzes?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME="addQuiz"
+"   $if (0$site_data($arg(3) - addQuiz) CHECKED)></TD>
+"<TD> Allow organizers to create quizzes?</TD>
+
+#---Allow organizers to create surveys?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME="addSurvey"
+"   $if (0$site_data($arg(3) - addSurvey) CHECKED)></TD>
+"<TD> Allow organizers to create surveys?</TD>
+
+#---Allow anyone to create wiki items?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME="addWiki"
+"   $if (0$site_data($arg(3) - addWiki) CHECKED)></TD>
+"<TD> Allow users to create Wiki items?</TD>
+
+#---Allow anyone to create free blogs?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME="addFreeBlog"
+"   $if (0$site_data($arg(3) - addFreeBlog) CHECKED)></TD>
+"<TD> Allow users to create unmoderated ("free") blog items?</TD>
+
+#---Allow anyone to create moderated blogs?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME="addModBlog"
+"   $if (0$site_data($arg(3) - addModBlog) CHECKED)></TD>
+"<TD> Allow users to create moderated blog items?</TD>
+
+set blogTargetDir $site_data($arg(3) - blogTargetDir)
+set blogBaseUrl   $site_data($arg(3) - blogBaseUrl)
+if $empty($(blogTargetDir))
+   set blogTargetDir $caucus_path()/public_html/blogs/$lower($cl_name($arg(3)))
+   eval $set_site_data ($arg(3) - blogTargetDir $(blogTargetDir))
+end
+if $empty($(blogBaseUrl))
+   set blogBaseUrl   $(http)://$host()/~$caucus_id()/blogs/$lower($cl_name($arg(3)))
+   eval $set_site_data ($arg(3) - blogBaseUrl $(blogBaseUrl))
+end
+
+"<TR VALIGN=top>
+"<td></td>
+"<td>
+"   <table cellspacing=0 cellpadding=0>
+"   <tr>
+"   <td>Blog target directory:&nbsp;</td>
+"   <td><input type="text" name="blogTargetDir" size="40" value="$(blogTargetDir)"></td>
+"   <tr>
+"   <td>Blog base URL:</td>
+"   <td><input type="text" name="blogBaseUrl"   size="40" value="$(blogBaseUrl)"></td>
+"   </table>
+"</td>
+
+
+#---Allow CML text in items?
+"<TR VALIGN=top><TD>
+"<INPUT TYPE=checkbox NAME=allowcml
+"       $if ($not_equal (x$site_data($arg(3) - allowcml) x0) CHECKED)>
+"</TD>
+"<TD>Allow CML text in items?</TD>
+
+#---Mark all items 'seen' to new members?
+"<tr>
+"<TD><INPUT TYPE=checkbox NAME="markseen"
+"       $if (0$site_data ($arg(3) - markseen) CHECKED) VALUE="1"></TD>
+"<TD> Mark all items 'seen' for new members?</TD>
+
+#---whohasseen
+if $not (0$site_data (0 - if_$(iface)_hide_whoseen))
+   "<tr>
+   "<TD><INPUT TYPE="checkbox" NAME="enableWhoHasSeen"
+   "     $if ($word (1 $site_data ($arg(3) - enableWhoHasSeen) 1) CHECKED) 
+   "     VALUE="1"></TD>
+   "<td>Show 'who has seen this item' at the end of each item?</td>
+end
+else
+   "<input type="hidden" name="enableWhoHasSeen"
+   "      value="$site_data ($arg(3) - enableWhoHasSeen)">
+end
+
+#---Can users CHANGE their own responses?
+if $(editable)
+   "<TR VALIGN=top>
+   "<TD></TD><TD COLSPAN=3> Allow users to edit their own responses?&nbsp;
+   "<SELECT NAME=changetime>
+   set co_change $site_data ($arg(3) - co_change)
+   "<OPTION $if ($not($(co_change)) SELECTED) VALUE=0>Never</OPTION>
+  
+    set times $replace (32 _ $(edit_times))
+    set times $replace (09 _ $(times))
+    set times $replace (| 32 $(times))
+    set times $replace (= 32 $(times))
+    for seconds tag in $(times)
+       set seconds $replace (_ 32 $(seconds))
+       set tag     $replace (_ 32 $(tag))
+       "<OPTION $if ($equal ($site_data($arg(3) - changelimit) $(seconds)) SELECTED)
+          "  VALUE="$(seconds)">$(tag)</OPTION>
+    end
+
+   "<OPTION $if ($empty ($site_data($arg(3) - changelimit)) SELECTED)
+   "VALUE="">Always</OPTION></SELECT>
+   "</TD>
+end
+
+"<TR VALIGN=top>
+set breakouts  $word (1 $site_data ($arg(3) - breakouts) 1)
+"<td></td>
+"<td>Allow breakout items? &nbsp;&nbsp;&nbsp;&nbsp;
+"<input type="radio" name="breakouts" value="1" 
+         "      $ifthen ($equal($(breakouts) 1) checked) > All users&nbsp;&nbsp;
+"<input type="radio" name="breakouts" value="S"
+         "      $ifthen ($equal($(breakouts) S) checked) > Organizers&nbsp;&nbsp;
+"<input type="radio" name="breakouts" value="0"
+         "      $ifthen ($equal($(breakouts) 0) checked) > No&nbsp;&nbsp;
+"</td>
+
+
+#"<tr valign=top><td>
+#"<input type=checkbox name=showdeleted value="1"
+#"       $if (0$site_data ($arg(3) - showdeleted) CHECKED)>
+#"</td>
+#"<td>Show (allow editing) of deleted responses to organizers?</td>
+
+
+"</TABLE>
+"<INPUT TYPE="submit" VALUE="Make All Changes">
+
+#----------------------------------------------------------------
+#--- Modify primary organizer (only visible to current primary org)
+if $equal($co_org($(cnum)) $userid())
+   "<HR><P>
+   "<A NAME="primary"><span class="bigger"><B>Primary Organizer:</B></span></A>
+   "<P>The primary organizer
+   "is the person primarily
+   "responsible for this conference, and the person whose name appears on the
+   "conference home page.&nbsp;
+#  "The primary organizer has organizer privileges even
+#  "if they aren't listed in the organizer list above.
+
+   "<P>
+   "The primary organizer of this conference is:
+   "<INPUT TYPE=TEXT SIZE=14 NAME=primary VALUE=$co_org($(cnum))><P>
+end
+
+#---------------------------------------------------------------------
+#---Which tags are allowed and how?
+"<HR>
+"&nbsp;<br>
+"<span class="bigger"><B>Prohibited Tags:</B></span>
+"<P>Use this table to restrict
+"the use of certain HTML tags in item and response text.&nbsp;
+"If you wish to restrict a tag that does not appear on this list, contact your
+"Caucus manager.
+"<P>
+"<TABLE CELLPADDING=0 CELLSPACING=0>
+
+
+include $(main)/calculateProhibitedTagLists.i $arg(3)
+
+"<TR VALIGN=bottom><TD ALIGN=CENTER><B> Tag </B></TD>
+"<TD ALIGN=CENTER><B> Allowed<BR>for Members </B>&nbsp;</TD>
+"<TD ALIGN=CENTER><B> Allowed<BR> &nbsp;for Organizers &nbsp;</B></TD>
+"<TD ALIGN=CENTER><B> Hide<BR> contents </B></TD>
+set count 0
+for tag in $(usr_taglist)
+   set count $plus($(count) 1)
+   "<TR>
+   set elements $replace(, 32 $(tag))
+   "<TD ALIGN=CENTER>&lt;$word(1 $(elements))&gt;
+   "<INPUT TYPE=HIDDEN NAME=tag$(count) VALUE=$word(1 $(elements))></TD>
+   "<TD ALIGN=CENTER><INPUT TYPE=checkbox NAME=tag$(count)_users
+   "    $if($equal(allow $word(2 $(elements))) CHECKED)></TD>
+   "<TD ALIGN=CENTER><INPUT TYPE=checkbox NAME=tag$(count)_orgs
+   "    $if($equal(allow $word(2 $replace(, 32 $word($(count) $(org_taglist))))) CHECKED)></TD>
+   "<TD ALIGN=CENTER><INPUT TYPE=checkbox NAME=tag$(count)_all
+   "    $if($equal(all $word(3 $(elements))) CHECKED)></TD>
+end
+"</TABLE>
+"<INPUT TYPE=HIDDEN NAME=tagcount VALUE=$(count)>
+
+
+
+
+"<P/>
+"<INPUT TYPE="submit" VALUE="Make All Changes">
+"</FORM>
+
+"</blockquote>
+
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,56 @@
+#
+#---H_MAN_LIST.I    Help about "Manage the List of Managers" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_list.cml $quote(Help on Manage the List \
+         of Managers)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Manager List page allows authorized managers to add additional managers
+"and define what they can do.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Manage the List of Managers</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"Manager userids are displayed in the leftmost column, with an empty textfield
+"in which you can type the name of a new manager. Next to each name is a row of
+"checkboxes for granting specific privileges. The privileges are mostly 
+"equivalent to the options on the main Caucus Management page.<P>
+
+"It is almost always best to be conservative when granting management 
+"privileges&#151;only give a person the abilities that they explicitly need.
+"Obviously, the "modify manager list" option is the most powerful, and 
+"should be reserved to a small number of managers.<P>
+
+"<DL>
+"<DT><B>Adding a manager</B>
+"<DD>To create a new manager, type their userid in the empty textfield, check
+"the options to grant them appropriate privileges, and press the <B>Make 
+"changes</B> button. You can only add one manager on each visit to this page.
+"<P>
+
+"<DT><B>Removing a manager</B>
+"<DD>To remove a manager, clear the field containing their userid and press 
+"the <B>Make changes</B> button.  You don't need to clear the checkboxes.<P>
+
+"<DD>The first manager in the list is the primary manager (defined when 
+"Caucus was installed) and cannot be changed from this page. Contact your
+"system administrator to change the primary manager.<P>
+
+"<DT><B>Changing manager privileges</B>
+"<DD>To change a manager's privileges, check and uncheck the appropriate
+"checkboxes and press the <B>Make changes</B> button. The primary manager
+"automatically has all privileges and cannot be modified.
+
+"</DL>
+include $(help)/hb.i

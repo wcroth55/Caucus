@@ -1,0 +1,88 @@
+#
+#---ME1F.CML.   Process form from section 1 of ME.CML.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/27/00 20:56 Add e-mail address check and warning.
+#: CR 03/30/00 13:03 Add textbox field type "_x".
+#: CR 05/07/00 20:42 Add space for urc macro field.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR 01/14/02 15:30 Add intg_ integration calls.
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR 02/28/05 Massive rewrite to use SQL.
+#: CR 02/20/06 Create thumbnail from uploaded picture.
+#: CR 03/03/06 Allow deleting ones' image.
+#: CR 10/15/07 Skip 'userid' field, it already has to exist.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i me.cml
+end
+
+include $(main)/secure.i open
+
+set nch    $unique()
+
+set query SELECT uc.name, uc.type, ui.required \
+            FROM user_columns uc, user_iface ui \
+           WHERE uc.name = ui.name AND iface='$(iface)' \
+             AND uc.name != 'userid'  AND  ui.on_self > 0
+set h $sql_query_open ($(query))
+
+set regerrs
+while $sql_query_row ($(h))
+   if $and ($(required) $empty($form($(name))))
+      if $empty ($(regerrs))
+         set regerrs <p/>Some required fields (marked with a \
+               <font color=red><b>*</b></font>) are empty.
+      end
+   end
+
+   if $equal ($(type) upload)
+      if $not_empty ($form(name.$(name)))
+         set fname $replace (/ 32 $form(name.$(name)))
+         set fname $word ($sizeof($(fname)) $(fname))
+         include $(main)/virus_checker.i $form($(name)) $(fname) virus_file
+         if $empty ($(virus_file))
+            set url   $copy2lib ($form($(name)) PICTURES/$userid()/$(fname))
+            eval  $set_user_info ($userid() $(name) $userid()/$(fname))
+            include $(main)/methumb.i $userid() $(fname)
+         end
+      end
+      if 0$form(delete-$(name))
+         eval $set_user_info ($userid() $(name))
+         eval $set_user_data ($userid() thumbNailSize)
+      end
+   end
+   else
+      eval $set_user_info ($userid() $(name) $form($(name)))
+   end
+end
+
+#------------------------------------------------------------
+
+#if $not_empty ($form(name.upload))
+#   set fname $replace (/ 32 $form(name.upload))
+#   set fname $word ($sizeof($(fname)) $(fname))
+#   #--- Delete any old pictures they may have uploaded.
+#   set pictures $dirlist(0 $caucus_path()/public_html/LIB/PICTURES/$userid())
+#   if $not_empty($(pictures))
+#     for fdex in $(pictures)
+#        eval $delfile($caucus_path()/public_html/LIB/PICTURES/$userid()/$(fdex))
+#     end
+#   end
+#   set url      $copy2lib ($form(upload) PICTURES/$userid()/$(fname))
+#   eval  $set_user_var ($userid() picture $(url))
+#end
+
+if $not_empty ($(regerrs))
+  "%location(me.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                    $arg(7)+$arg(8)+$arg(9))
+end
+else
+   include $(main)/intg_change.i   $userid()  $(encpass)
+   "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+end
+#-------------------------------------------------------------------------

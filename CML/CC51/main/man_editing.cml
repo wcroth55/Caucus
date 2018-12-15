@@ -1,0 +1,96 @@
+#
+#---man_editing.cml.   Actual editing of a single CML file.
+#
+#   arg(4) directory (main, main.1, etc.)
+#   arg(5) filename
+#   arg(6) base subdir name  (e.g. "main", "help"...)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/09/03 New file.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage systemEditCML
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_shut.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Edit CML File: $arg(5) )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Edit CML File: $arg(5))
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_shut  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    Edit CML File: $arg(5)</A>
+
+set fd $open ($caucus_path()/CML/$(iface)/$arg(4)/$arg(5) r)
+
+"<form method="post" name="editing"
+" action="$(mainurl)/man_editingf.cml?$(nch)+$arg(2)+x+$arg(4)+$arg(5)+$arg(6)">
+"<table cellspacing=2 cellpadding=0 border=0>
+"<tr><td colspan=3><b>Editing: $arg(4)/$arg(5)</b></td>
+
+"<tr><td colspan=3><textarea name="filetext" wrap=off cols=80 rows=25>
+   while $readln ($(fd) line)
+      "$t2esc($(line))
+   end
+"</textarea></td>
+
+eval $close ($(fd))
+
+"<tr>
+"<td><input type="submit" name="submit" value="Cancel"></td>
+   set override $str_sub ($minus ($strlen($arg(4)) 1) 1 $arg(4))
+   set savevalue Save in $arg(6).1
+   set savename  savein$arg(6).1
+   if $numeric ($(override))
+      set savevalue Save in $arg(4)
+      set savename  savein$arg(4)
+   end
+"<td><table cellspacing=0 cellpadding=0 border=0>
+    "<tr>
+    "<td><input type="submit" name="submit" value="$(savevalue)"></td>
+    "<td>&nbsp;as&nbsp;</td>
+#   "<td><input type="text"   name="savein$arg(4)" value="$arg(5)"></td>
+    "<td><input type="text"   name="$(savename)" value="$arg(5)"></td>
+    "</table>
+"</td>
+
+if $numeric ($(override))
+   set savevalue Save in $arg(6).$plus($(override) 1)
+   "<tr><td></td>
+   "<td><table cellspacing=0 cellpadding=0 border=0>
+        "<tr>
+        "<td><input type="submit" name="submit" value="$(savevalue)"></td>
+        "<td>&nbsp;as&nbsp;</td>
+        "<td><input type="text"   name="savein$word (3 $(savevalue))" 
+        "          value="$arg(5)"></td>
+        "</table>
+   "</td>
+end
+
+   
+
+"</table>
+
+"</form>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,235 @@
+#
+#---UPLOADF.CML    Process result of upload.cml, and go on to viewitem.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/15/00 10:30 Add handling for "no blued" URL option.
+#: CR 04/20/00 00:03 Add "IFrame" option.
+#: CR 03/12/02 10:30 fix &^%$! IE location #textbox bug
+#: CR 08/08/03 call uploadcheck after each copy2lib().
+#: CR 10/13/04 Virus check each upload.
+#------------------------------------------------------------------
+
+#---Remember to DELETE the zip temporary directory once we're done!!
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i open
+ 
+set nch  $unique()
+
+
+##---For sanity's sake, we put all uploaded files into a three-level
+##   directory structure underneath the Caucus library.  The  first
+##   level is the originating conference name; the second level is
+##   the originating userid; the third level is a combination of
+##   the item and response number where the uploaded file is "going".
+##   (For areas outside of an item, assume item 0.)
+##
+##   LIBNAME is the string "confname/userid/rdir/filename".
+#set rdir   00000000
+#set isresp 0
+#if $not_equal ($arg(4) x)
+#   set isresp 1
+#   set rdir $str_sub(0 $minus(4 $strlen($arg(4))) 000)$arg(4)\
+#            $str_sub(0 $minus(4 $strlen($arg(5))) 000)$arg(5)
+#   if $or ($equal ($arg(5) -1) $equal ($arg(4) -1))
+#      set rdir P$word(2 $replace (/ 32 $pid()))
+#   end
+#end
+#set libdir  %lowname($arg(3))/$userid()/$(rdir)
+#set libname $(libdir)/$form(name.upload)
+#------------------------------------------------------------------
+set rdir   0
+set isresp 0
+set libdir  ITEMS/$(rdir)/0
+set libname $(libdir)/$form(name.upload)
+#------------------------------------------------------------------
+
+
+
+#---Put the file (or a reference to it) in the user's response text,
+#   according to the "type" of file they selected.
+
+set ul_file $form(upload)
+set ul_type $form(utype)
+
+#---Check for binary files uploaded as text
+
+if $and ($or ($equal ($form(utype) text) $equal ($form(utype) html)) \
+         $not($file_data ($(ul_file) 100 9-26 32-126)))
+
+   eval $delfile($(ul_file))
+
+   "%location($(mainurl)/uptext.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                    $arg(6)+$arg(7)+$arg(8))"
+   quit
+end
+
+
+if   $equal ($form(utype) text)
+   set tx_resp $(tx_resp)$newline()$readfile($form(upload))
+end
+
+elif $equal ($form(utype) html)
+   set tx_resp $(tx_resp)$newline()$readfile($form(upload))
+   set tp_resp html
+end
+
+elif $equal ($form(utype) url)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      if $equal ($(tp_resp) html)
+         set tx_resp $(tx_resp)$newline()\
+                     \%liblink2($userid() $(isresp) $(fname))$newline()
+      end
+      else
+         set tx_resp $(tx_resp) \%liblink2($userid() $(isresp) $(fname))
+      end
+   end
+end
+
+elif $equal ($form(utype) noblue)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set tx_resp $(tx_resp) \%liburl2($userid() $(isresp) $(fname))
+   end
+end
+
+elif $equal ($form(utype) link)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set linkname $form(linkname)
+      if $empty($(linkname))
+         set linkname $(fname)
+      end
+      set tx_resp $(tx_resp) \
+                  \%libname2($userid() $(isresp) $(fname) $(linkname))
+   end
+end
+
+elif $equal ($form(utype) img)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set tx_resp $(tx_resp) \%libimg2($userid() $(isresp) $(fname))
+   end
+end
+
+elif $equal ($form(utype) imgr)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set tx_resp $(tx_resp) \%libimg2r($userid() $(isresp) $(fname))
+   end
+end
+   
+elif $equal ($form(utype) iframe)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($form(upload) $(libname))
+      include   $(main)/uploadcheck.i $(libdir) $form(name.upload)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set tx_resp $(tx_resp) \%iframe(\%liburl2($userid() $(isresp) $(fname)) 0 \
+                  $(default_iframe_width) $(default_iframe_height))
+   end
+end
+
+elif $equal ($form(utype) zip)
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+
+      #---Set several things that depend on OS: type of SLASH, unzipper
+      #   program, 'proper' form of uploaded file name.
+      set slash   /
+      set unzip   $caucus_path()/BIN2/unzip
+      set zipfile $form(upload)
+      if $equal ($word (1 $opsys()) nt)
+         set slash   $char(92)
+         set unzip   $caucus_path()\BIN2\unzip95.exe
+         set zipfile $replace (47 92 $(zipfile))
+      end
+   
+      #---Pluck out the base directory BBASE where the temporary (uploaded zip)
+      #   file was put.
+      set slast $str_revdex (  $(slash) $(zipfile))
+      set bbase $str_sub    (0 $(slast) $(zipfile))
+         
+      #---Create a subdir under BBASE; we'll unzip the uploaded file there.
+      set  subdir $(bbase)$(slash)$userid()$plusmod ($time() 0 10000)
+      eval $xshell (1 1 1 mkdir $(subdir))
+     
+      #---Unzip the archive into a temporary directory; save the output
+      #   (list of file pathnames unzipped).
+      set zipout $xshell(1 1 1 $(unzip) -o $(zipfile) -d $(subdir) )
+   
+      set filelist
+      set pathstart $plus($strlen($(subdir)) 1)
+      set lines $replace($newline() 32 $replace(32 01 $(zipout)))
+   
+      set zipout
+      for line in $(lines)
+         set theline $replace(01 32 $(line))
+   
+         #--- files unzipped are preceded by "inflating:", "extracting:", etc.
+         if $greater ($str_index (ing: $word (1 $(theline))) 0)
+            set zipout $(zipout); $(theline)
+            set fname    $str_sub ($(pathstart) 1000 $word (2 $(theline)))
+            set libname  %lowname($arg(3))/$userid()/$(rdir)/$(fname)
+            set url      $copy2lib ($(subdir)/$(fname) $(libname) )
+            include $(main)/uploadcheck.i $(libdir) $form(name.upload)
+            eval         $delfile  ($(subdir)/$(fname))
+            set filelist $(filelist) $(fname)
+         end
+      end
+      eval $deldir ($(subdir))
+   
+      "%location($(mainurl)/upzip.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                       $arg(6)+$arg(7)+$arg(8))"
+      quit
+   end
+end
+
+#---To return to the "calling" page, we need to disassemble the
+#   URL, and add the tx_resp and tp_resp args onto the end, and
+#   aim it at the "textbox" anchor.
+set saved $page_get ($arg(2))
+
+#---(Handle degenerate case)
+if $empty ($(saved))
+   set saved center.cml 0+x+x+x+x+x+x
+end
+
+#---Use "+textbox" to force *&^%! stupid IE to scroll to textbox area.
+set base $word (1 $(saved))?$(nch)+$word(2 $(saved))
+"%location($(mainurl)/$(base)+tx_resp+$(tp_resp)+ti_resp+textbox#textbox)
+#-----------------------------------------------------------------------

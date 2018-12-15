@@ -1,0 +1,53 @@
+#
+#---H_MAN_DATE.I    Help about "Manage Users by Date" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_date.cml $quote(Help on Manage Users by Date)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Manage Users by Date page allows authorized managers to obtain a list of
+"users who have not logged into Caucus since a particular date, and optionally
+"delete them from the system.<P>
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Manage Users by Date</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"It's often useful to be able to clear out idle accounts.&nbsp;  This option
+"provides an easy mechanism for doing that.<P>
+
+"<DL><DT><B>Generating the list:</B>
+"<DD>At the first screen, use the pull-down menus to select a cut-off 
+"date.&nbsp;
+"All users who have not logged in <I>since</I> that date will be listed for
+"you on a subsequent page.&nbsp;  
+"If you have large user population, you may wish
+"to limit the number of users you see at once by entering a number in the
+"text field on the next line.&nbsp;  The default display is 200 users.<P>
+
+"Once you have picked a date, press the <B>Go!</B> button to generate
+"the list.<P>
+
+"<DT><B>Deleting users:</B>
+"<DD>Once the list is generated, you'll see a
+"list of real names, userids, and the date of their last login.&nbsp;  Next to
+"each name is a checkbox.<P>
+
+"To delete some of the listed users, check the checkboxes next to those
+"you wish to delete and press the <B>Delete Checked Users</B> button.&nbsp;
+"(To delete all of the listed users, click on "check all N boxes".)&nbsp;
+"Then click on the "Delete (all checked users)" box.
+
+"<P>If you don't wish to delete any users, you can use the Compass Bar to 
+"return to another location.
+"</DL>
+include $(help)/hb.i

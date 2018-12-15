@@ -1,0 +1,92 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>quizproblems&nbsp;&nbsp;&nbsp;</span>Each problem has a unique key (pkey); each row represents a single problem.  
+<p/><b>Categories: </b>
+<a href='_Quizzes.html'>Quizzes</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>pkey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>owner</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> userid of original creator  <br></td>
+<tr valign=top class='row0'>
+<td>category</td>
+<td>varchar(120) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> General category of problem (arbitrary text)  <br></td>
+<tr valign=top class='row1'>
+<td>title</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Name or short description of problem.  <br></td>
+<tr valign=top class='row0'>
+<td>text</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> Actual text of problem. May include uploaded files, as per Caucus response (text contains macros which link to files)  <br></td>
+<tr valign=top class='row1'>
+<td>texttype</td>
+<td>varchar(20) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> type of answer, drives type of form element needed to input answer: choose 1 (radio), choose N (checkboxes), menu (pulldown), number, short text, long text  <br></td>
+<tr valign=top class='row0'>
+<td>totalpoints</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>deleted</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>floating</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td>  0=>tabular layout (columns); 1=>"floating" (flowing)   <br></td>
+<tr valign=top class='row1'>
+<td>reference</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+</table>
+</body>
+</html>

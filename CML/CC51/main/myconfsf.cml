@@ -1,0 +1,57 @@
+#
+#---myconfsf.cml.  Evaluate form from personal conference list page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i myconfs.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+set oldlist $(confexist)
+
+  #---If "delete" was checked, set newlist to the list of non-selected
+  #   conferences in "Your personal list of conferences" area.
+  set newlist $(oldlist)
+  if $not_empty ($form(delete))
+    set newlist
+    for thisconf in $(oldlist)
+      if $not($tablefind($(thisconf) $form(myconfs)))
+         set newlist $(newlist) $(thisconf)
+      end
+    end
+  end
+
+# "Remaining confs = '$(newlist)'<BR>
+
+
+  #---If "add" was checked, 
+  if $not_empty($form(add))
+    #---If we haven't deleted, selection point in old 
+    #   list is insertion point for new confs
+    set newliststart newlist
+    set newlistend
+    if $not(0$form(delete))
+      set insertpoint  $tablefind($word(1 $form(myconfs)) $(newlist))
+      set newliststart $words(1 $(insertpoint) $(newlist))
+      set newlistend   $words($plus($(insertpoint) 1) -1 $(newlist))
+    end
+    set newlist $(newliststart) $form(addconfs) $form(typeconf) $(newlistend)
+  end
+
+# "After more confs were added: '$(newlist)'<BR>
+
+  eval $set_user_data ($userid() my_confs $(newlist))
+
+  include $(main)/sortconfs.i
+
+
+"Location: $(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x)
+"
+#-------------------------------------------------------------------------

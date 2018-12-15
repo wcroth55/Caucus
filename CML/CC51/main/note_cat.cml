@@ -1,0 +1,57 @@
+#
+#---NOTE_CAT.CML.   Modify a notebook entry category
+#
+# The category number comes in through $arg(6)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i note_cat.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 note_cat.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Edit a Notebook Category)
+
+include $(main)/head.i $arg(3)  $quote(Edit a Notebook Category)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  note_cat  Edit a Notebook Category
+
+set cat $word($minus($mult($arg(6) 2) 1) $user_data($userid() mark_categories))
+set center $word($mult($arg(6) 2) $user_data($userid() mark_categories))
+
+"Use this page to modify the notebook category you selected.<P>
+
+"<FORM METHOD=POST ACTION="note_catf.cml?$(nch)+$arg(2)+\
+              $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"This category is called: 
+"<INPUT NAME="name" TYPE=TEXT SIZE=75 VALUE="$replace(_ 32 $(cat))"><P>
+
+set entries $divide($sizeof($user_data($userid() mark_$(cat))) 5)
+"It contains $(entries) $if($equal($(entries) 1) entry. entries.)<P>
+
+"<INPUT NAME="center" TYPE=CHECKBOX $if($(center) CHECKED)> Show this category and its contents in the $(center_name).<P>
+
+"<INPUT TYPE=SUBMIT NAME="change" VALUE="Change this category"> or
+"<INPUT TYPE=SUBMIT NAME="delete" VALUE="Delete this entire category"> or
+"<INPUT TYPE=SUBMIT NAME="cancel" VALUE="No changes"> 
+
+"</FORM>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------------------

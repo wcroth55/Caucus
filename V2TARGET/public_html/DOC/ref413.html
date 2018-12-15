@@ -1,0 +1,378 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.13: Items and Responses</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.13:&nbsp; Items and Responses</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref412.html">PREV</A>]
+   [<A HREF="ref414.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<p/>
+In Caucus 5.1, one "gets" most item and response information 
+via direct SQL queries.&nbsp;
+"Setting", creating, or changing items or responses is, 
+on the other hand, usually done
+through CML "service" functions, since the required data changes
+may cover many tables.
+
+<p/>
+Conferences are referred to by their key number, typically called
+"cnum".&nbsp;
+Items, on the other hand, are referred to by <b>either</b>
+their unique key number (typically "id"),
+<b>or</b> their label, aka item number, depending on context.&nbsp;
+An item number is a "dotted" concatentation of (up to) 6 levels.&nbsp;
+For example:
+<ul>
+<li>5 is item 5.
+<li>2.1 is the first "breakout" item (thread) under top level item 2.
+<li>1.1.3.1 is the first breakout under the 3rd breakout under the 
+   first breakout under top level item 1.
+</ul>
+Each "breakout" or "thread" is its own standalone item, with a linear
+thread of responses attached to it, in sequential order.&nbsp;
+But new breakout items or threads may split off from any response,
+and get their own new item number.&nbsp;
+
+<p/>
+Internally (in the item-related database tables), each item has its
+own unique key, called item_id.&nbsp;
+This key never changes.&nbsp;
+Item numbers (labels) may change, i.e. it is possible to renumber
+an item, move it up and down in the breakout hierarchy, or even "share"
+the same item in multiple conferences.
+
+<p/>
+Responses have a two-part key: the item_id (for the item the response
+"belongs to"), and the response number (rnum).&nbsp;
+The response number is also used as the label,
+which tells you where the response
+appears within an item.&nbsp;
+Response numbers (and keys) never change.
+
+<p/>
+The rest of this document describes the item and response CML service
+functions.
+
+<dl>
+
+<p/>
+<dt><a name="item_add"
+   >$item_add (cnum iparent rparent userid title...)</a>
+<dd>Creates a new item in conference <i>cnum</i>.&nbsp;
+If <i>iparent</i> is zero, the new item is assigned the next top-level item
+number in that conference.&nbsp;
+Otherwise, the new item becomes the next breakout item under
+item id <i>iparent</i>, and is attached to response number 
+<i>rparent</i>.
+<p/>
+The item's author is set to <i>userid</i>, 
+and is given title <i>title</i>.&nbsp;
+Note that this creates an empty item, with a title but no text.&nbsp;
+Use $resp_add() to add the text of response 0, i.e. the item text proper.
+<p/>
+Evaluates to the new item's id, or to a negative error code
+if the item could not be created.
+
+<p/>
+<dt><a name="item_del">$item_del (cnum item_id)</a>
+<dd>Delete item <i>item_id</i> in conference <i>cnum</i>.&nbsp;
+This <b>permanently</b> deletes the item and <b>all</b> of its responses,
+and <b>all</b> of its subitems(!).&nbsp;
+Thus deleting item (with label) 1 also deletes items labelled 
+1.1, 1.2, 1.1.1, etc., and all of
+<b>their</b> responses.
+<p/>
+Exception: if an item is shared across multiple conferences, deleting
+it from a conference only removes it from that conference -- it still
+exists in the other conferences.&nbsp;
+When the last conference deletes it, only then will the item
+completely disappear.
+
+
+<p/>
+<dt><a name="item_id">$item_id (cnum inum)</a>
+<dd>Evaluates to the item id (items.id) value of an item in
+conference <i>cnum</i>, with item label <i>inum</i>.
+
+<p/>
+<dt><a name="item_parse">$item_parse (cnum text)</a>
+<dd>Parses <i>text</i> into a triplet-list of conference number,
+item id, and response number.&nbsp;
+<i>Text</i> may be:
+<ul>
+<li>An item label, with an optional ":" followed
+by a response number.&nbsp;
+An item label may use one or more '*' wildcards, e.g.
+5.* is items 5.1, 5.2, etc.&nbsp;
+5.*.2:1 is response 1 to items 5.1.2, 5.2.2, etc.
+<li>A string of words in the title of one or more items.
+</ul>
+<p/>
+If there is an error, it will evaluate to a single negative number.&nbsp;
+If there are no matches, the result will be empty.
+
+<p/>
+<dt><a name="item_label">$item_label (cnum item_id)</a>
+<dd>Evaluates to the item label of an item <i>item_id</i> in
+conference <i>cnum</i>.
+
+<p/>
+<dt><a name="item_lastresp">%item_lastresp (item_id)</a>
+<dd>Evaluates to the number of the last response to <i>item_id</i>.
+<p/>
+<b>Note: this is a macro!</b>  Eventually it should probably
+be (part of) a service function.
+
+<p/>
+<dt><a name="item_tuplet">$item_tuplet (i0 i1 i2 i3 i4 i5)</a>
+<dd>In the database, the item level (breakout) numbers are actually represented
+as 6 integer fields, item0 through item 5.&nbsp;
+(Which means that 6 levels is as deep as breakouts can go.)&nbsp;
+Occasionally it is necessary to translate from this set of (up to) 6
+integers into the "dotted" item number format.
+<p/>
+So this function evaluates to the dotted form of this list of
+(up to) 6 space-separated integers, e.g. <nobr>"$item_tuplet(1 4 3)"</nobr>
+evaluates to 1.4.3.
+
+<p/>
+<dt><a name="item_set">$item_set (cnum item_id property value)
+<dd>Sets the <i>property</i> of the specified <i>item_id</i> to 
+<i>value</i>, as below:
+<ul>
+<table cellspacing=0 cellpadding=0>
+<tr><td><b>property</b>&nbsp;</td>
+<td><b>value</b></td>
+
+<tr><td>hidden</td>   <td>1 (true), 0 (false)</td>
+<tr><td>retired</td>   <td>1, 0</td>
+<tr><td>frozen</td>   <td>1, 0</td>
+<tr><td>userid</td>   <td>new owner userid</td>
+</table>
+</ul>
+
+<p/>
+<dt><a name="item_set_seen">$item_set_seen (cnum item_id userid respseen)
+<dd>Marks response <i>respseen</i> in conference <i>cnum</i>, 
+item <i>item_id</i>,
+as "seen" by user <i>userid</i>.&nbsp;
+A <i>respseen</i> value of -1 marks the item as completely new,
+a value of -2 marks the item as "forgotten".
+
+<p/>
+<dt><a name="resp_add">$resp_add (cnum item_id userid property 
+          bits reserved text..)</a>
+<dd>Adds a response to <i>cnum</i>, <i>item_id</i>, with author <i>userid</i>,
+text type <i>property</i>, and options <i>bits</i>.&nbsp;
+(See <a href="prop.html">property values</a> for a description
+of the property and bits values.)&nbsp;
+<i>Reserved</i> is reserved for future expansion; for now, set it to 0.&nbsp;
+And <i>text</i> is the actual text of the new response.
+<p/>
+Evaluates to the new response number in the item.
+
+<p/>
+<dt><a name="resp_set">$resp_set (item_id rnum field value)</a>
+<dd>Sets (changes) the <i>value</i> of some <i>field</i> for 
+response <i>item_id</i>, <i>rnum</i>.&nbsp;
+The field/value pairs are:
+<ul>
+<table cellpadding=0 cellspacing=0>
+<tr><td><b>Field</b>&nbsp;&nbsp;</td>
+<td><b>Value</b></td>
+
+<tr valign=top><td>time&nbsp;</td>
+<td>Date/time stamp of response, as "YYYY-MM-DD HH:MM:SS".</td>
+
+<tr valign=top><td>userid&nbsp;</td>
+<td>Userid of owner of response.</td>
+
+<tr valign=top><td>text&nbsp;</td>
+<td>Text of response.</td>
+
+<tr valign=top><td>prop&nbsp;</td>
+<td>Text property (type) number</td>
+</table>
+</ul>
+
+<p/>
+<dt><a name="resp_del">$resp_del (cnum item_id rnum)</a>
+<dd>Deletes response <i>cnum</i>, <i>item_id</i>, <i>rnum</i>.
+
+</dl>
+
+<p/>
+&nbsp;<br>
+<hr>
+<b>These are the old, 4.x item-related CML functions.&nbsp;</b>
+They are here for reference, and for conversion tools that map 4.x
+data into 5.1 data.&nbsp;
+Eventually they will disappear all together.
+<p/>
+<DL>
+<P><DT><A NAME="it_member">$it_member(cnum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the current user has a participation
+record in the conference (that which tracks items seen vs new).&nbsp;
+A person may be a member of a conference (in the sense that there
+is a 'grouprules' table rule that grants them access to the conference)
+but not (yet) have a participation record.&nbsp;
+<p/>
+The name is a historical accident due to how membership was handled
+in Caucus 4.
+
+<P><DT><A NAME="it_last">$it_last(cnum)</A>
+<DD>
+Evaluates to the number of the last item in a conference, i.e.,
+the number of items.
+
+<P><DT><A NAME="it_inew">$it_inew(cnum)</A>
+<DD>
+Evaluates to the number of new (and undeleted) items in a conference.
+
+<P><DT><A NAME="it_wnew">$it_wnew(cnum)</A>
+<DD>
+Evaluates to the number of items that have 1 or more new responses.
+
+<P><DT><A NAME="it_iunseen">$it_iunseen(cnum)</A>
+<DD>
+Evaluates to the number of unseen items.
+
+<P><DT><A NAME="it_listrnew">$it_listrnew(cnum)</A>
+<DD>
+Evaluates to a &quot;triplet&quot; list of the new responses
+in a conference.&nbsp;  The response number in a triplet is the first
+new response in the relevant item.
+
+<P><DT><A NAME="it_listiunseen">$it_listiunseen(cnum)</A>
+<DD>
+Evaluates to a &quot;triplet&quot; list of the unseen items in
+a conference.&nbsp;  The response number is always 0.
+
+<P><DT><A NAME="it_exists">$it_exists(cnum inum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the item exists and the 
+user is a member of the conference, and &quot;0&quot;
+otherwise.
+
+<P><DT><A NAME="it_visib">$it_visib(cnum inum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the item is visible to the user,
+i.e. has not been deleted,  not &quot;forgotten&quot;, 
+and not "hidden".&nbsp;  Otherwise &quot;0&quot;.
+
+<P><DT><A NAME="it_new">$it_new(cnum inum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the item is new to this user, i.e.
+it has a higher number than the highest item the user has seen.&nbsp;
+Otherwise &quot;0&quot;.
+
+<P><DT><A NAME="it_unseen">$it_unseen(cnum inum)</A>
+<DD>
+Evalutates to &quot;1&quot; if this item is not new but has not
+been seen by the user.&nbsp;  Otherwise &quot;0&quot;.
+
+<P><DT><A NAME="it_resps">$it_resps(cnum inum)</A>
+<DD>
+Evaluates to the number of responses.&nbsp;  If the item does not exist
+(or was deleted), evaluates to -1.&nbsp;  An item without any responses
+evaluates to &quot;0&quot;.
+
+<P><DT><A NAME="it_lastresp">$it_lastresp(cnum inum)</A>
+<DD>
+Evaluates to the number of the last (undeleted) response
+to the item.&nbsp;  If the item does not exist
+(or was deleted), evaluates to -1.&nbsp;
+
+<P><DT><A NAME="it_newr">$it_newr(cnum inum)</A>
+<DD>
+Evaluates to the number of the first response on this item that
+is <I>new</I> to this user.&nbsp;  If no responses are new, evaluates
+to the number of responses + 1.
+
+<P><DT><A NAME="it_frozen">$it_frozen(cnum inum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the item is frozen, and &quot;0&quot;
+otherwise.
+
+<P><DT><A NAME="it_howmuch">$it_howmuch(cnum inum userid)</A>
+<DD>
+Evaluates to the number of responses seen by user <I>userid</I>
+to item <I>inum</I> in conference <I>cnum</I>.&nbsp;  A value of -1
+means the item is new to that user; -2 means the user has forgotten
+that item.
+
+<P><DT><A NAME="it_parse">$it_parse(cnum text)</A>
+<DD>
+Evaluates to a triplet list of item/response numbers in conference
+<I>cnum</I> that match, in some form, <I>text</I>.&nbsp;  <I>Text</I>
+may contain a variety of forms of listing items, separated by
+commas, including the example shown below.&nbsp;  
+The result is an &quot;or&quot;
+match, i.e. all the items that match all the entries in <I>text</I>.
+
+<PRE>
+  5
+  7-20
+  key words in an item title
+  &quot;words in one item title&quot;, &quot;words in another item title&quot;
+  author &quot;charles roth&quot;
+  since 5/23/95
+  since -4
+</PRE>
+
+<P><DT><A NAME="it_pack">$it_pack(cnum comma triplet(s))</A>
+<DD>
+Acts as the inverse of $it_parse(), i.e. it converts a triplet list
+of items into text representing item ranges.&nbsp;  Items in triplets
+that are not in conference <I>cnum</I> are ignored.&nbsp;
+A <I>comma</I> value of 1 means add a comma and a space between items
+or item ranges; 0 means just use a space.
+
+<P>
+Example: $it_pack (3 1&nbsp;&nbsp; 3 12 0&nbsp;&nbsp; 3 13 0&nbsp; 
+  3 14 0&nbsp;&nbsp;
+ 2 5 1&nbsp;&nbsp; 3 1 5)<BR> produces "1, 12-14".
+
+<P><DT><A NAME="it_hidden">$it_hidden(cnum inum)</A>
+<DD>Is conference <i>cnum</i> item <i>inum</i> hidden?&nbsp;
+Evaluates to 1 if hidden, 2, if "retired", or
+0 if not hidden or does not exist, not
+accessible, etc.
+
+</DL>
+
+<P>
+Note: to ease the writing (and reading) of CML pages, all of the
+$it_ functions that take two arguments (such as 
+<A HREF="#it_visib">it_visib()</A>, 
+<A HREF="#it_resps">it_resps()</A>, and
+<A HREF="#it_newr">it_newr()</A>) 
+may be written with <I>no</I> arguments.&nbsp;  This
+means &quot;re-use the exact same arguments as in a previous instance
+of one of these functions&quot;.&nbsp;  <B>Warning</B>: results may
+be unpredictable if other $it_...() functions (those with more
+than two arguments) are called in between.
+
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

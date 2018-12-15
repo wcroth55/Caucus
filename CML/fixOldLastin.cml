@@ -1,0 +1,49 @@
+#
+#----fixOldlastin.cml    Fix "old" last-in-conference data.
+#
+#    Apparently, during the conversion from 4.x to 5.0 (or 5.0 to 5.1),
+#    the date/time that a person was "last in" a conference does (or did)
+#    not get converted to the new user_in_conf table format.
+#
+#    This script goes back through all conferences, and finds all cases
+#    where the user does not have new data, but does have old data, and
+#    converts the old data into the new format, in the user_in_conf table.
+#
+# CR 10/29/2007 New script.
+#-------------------------------------------------------------------------
+
+set main CC51/main
+include  CC51/main/macros.i
+
+set q1 SELECT cnum FROM confs WHERE cnum > 0
+set h1 $sql_query_open ($(q1))
+while  $sql_query_row  ($(h1))
+
+   set q2 SELECT u.userid, u.laston, c.lastin \
+            FROM (user_info u, groups g) \
+            LEFT JOIN user_in_conf c \
+              ON (c.userid = g.userid AND c.cnum=$(cnum)) \
+           WHERE u.active >= 10 \
+             AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+             AND g.access >= 10
+   
+   set h2 $sql_query_open ($(q2))
+   while  $sql_query_row  ($(h2))
+      if $empty ($(lastin))
+         set lastin $per_lastin($(userid) $(cnum) )
+         if $not_empty ($(lastin))
+            set newdate $replace(10 32 %yyyymmddOf($(lastin)))
+            "$(cnum) $(userid) $(lastin) [$word(1 $(newdate)) $word(2 $(lastin)):00]
+            set q3 INSERT INTO user_in_conf (userid, cnum, lastin) \
+                   VALUES ('$(userid)', $(cnum), '$word(1 $(newdate)) $word(2 $(lastin)):00')
+            set h3 $sql_query_open ($(q3))
+            eval   $sql_query_close($(h3))
+            "h3=$(h3) $(q3)
+            "
+         end
+      end
+
+   end
+   eval $sql_query_close($(h2))
+end
+eval $sql_query_close($(h1))

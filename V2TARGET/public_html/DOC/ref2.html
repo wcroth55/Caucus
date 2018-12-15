@@ -1,0 +1,78 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 2: Purpose of CML</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<BLOCKQUOTE>
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 2:&nbsp; Purpose of CML</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref1.html">PREV</A>]
+   [<A HREF="ref3.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<P>
+The Caucus conferencing system was first released in 1986 as a
+text-based, command driven conferencing (groupware) package.&nbsp;
+Over the next 8 years, Caucus versions 1 and 2 were extended in
+a variety of ways that made it extremely customizable -- but still
+fundamentally text-based.
+
+<P>
+With the enormous growth of the World Wide Web in 1994-95, it
+became clear that a Web-based interface for Caucus could greatly
+increase its ease of use, and its popularity.&nbsp;  At the same time,
+the Web lacked any significant discussion or conferencing tools,
+and it was clear that a Web interface for Caucus could fill this
+gap.
+
+<P>
+Version 3.0 of Caucus was developed from the ground up as web-based
+client-server system.&nbsp;  It was designed to serve Caucus conference
+information to an HTTPD server, which in turn feeds HTML to any
+Web browser.&nbsp;  But the Caucus server (called "swebs")
+needs to know what data to serve, and how (what format) to serve
+it in.&nbsp;  This is the purpose of CML.
+
+<P>
+
+CML pages (files) are analogous to HTML pages.&nbsp;  They contain Caucus
+directives (e.g., &quot;display the text of such-and-such response)
+in an HTML-like format.&nbsp;  They may also contain embedded HTML.
+
+<P>
+When a Web user wants to access (or add to) a Caucus conference,
+s/he points the browser at a special &quot;entry&quot; HTML page.&nbsp;
+This entry page points to a CML page.&nbsp;  (The actual implementation
+of &quot;pointing to a CML page&quot; is done via the Web CGI
+standard.)&nbsp;
+CML pages point to other CML pages, exactly analogous
+to the way HTML pages point to other HTML pages.
+
+<P>
+When an HTTPD server gets a request for a CML page, it passes
+the request on (via CGI) to the Caucus swebs server.&nbsp;  Caucus interprets
+the contents of the CML page, <I>producing a dynamic HTML page</I>,
+and passes it in turn on to the HTTPD server, which sends it to
+the browser.
+
+<P>
+(For more detailed information about this process, see the
+<A HREF="arch.html">Caucus architecture description</A>.)
+
+<P>
+</BLOCKQUOTE>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,43 @@
+#
+#---H_MAN_SWITCH.I    Help about "Manage Switches" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_switch.cml $quote(Help on Manage Switches)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Edit Switches page allows authorized managers to modify the Caucus
+""switches"&#151;a set of variables that control many global behaviors.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Edit the Caucus Switches</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"Caucus uses manager-configurable variables to customize many aspects of
+"the user environment, from page colors to prohibited HTML tags.  The switches
+"interface gives access to these settings. This interface replaces the
+"manual editing of the switch.i file that managers of earlier versions
+"of Caucus may be familiar with.<P>
+
+"Each of the switches is accompanied by a detailed explanation of what it
+"does and what the appropriate values are.  Remember that these changes 
+"are global, affecting all conferences on the system.  Settings local to
+"particular conferences should be set using the 
+"<A HREF=$(helpurl)/h_custom.cml?x+x+Customize_Conference>customize</A>
+"pages.<P>
+
+"When you have changed the settings you're interested in, remember to 
+"press the <B>Make Changes</B> button to save your changes.<P>
+
+"Most Caucus switches are loaded at the beginning of a user's session, so 
+"you may have to quit Caucus and log in again to see the results of your
+"changes.<P>
+include $(help)/hb.i

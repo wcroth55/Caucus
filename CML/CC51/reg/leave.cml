@@ -1,0 +1,28 @@
+#
+#   LEAVE.CML    Terminate Caucus process and go on to another URL.
+#
+#   Invoked as:
+#      leave.cml?URL
+#
+#   Notes:
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/07/00 17:23 New file, used by %leave() macro.
+#==========================================================================
+
+eval $goodbye()
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD></HEAD>
+"<BODY BGCOLOR="#FFFFFF">
+
+"<SCRIPT LANGUAGE="JavaScript">
+"   location.href = location.search.substring(1);
+"</SCRIPT>
+
+"</BODY>
+"</HTML>

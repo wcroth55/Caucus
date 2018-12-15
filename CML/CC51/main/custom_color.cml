@@ -1,0 +1,110 @@
+#
+#---CUSTOM_COLOR.CML.   Organizer customizing conference colors
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  6/06/03 Add 'confitem', item header color
+#: CR 04/20/04 Show path as "customize" or "control panel".
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_color.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+set is_course $equal (x$site_data($arg(3) - confType) xCourse)
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set title1 Customize
+set nxt   $page_save (1 custom_color.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title1) : Colors)
+
+include $(main)/head.i $arg(3)  $quote($(title1) : Colors)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+set custompage custom.cml
+include $(main)/header.i customc </A><A HREF="$(custompage)?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">$(title1)\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Colors
+
+
+"<blockquote>
+"<FORM METHOD=POST NAME="ccolor"
+"      ACTION="customcf.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x">
+"<P>
+"You can change the colors used on the pages of this conference, 
+"including the background, text, and link colors.<p>
+
+"For any or all of the four options below, enter an RGB color code, 
+"such as "#AAAAFF" (pale blue). If your browser supports Java, you can use 
+"the color picker below to see how your color choices look together.<p>
+
+"<TABLE>
+"<TR><TD ALIGN=CENTER COLSPAN=2>
+"<applet codebase=$(img) code=ColorPicker.class width=380 height=130></applet>
+"</TD></TR>
+"<TR>
+"<TD ALIGN=CENTER>Background:<INPUT TYPE="text" NAME="confback" SIZE=8
+"      VALUE="$site_data($arg(3) - confback)"></TD>
+"<TD ALIGN=CENTER>Text:<INPUT TYPE="text" NAME="conftext" SIZE=8
+"      VALUE="$site_data($arg(3) - conftext)"></TD></TR>
+"<TR><TD ALIGN=CENTER>Link:<INPUT TYPE="text" NAME="conflink" SIZE=8
+"      VALUE="$site_data($arg(3) - conflink)"></TD>
+"<TD ALIGN=CENTER>Visited Link:<INPUT TYPE="text" NAME="confvlink" SIZE=8
+"      VALUE="$site_data($arg(3) - confvlink)"></TD></TR>
+"</TABLE>
+
+"<P>Some text, such as the item list on the main conference page, is set off
+"with a contrasting color background.  You can set that color here:<P>
+"Contrasting Background:<INPUT TYPE="text" NAME="confcont" SIZE=8
+"      VALUE="$site_data($arg(3) - confcont)"><P>
+
+"<BR>
+"If your browser doesn't support Java, you can use this
+"<A HREF=palette.cml TARGET=PaletteWindow onClick="window.open('palette.cml','PaletteWindow', 'toolbar=no,width=350,resizable=yes')">
+"Color Palette</A> to figure out the color codes.<p>
+
+"<P>You can also choose a background image by entering the full URL of an
+"image file below.<br>
+"<INPUT TYPE="text" NAME="confbgim" SIZE=80
+"      VALUE="$site_data($arg(3) - confbgim)">
+
+"<p>
+"Item header color: <input type="text" name="confitem" size=8
+"   value="$site_data($arg(3) - confitem)">
+
+"<P>
+" Press
+"   <INPUT TYPE="button" VALUE="Clear"
+"       onClick='document.ccolor.confback.value="";
+"                document.ccolor.conftext.value="";
+"                document.ccolor.conflink.value="";
+"                document.ccolor.confvlink.value="";
+"                document.ccolor.confbgim.value="";
+"                document.ccolor.confitem.value="";
+"                document.ccolor.confcont.value="";'>
+"   to revert to the $(center_name) color scheme.
+
+"<P><INPUT TYPE="submit" VALUE="Make These Changes">
+"</FORM>
+"</blockquote>
+"<P>
+
+#include $(main)/trailer.i  customc </A><A HREF="custom.cml?\
+#   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+#   $(cname)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Colors
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

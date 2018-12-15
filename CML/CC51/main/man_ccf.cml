@@ -1,0 +1,160 @@
+#
+#---man_ccf.cml.    Handles form submission from Caucus Center layout page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/12/01 Added quiturl processing.
+#: CR 10/09/02 Support center bkg colors, png images.
+#: CR 03/02/03 Rearrange to support all pages, item page, center page, etc.
+#: CR 12/20/03 Add timezonehrs, timezonename interface variables, 
+#              item_title_width
+#: CR  3/27/04 Add bgradbk, gradebook button.
+#: CR  7/11/04 Allow turning off Help, Quit buttons.
+#: CR 10/13/04 Allow manager control of CSS fonts and sizes,
+#              make item titles in compass bar on by default.
+#: CR 03/30/05 Add button display controls.
+#: CR 04/13/05 C5 code merge.
+#: CR 03/13/06 Add top banner capability.
+#: CR 11/20/07 Fix all pages logo to use item id, not label.
+#: CR 08/24/09 Interface-specific showUserid controls "(userid)" display instead of show_id.
+#: CR 09/24/09 Add top banner center image option.
+#--------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_cc.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+
+set nch $unique()
+
+eval $set_site_data (0 - if_$(iface)_showUserid    0$form(showUserid))
+eval $set_site_data (0 - if_$(iface)_tbstyle        $form(tbstyle))
+eval $set_site_data (0 - if_$(iface)_buttons_shown  $form(buttons_shown))
+eval $set_site_data (0 - if_$(iface)_buttons_hidden $form(buttons_hidden))
+eval $set_site_data (0 - if_$(iface)_logo_shown     $form(logo_shown))
+eval $set_site_data (0 - if_$(iface)_showbuttontext $form(showbuttontext))
+for x in $(buttons_all)
+   eval $set_site_data (0 - if_$(iface)_buttontext_$(x) $form(buttontext_$(x)))
+end
+
+eval $set_site_data (0 - if_$(iface)_css_font $form(css_font))
+set   css_font $form(css_font)
+
+eval $set_site_data (0 - if_$(iface)_css_size $form(css_size))
+set   css_size $form(css_size)
+
+eval $set_site_data (0 - if_$(iface)_css_file $form(css_file))
+set   css_file $form(css_file)
+
+eval $set_site_data (0 - if_$(iface)_ccenter $form(ccenter))
+set   center_name $form(ccenter)
+
+eval $set_site_data (0 - if_$(iface)_filesafe $form(filesafe))
+set   filesafe_name $form(filesafe)
+
+eval $set_site_data (0 - if_$(iface)_leftBox $form(leftBox))
+set   leftBox      0$form(leftBox)
+eval $set_site_data (0 - if_$(iface)_leftBoxWidth   $form(leftBoxWidth))
+set   leftBoxWidth $form(leftBoxWidth)
+eval $set_site_data (0 - if_$(iface)_leftBoxColor   $form(leftBoxColor))
+set   leftBoxColor $form(leftBoxColor)
+eval $set_site_data (0 - if_$(iface)_leftBoxContent $form(leftBoxContent))
+set   leftBoxContent $form(leftBoxContent)
+eval $set_site_data (0 - if_$(iface)_leftBoxText    $form(leftBoxText))
+set   leftBoxText  $form(leftBoxText)
+
+#---banner stuff
+eval $set_site_data (0 - if_$(iface)_banner_bg   $form(banner_bg))
+set  banner_bg $form(banner_bg)
+eval $set_site_data (0 - if_$(iface)_banner_left $form(banner_left))
+set  banner_left $form(banner_left)
+eval $set_site_data (0 - if_$(iface)_banner_leftwidth $form(banner_leftwidth))
+set  banner_leftwidth $form(banner_leftwidth)
+eval $set_site_data (0 - if_$(iface)_banner_right  $form(banner_right))
+set  banner_right   $form(banner_right)
+eval $set_site_data (0 - if_$(iface)_banner_center  $form(banner_center))
+set  banner_center   $form(banner_center)
+eval $set_site_data (0 - if_$(iface)_banner_height $form(banner_height))
+set  banner_height   $form(banner_height)
+
+set item_title_width 0
+if $not_empty ($form(show_item_title))
+   set item_title_width $form(item_title_width)
+   if $equal ($(item_title_width) 0)
+      set item_title_width
+   end
+   set item_title_width $word (1 $(item_title_width) 100)
+end
+eval $set_site_data (0 - if_$(iface)_item_title_width $(item_title_width))
+
+set   timezonehrs $word (1 $form(timezonehrs) 0)
+eval $set_site_data (0 - if_$(iface)_timezonehrs $form(timezonehrs))
+
+eval $set_site_data (0 - if_$(iface)_timezonename $form(timezonename))
+set   timezonename  $form(timezonename)
+
+eval $set_site_data (0 - if_$(iface)_cchide       $not($form(cchide)))
+
+eval $set_site_data (0 - if_$(iface)_hide_acton   $empty($form(acton)))
+eval $set_site_data (0 - if_$(iface)_hide_forget  $empty($form(forget)))
+eval $set_site_data (0 - if_$(iface)_hide_whoseen $empty($form(whoseen)))
+
+#     eval $set_site_data (0 - if_$(iface)_hide_bgoto   $empty($form(bgoto)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bsearch $empty($form(bsearch)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bpeople $empty($form(bpeople)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bfsafe  $empty($form(bfsafe)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bnotebk $empty($form(bnotebk)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bgradbk $empty($form(bgradbk)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bassign $empty($form(bassign)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bhelp   $empty($form(bhelp)))
+#     eval $set_site_data (0 - if_$(iface)_hide_bquit   $empty($form(bquit)))
+
+eval $set_site_data (0 - if_$(iface)_hide_resign  $empty($form(resign)))
+
+eval $set_site_data (0 - if_$(iface)_quiturl  $form(quiturl))
+
+eval $set_site_data (0 - if_$(iface)_cencolor $form(cencolor))
+
+eval $set_site_data (0 - if_$(iface)_mbutton  $form(mbutton))
+
+set  w1  $str_sub  (0 1 $form(cclogo))
+set  wn  $str_sub  (1 4 $form(cclogo))
+set  wid $item_id ($(cnum) $(wn))
+eval $set_site_data (0 - if_$(iface)_cclogo $form(cclogo) \
+  $ifthen ($equal ($(w1) t) $form(cclogo.t)) \
+  $ifthen ($equal ($(w1) i) \%mset($(cnum) $(wid) 0)\
+                            \%re_text($(cnum) $(wid) 0)))
+
+set  w1  $str_sub  (0 1 $form(allogo))
+set  wn  $str_sub  (1 4 $form(allogo))
+set  wid $item_id ($(cnum) $(wn))
+eval $set_site_data (0 - if_$(iface)_allogo $form(allogo) \
+  $ifthen ($equal ($(w1) t) $form(allogo.t)) \
+  $ifthen ($equal ($(w1) i) \%mset($(cnum) $(wn) 0)\
+                            \%re_text($(cnum) $(wn) 0)))
+
+count ib 1 $(blocks)
+   set  w1  $str_sub  (0 1 $form(blk$(ib)))
+   set  wn  $str_sub  (1 4 $form(blk$(ib)))
+   set  wid $item_id ($(cnum) $(wn))
+   if $equal ($(w1) i)
+      eval $set_site_data (0 - if_$(iface)_blk$(ib) $form(blk$(ib)) \
+              \%mset($(cnum) $(wid) 0)\%re_text($(cnum) $(wid) 0))
+   end
+   else
+      eval $set_site_data (0 - if_$(iface)_blk$(ib) $form(blk$(ib)) \
+                          $form(blk$(ib).t))
+   end
+end
+
+if $not_equal ($form(blk$(ib)) 0)
+   eval $set_site_data (0 - if_$(iface)_blks $plus ($(blocks) 1))
+end
+
+eval $set_site_data (0 - if_$(iface)_preventReg $equal($form(preventReg) on))
+
+"%location($(mainurl)/manage.cml?$(nch)+$arg(2)+x+x+x+x+x+x#feel)
+#------------------------------------------------------

@@ -1,0 +1,122 @@
+#
+#---man_cnamef.cml.    Handles conference renaming.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 10/04/05 C5 changes
+#:CR 11/21/05 Replace group_update() with group_update_rule().
+#:CR 12/21/05 Rename uploaded files directory!
+#------------------------------------------------------------------------
+
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges
+
+set nch $unique()
+
+set oldname $cl_name($form(cnum))
+set newname $replace(32 _ $form(newname))
+
+set oldfname filesafe_$lower($cl_name($form(cnum)))
+set newfname filesafe_$lower($(newname))
+
+#---Make sure the new name has no: / \ * '
+set tname $(newname)
+for x in / \ * '
+   set tname $replace($(x) _ $(tname))
+end
+if $not_equal ($(tname) $(newname))
+   set bad_conf_name The new name must not contain any slashes, \
+          asterisks, or single quotes.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+   quit
+end
+
+if $empty($form(newname))
+   set bad_conf_name You must choose a new name for the conference.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+   quit
+end
+
+if $equal ($form(cnum) 0)
+   set bad_conf_name You must select a conference to be renamed.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+   quit
+end
+
+set result $co_rename($form(cnum) $(newname))
+
+if $equal($(result) 0)
+   set bad_conf_name Strangely, you do not have permission to change the name \
+                     of this conference.
+end
+elif $equal($(result) -1)
+   set bad_conf_name You may only use letters and numbers in your conference \
+                     name.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+elif $equal($(result) -2)
+   set bad_conf_name An error has occured (bad conference number: \
+            $form(cnum)).&nbsp; Please quit Caucus and try again.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+elif $equal($(result) -3)
+   set bad_conf_name A conference called <i>$form(newname)</i> already exists. \
+                     Please choose another name.
+   "%location($(mainurl)/man_cname.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x)
+   "
+end
+else
+   #---rename filesafe (and grouprules, and groups entries)
+   # FN, FH, FS, FR (no _)
+
+   eval %sql(UPDATE site_data SET name='FN_$(newfname)' \
+              WHERE name='FN_$(oldfname)')
+   eval %sql(UPDATE site_data SET name='FH_$(newfname)' \
+              WHERE name='FH_$(oldfname)')
+   eval %sql(UPDATE site_data SET name='FReadonly_$(newfname)' \
+              WHERE name='FReadonly_$(oldfname)')
+   eval %sql(UPDATE grouprules SET name='$(newfname)'   \
+              WHERE owner='Filesafe' AND name='$(oldfname)')
+   eval %sql(UPDATE groups     SET name='$(newfname)'   \
+              WHERE owner='Filesafe' AND name='$(oldfname)')
+
+   #---Update any groups that *included* this group!
+   set updates $sql_query_select (\
+                  SELECT DISTINCT owner, name FROM grouprules \
+                   WHERE subowner='Filesafe' AND subname='$(oldfname)')
+   eval %sql (UPDATE grouprules SET subname='$(newfname)' \
+               WHERE subowner='Filesafe' AND subname='$(oldfname)')
+   for owner name in $(updates)
+      eval $group_update_rule ($quote(Filesafe $(oldfname)) \
+                               $quote($(owner) $(name)))
+      eval $group_update_rule ($quote(Filesafe $(newfname)) \
+                               $quote($(owner) $(name)))
+   end
+
+   #---Rename the filesafe sections (both in ~/LIB/FILESAFE and MySQL).
+   set basedir $caucus_path()/public_html/LIB/FILESAFE
+   set query SELECT name FROM site_data WHERE name LIKE 'FS_$(oldfname)_0%'
+   set sections $sql_query_select ($(query))
+   for x in $(sections)
+      set y $str_replace ($(oldfname) $(newfname) $(x))
+      eval %sql(UPDATE site_data SET name='$(y)' WHERE name='$(x)')
+      eval $rename ($(basedir)/$(x) $(basedir)/$(y))
+   end
+
+   #---Rename the uploaded files directory!
+   eval $rename ($caucus_path()/public_html/LIB/$lower($(oldname)) \
+                 $caucus_path()/public_html/LIB/$lower($(newname)))
+
+   set bad_conf_name
+   set result Conference successfully renamed to <B>$form(newname)</B>.
+   "%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
+   "
+end
+
+#------------------------------------------------------

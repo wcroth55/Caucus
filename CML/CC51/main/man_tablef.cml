@@ -1,0 +1,41 @@
+#
+#---man_tablef.cml.    Handles manager creating table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/12/01 09:30 Dynamic tables.
+#-----------------------------------------------------------
+
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i manage systemEditSwitches
+
+set nch $unique()
+
+if $or ($empty($form(name)) $empty($form(cols)) $empty($form(rows)))
+   "Location: man_table.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                            $arg(6)+1+
+   "
+   quit
+end
+
+if $not ($array_create ($form(name) $form(rows) $form(cols)))
+   "Location: man_table.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                            $arg(6)+2+$form(name)
+   "
+   quit
+end
+
+#---Write a default edit_tablename group file for access control.
+eval $write ($caucus_path()/GROUPS/edit_$form(name) $userid()$newline()\
+                <table_managers)
+
+#---Success; let them edit it.
+"Location: man_tableok.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                         $arg(6)+$arg(7)+$form(name)
+"

@@ -1,0 +1,27 @@
+#
+#---man_popularf.cml.    Handles manager popular conference changes
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/01/02 10:40 Put l_confs into site variable.
+#-------------------------------------------------------
+
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i manage conferenceChange groupEditAll
+
+set nch $unique()
+
+set l_confs $replace(32 _ $form(confs))
+
+eval $set_site_data (0 - SWl_confs $(l_confs))
+
+"%location($(mainurl)/$page_return ($arg(2) # \
+  manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+
+#------------------------------------------------------

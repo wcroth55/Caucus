@@ -1,0 +1,235 @@
+#
+#---PER_EN.CML.   Personal e-mail notification.
+#
+#   This page is the "head" of a set of pages that control personal
+#   e-mail notification of new conference material.  The other files
+#   all begin with the prefix "per_en".
+#
+#   See also cus_en.cml for the parallel "head" for organizer-defined
+#   e-mail notification.
+#
+#   The following conference or user variables are involved:
+#
+#  conference variables
+#
+#     en_user_U    exists if userid "U" has defined an individual e-mail not.
+#
+#  user variables (parallel to conference variables in cus_en.cml)
+#  C=conf #, T=epoch time group was defined
+#
+#     en_items_C-T same as en_items_N, but user variable for conference C.
+#                  word 1 = 1 (active), else 0 (inactive)
+#                  word 2 = 1 (incl new items as created), else 0 (fixed list)
+#                  word 3 = 1 (report on newly created items), else 0 (don't)
+#                  word 4 = # of highest-reported item
+#                  word 5 = T value if based on an organizer group, else 0
+#                  rest   = "english" list of items in group ("All" is special)
+#
+#     en_dates_C-T word 1 = 1 (week days), else 0 (month days)
+#                  rest   = list of day numbers
+#
+#     en_hours_C-T word 1 = 1 (detailed report), else 0 (summary report)
+#                  rest   = list of hour numbers
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i per_en.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 per_en.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(cname): Personal E-mail Notification )
+
+
+include $(main)/head.i $arg(3)  $quote($(cname) : Personal E-mail Notification)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i per_en Personal&nbsp;E-mail&nbsp;Notification
+
+
+"<BLOCKQUOTE>
+"<B>E-mail Notification</B>
+"is a Caucus feature that lets you automatically receive reports,
+"via e-mail, of new conference activity in selected groups of items.
+
+if $empty ($user_info ($userid() email))
+   "<P>
+   "<span class="bigger"><B><BLINK>Warning!</BLINK></B>&nbsp;</span>
+   "You have not set your e-mail address.&nbsp;
+   "Please do so immediately, by clicking on your own name
+   "in the upper right hand corner of the window.&nbsp;
+   "Otherwise you will not receive any e-mail about the
+   "groups on this page.
+end
+
+"<P>
+"The organizer may have already created some groups of items;
+"you'll see these listed towards the bottom of the page with
+""Set By Organizer".&nbsp;
+"You may also create your own groups, or even change the
+"definition of the groups that the organizer created.&nbsp;
+"<P>
+"To create your own group, start by
+"identifying one or more groups of
+"items (from one item, to all of them)
+"that are important for you to keep current on.&nbsp;
+"Create a new notification group for these items, and
+"set their schedule for notification (what days and times).&nbsp;
+"After they have been established, both the items in a group and
+"the notification schedules may be changed.&nbsp;
+"You may also elect to include all <B>newly</B> created items
+"in a group.&nbsp;
+"<P>
+"To change a group created by the organizer, just click on it.&nbsp;
+"You'll have the same choices for setting the items and schedule
+"as you would for your own groups.
+
+"<P>
+"Choose from among the following:
+"<P>
+"<OL>
+"<LI><A HREF="per_ennew.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                            $arg(7)+$arg(8)"
+">Create a new group</A> of selected items, and set its notification schedule.
+
+"<P>
+"<LI><A HREF="per_enwiz.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                            $arg(7)+$arg(8)"
+">Quickset option</A> to receive a summary report on the whole
+"conference, every Monday morning at 6 a.m.
+
+
+#---Build list of e-mail notification groups (T values).
+#   UGROUPS are user's groups, OGROUPS are organizer's groups.
+set  ugroups
+for vname in $list_user_data ($userid() en_items_$arg(3)-)
+   set pos $plus (1 $str_index (- $(vname)))
+   set ugroups $(ugroups) $str_sub ($(pos) 1000 $(vname))
+end
+set  ogroups
+for vname in $list_site_data ($arg(3) - en_items-)
+   set pos $plus (1 $str_index (- $(vname)))
+   set ogroups $(ogroups) $str_sub ($(pos) 1000 $(vname))
+end
+
+if $not_empty ($(ugroups) $(ogroups))
+   "<A NAME="edit"><P></A>
+   "<LI>Your existing item groups are shown below.&nbsp;
+   "   Click on one to edit it.
+  
+   "<P>
+   "<UL>
+   "<TABLE CELLPADDING=0 CELLSPACING=0>
+   "<TR><TD><B>Items</B>&nbsp;&nbsp;&nbsp;</TD>
+   "    <TD COLSPAN=2><B>Approx. Frequency&nbsp;&nbsp;</B></TD>
+   "    <TD><B>Report Type</B></TD>  <TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+
+   #---User's groups
+   set based_list
+   for group in $(ugroups)
+      set items $rest(6 $user_data($userid() en_items_$arg(3)-$(group)))
+      if $and ($word (2 $user_data($userid() en_items_$arg(3)-$(group))) \
+               $not_equal ($(items) All))
+         set items $(items) +new
+      end
+
+      #---Accumulate list of user's groups that are based on org groups.
+      set based_on $word (5 $user_data($userid() en_items_$arg(3)-$(group)))
+      if $(based_on)
+         set based_list $(based_list) $(based_on)
+      end
+
+      "<TR VALIGN=top>
+      if $empty ($(items))
+         set items (none)
+      end
+      "<TD>&nbsp;<A
+      "   HREF="per_engrp.cml?$(nch)+$(nxt)+$arg(3)+x+\
+             $(group)+x+x+x">$(items)</A></TD>
+      "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      set period $word (1 $user_data ($userid() en_dates_$arg(3)-$(group)))
+      if $empty ($(period))
+         "<TD>(never)</TD>
+      end
+      else
+         set freq $mult (\
+          $minus ($sizeof($user_data ($userid() en_dates_$arg(3)-$(group))) 1)  \
+          $minus ($sizeof($user_data ($userid() en_hours_$arg(3)-$(group))) 1))
+         if $(freq)
+            "<TD>$(freq) / $if ($(period) week month)</TD>
+         end
+         else
+            "<TD>(never)</TD>
+         end
+      end
+      if $word (1 $user_data ($userid() en_hours_$arg(3)-$(group)))
+         "<TD>detailed</TD>
+      end
+      else
+         "<TD>summary</TD>
+      end
+#     "<TD>$word (5 $user_data ($userid() en_items_$arg(3)-$(group)))</TD>
+   end
+
+   #---Organizer's groups (that are outside user's based-on list)
+   for group in $(ogroups)
+      if $not ($tablefind ($(group) $(based_list)))
+         set items $rest(6 $site_data($arg(3) - en_items-$(group)))
+         if $and ($word (2 $site_data($arg(3) - en_items-$(group))) \
+                  $not_equal ($(items) All))
+            set items $(items) +new
+         end
+         "<TR VALIGN=top>
+         if $empty ($(items))
+            set items (none)
+         end
+         "<TD>&nbsp;<A
+         "   HREF="per_engrp.cml?$(nch)+$(nxt)+$arg(3)+x+\
+                $(group)+x+x+x">$(items)</A></TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         set period $word (1 $site_data ($arg(3) - en_dates-$(group)))
+         if $empty ($(period))
+            "<TD>(never)</TD>
+         end
+         else
+            "<TD>$mult (\
+               $minus ($sizeof($site_data ($arg(3) - en_dates-$(group))) 1)  \
+               $minus ($sizeof($site_data ($arg(3) - en_hours-$(group))) 1)) \
+               / $if ($(period) week month)
+            "</TD>
+         end
+         "<TD>
+         if $word (1 $site_data ($arg(3) - en_hours-$(group)))
+            "(detailed report)
+         end
+         "</TD>
+         "<TD></TD>
+         "<TD>Set by Organizer</TD>
+      end
+   end
+   "</TABLE>
+   "</UL>
+end
+
+"</OL>
+"</BLOCKQUOTE>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

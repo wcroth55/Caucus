@@ -1,0 +1,89 @@
+#
+#---INDVRESPF.CML.   Handle results of SUBMIT from indvresp.cml.
+#                    Then close current (pop-up) window.
+#
+#   arg(1)   unique
+#       2    cnum
+#       3    inum  (id, not label)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/13/03 Add "print" option.
+#: CR 10/13/04 Remove Clear option (not needed).
+#: CR 01/29/05 Hack printwindow via opener.printwin to avoid pop-up blockers.
+#: CR 03/09/05 Add Task option.
+#-----------------------------------------------------------------------
+
+set icnum $arg(2)
+set iinum $arg(3)
+set rpage indvresp.cml
+set checklist $form(checklist)
+
+#---If the acton window was resized, save the new size.
+#if 0$form(changed)
+#   eval $set_user_var ($userid() xs_indv $form(xsize))
+#   eval $set_user_var ($userid() ys_indv $form(ysize))
+#end
+
+if $equal ($form(b_action) Delete)
+   include $(main)/indv_del.i
+end
+
+elif $equal ($form(b_action) Mark)
+   include $(main)/indv_new.i
+end
+
+elif $equal ($form(b_action) Copy)
+   include $(main)/indv_cop.i 
+   include $(main)/indv_rpt.i Copied 0
+end
+
+elif $equal ($form(b_action) Move)
+   include $(main)/indv_cop.i 
+   set item_move 0
+   for r in $(checklist)
+      if $equal ($(r) 0)
+         set  item_move 1
+         continue
+      end
+      eval         $resp_del   ($arg(2) $arg(3) $(r))
+      include $(main)/rlibdel.i $arg(2) $arg(3) $(r)
+   end
+   include $(main)/indv_rpt.i Moved $(item_move)
+end
+
+elif $equal ($form(b_action) Add)
+   include $(main)/indv_add.i
+end
+
+elif $equal ($form(b_action) Task)
+   include $(main)/indv_task.i
+end
+
+elif $equal ($form(b_action) Print)
+   "Content-type: text/html
+   "
+   "<html>
+   "<body bgcolor="#FFFFFF">
+   "<script type="text/javascript" language="javascript">
+#  "   %js_open_sub(cauprint opener)
+#  "   win.location.href = 
+   "   self.opener.printwin.location.href = 
+   "      "$(mainurl)/viewitema.cml?$unique()+$(nxt)+$(icnum)+$(iinum)+\
+          $word (1 $(checklist))+$word (1 $(checklist))+x+x+x+\
+          $replace(32 , $(checklist))";
+   "   self.close();
+   "</script>
+   "</div>
+"</body>
+   "</html>
+end
+
+else
+   "Content-type: text/plain
+   "
+   "Error!  form(b_action)='$form(b_action)'
+end
+#-----------------------------------------------------------------------

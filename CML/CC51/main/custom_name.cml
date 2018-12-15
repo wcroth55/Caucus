@@ -1,0 +1,70 @@
+#
+#---CUSTOM_NAME.CML.   Organizer renaming a conference
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_name.cml
+end
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 custom_name.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Customize $(cname): Conference Name)
+
+include $(main)/head.i $arg(3)  $quote(Customize $(cname) : Conference Name)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i customn </A><A HREF="custom.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+   $(cname)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Conference Name
+
+
+"This page allows you to change the name of your conference.<P>
+"<B>Warning!</B> Changing a conference name is a drastic step, and should
+"normally not be performed on an active conference.  When the conference
+"name changes, current users will have to add the new name to their personal
+"conference list before they can continue participating.
+"<P>
+"Renaming is best used before a conference is publicized (if it was created
+"with an incorrect name) or after a conference is not longer being used (to 
+"preserve an old conference for archival purposes, for instance).<P>
+
+"<FORM METHOD=POST ACTION="customnf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+#---If from a previous invocation with an error, complain.
+if $not_empty ($(bad_conf_name))
+  "<B>$(bad_conf_name)</B><P>
+  set bad_conf_name
+end
+
+"This conference is currently named <B>$(cname)</B><P>
+"<INPUT TYPE=HIDDEN NAME=cnum VALUE=$(cnum)>
+"Rename this conference to:
+"<INPUT TYPE=TEXT NAME=cname SIZE=40><P>
+"(Conference names must
+"be less than 80 characters long and contain only letters and numbers.)
+
+
+"<P><INPUT TYPE="submit" VALUE="Rename">
+
+"</FORM>
+
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

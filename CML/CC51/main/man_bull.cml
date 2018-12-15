@@ -1,0 +1,87 @@
+#
+#---MAN_BULL.CML.   Manager editing "all user" bulletin pop-up.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/00 20:21 New file (new feature).  See head.i
+#---------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_bull.cml
+end
+
+#--- 8704 = 512 (edit switches) | 8192 (shutdown caucus)
+include $(main)/secure.i manage systemBulletins
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_bull.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Edit Bulletin )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Edit Bulletin)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_bull </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Edit Bulletin
+
+
+"<BLOCKQUOTE>
+"<FORM NAME=bull METHOD=POST ACTION="man_bullf.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"<P>
+"Use this page to create or edit a bulletin that is displayed
+"to <B>all</B> Caucus users.&nbsp;
+"It will appear as a "pop-up" dialog box within 5 minutes.
+"<P>
+"The bulletin should be <B>very</B> short,
+"and is best reserved for extremely important notices
+"that affect Caucus use.&nbsp;
+""Caucus is going down at noon" or
+""the building closes at 3pm today" are good examples.&nbsp;
+"Otherwise the bulletin may be annoying to your users.
+"<P>
+"When the purpose of the bulletin is over, remember to remove it!&nbsp;
+"(Press <B>Clear</B>, then <B>Make Changes</B>.)
+
+set  often $word (2 $site_data(0 - bulletin) x 0)
+
+"<P>
+
+"<TABLE WIDTH="85%" CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top>
+"<TD>
+   "<B>Text of bulletin:</B><BR>
+   "<TEXTAREA NAME="btext" ROWS=3 COLS=40 WRAP=VIRTUAL
+   "     >$rest (3 $site_data(0 - bulletin))</TEXTAREA></BR>
+   "<INPUT TYPE=BUTTON  NAME="clear"   VALUE="Clear" 
+   "       onClick="document.bull.btext.value='';"><BR>
+   "<INPUT TYPE=SUBMIT  NAME="submit"  VALUE="Make Changes">
+"</TD>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+
+"<TD><B>Display the bulletin:</B><BR>&nbsp;&nbsp;
+   "<INPUT TYPE=radio name=often $ifthen ($not($(often)) CHECKED) VALUE="0">
+   "  once per session<BR>&nbsp;&nbsp;
+   "<INPUT TYPE=radio name=often $ifthen (     $(often)  CHECKED) VALUE="1"> 
+   "  every 5 minutes
+"</TD>
+"</TABLE>
+
+"</FORM>
+"</BLOCKQUOTE>
+
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

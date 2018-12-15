@@ -1,0 +1,50 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>resps_seen&nbsp;&nbsp;&nbsp;</span>How much has each user seen of each item?  
+<p/><b>Categories: </b>
+<a href='_Responses.html'>Responses</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Tracks which users have seen which (how many) responses on which  items.  This acts like a high-water mark, i.e. if resps_seen.seen is 17,  then response numbers 0 through 17 are "seen", and any higher-numbered  responses are "new".  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td> FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row1'>
+<td>items_id</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'0'</td>
+<td> FK <a href='items.html'>items</a>  <br></td>
+<tr valign=top class='row0'>
+<td>seen</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> how many responses in the item has the user seen?  <br></td>
+<tr valign=top class='row1'>
+<td>forgot</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1 = user has forgotten the entire item  <br></td>
+</table>
+</body>
+</html>

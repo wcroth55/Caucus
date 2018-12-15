@@ -1,0 +1,18 @@
+intro_tp
+ html
+intro1
+ This is the Caucus DEMONSTRATION conference.&nbsp;  It briefly illustrates
+ the format and features of Caucus, and then lets you try them out
+ on excerpts taken from a real-life discussions at a variety
+ of organizations.
+greet_tp
+ cml
+greet1
+ <P><blockquote>
+ <H2>
+ If this is your first time in Caucus, you may take a guided
+ tour of the DEMONSTRATION conference by simply
+ <A HREF="$(href)/anew.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x">
+ reading the new material</A>.
+ </H2>
+ </blockquote>

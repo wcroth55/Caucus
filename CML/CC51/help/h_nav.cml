@@ -1,0 +1,86 @@
+#
+#---H_NAV.CML.   Help about the item page navigation buttons
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_nav.cml $quote(Help on Navigation Buttons)
+"<P>
+
+"<B>What Are They?</B><BR>
+"The Navigation buttons appear on the 
+"<A HREF="$(helpurl)/h_viewitem.cml?x+x">Item Page</A>.&nbsp;
+"Caucus breaks up large items into separate pages of about
+"25 responses each.&nbsp;
+"The navigation buttons provide a way to move between the
+"individual pages of a single item.
+
+"<P>
+"<B>How Do I Use Them?</B><BR>
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top>
+"<TD><IMG $(src_1stpg)></TD>
+"<TD>&nbsp;&nbsp;</TD>
+"<TD>
+   "Press <B>First</B> to go to the very first page of an Item,
+   "which contains the item title, and the first few responses
+   "in the discussion.
+"</TD>
+
+"<TR><TD>&nbsp;</TD>
+"<TR VALIGN=top>
+"<TD><IMG $(src_lastpg)></TD>
+"<TD></TD>
+"<TD>
+   "Press <B>Last</B> to go to the very last page of an Item&#151;where
+   "you'll see the most recent responses, and where
+   "you can enter your own response.
+"</TD>
+
+"<TR><TD>&nbsp;</TD>
+"<TR VALIGN=top>
+"<TD><IMG $(src_prevpg)></TD>
+"<TD></TD>
+"<TD>
+   "Press <B>Prev</B> to go to the previous page of responses (the page before
+   "the current page).
+"</TD>
+
+"<TR><TD>&nbsp;</TD>
+"<TR VALIGN=top>
+"<TD><IMG $(src_nextpg)></TD>
+"<TD></TD>
+"<TD>
+   "Press <B>Next</B> to go to the next page of responses (the page after
+   "the current page).
+"</TD>
+
+"<TR><TD>&nbsp;</TD>
+"<TR VALIGN=top>
+"<TD><IMG $(src_expand)></TD>
+"<TD></TD>
+"<TD>
+   "Press <B>All</B> to display the <I>entire item</I> into a single,
+   "scrollable page.
+   "<P>
+   "If the item is very large, this may take some time to appear.&nbsp;
+   "You will probably only want to use this button if you really
+   "need to read (or <A HREF="$(helpurl)/h_print.cml?x+x">print</A>) 
+   "the entire Item in one shot.
+"</TD>
+
+"</TABLE>
+
+"<P>
+"Not all of these buttons are available all the time. If you can't use
+"a particular button, it will appear grayed out.
+"For example, if you're <I>already</I> at the last page of an Item, 
+"you won't be able to use the <B>Last</B> button, so it will appear gray.
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

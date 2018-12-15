@@ -1,0 +1,105 @@
+#
+#---uploadpop4.cml   Handle uploading zip file.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/21/04 New file, based loosely on old upzip.cml
+#: CR 10/13/04 Use CSS.
+#: CR 02/10/06 Add arg(7) for generic (not just item/resp) file uploads.
+#------------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+"<html>
+"<head>
+"<script type="text/javascript" language="javascript">
+"  var all_checked = 0;
+"  function checkall (theform) {
+"     all_checked = 1 - all_checked;
+"     for (i=0;   i<theform.elements.length;   ++i) {
+"        if (theform.elements[i].type == "checkbox")  
+"           theform.elements[i].checked = all_checked;
+"     }
+"     return false;
+"  }
+"</script>
+include $(main)/css.i
+"</head>
+
+"<body bgcolor="#FFFFFF">
+"<b>Attaching Zip Archive</b>
+
+
+if $not_empty($(filelist))
+
+  "<ul>
+# "rmdir='$(rmdir)'<BR>
+# "bbase='$(bbase)'<BR>
+# "zipout=$(zipout)<BR>
+# "<P>
+  "You have attached a zip archive, and the files in that archive have been
+  "expanded and placed in this conference.
+  "<P>The files in your archive are listed below.&nbsp;
+  "Click the checkbox next to each file that should appear as a link.&nbsp;
+  "You will probably want to check at least one filename.
+# "Check the box next to the 
+# "If you wish to include
+# "links to any of these files in the text you were editing when you 
+# "pressed the Attach button, check the box next to the filename.<BR>
+
+  "<form METHOD=POST ACTION="uploadpop5.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)" name="boxes">
+  "<UL>
+  "<table cellspacing=0 cellpadding=0 border=0>
+  "<tr valign=top>
+  "<td>
+     "<a href="#" onClick="return checkall(document.boxes);"
+     "   >Check all files</a><br>
+     set num 0
+     for fname in $(filelist)
+       set num  $plus($(num) 1)
+       set line $unquote($(line))
+       "&nbsp;&nbsp;&nbsp;<INPUT TYPE=CHECKBOX NAME="FILE$(num)"
+       "   VALUE="$(fname)"> $(fname)<BR>
+     end
+     "</UL>
+     "<INPUT TYPE=HIDDEN NAME="num" VALUE=$(num)>
+  "</td>
+  "<td>&nbsp;&nbsp;&nbsp;</td>
+  "<td>
+  "Show the selected file(s) as:<br>
+# "<P>You can also choose how you would like the selected files to 
+# "appear.&nbsp;  Show the files as:
+  "&nbsp;&nbsp;&nbsp;<INPUT TYPE=RADIO NAME="utype" VALUE="link" 
+  "   CHECKED>Links<br>
+  "&nbsp;&nbsp;&nbsp;<INPUT TYPE=RADIO NAME="utype" VALUE="url">Full URLs<br>
+  "&nbsp;&nbsp;&nbsp;<INPUT TYPE=RADIO NAME="utype" VALUE="img">Images 
+  "</td>
+  "</table>
+  "</UL>
+
+# "<P>Once you have selected the files you wish to have links to, 
+# "press the button below to finish the attachment process.
+  "<P><INPUT TYPE=SUBMIT name="submit" VALUE="Continue">
+  "</FORM>
+
+  "</ul>
+end
+else
+
+  "<ul>
+  "You attempted to attach a zip archive, but the archive could not be
+  "decompressed.  The text of the error was:
+  "<PRE>$(zipout)</PRE>
+  "Please try your attachment again.
+  "</ul>
+end
+
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

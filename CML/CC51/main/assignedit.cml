@@ -1,0 +1,220 @@
+#
+#---assignedit.cml    Edit text of assignments.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  calling page
+#   3  conf #
+#   4  x
+#   5  assignment primary key
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/08/04 New page.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  4/27/04 Allow textarea or richtext editors
+#: CR 10/13/04 Make sure SQL is working; virus-check any uploaded file.
+#: CR 01/14/05 Allow richtext only if existing text is html or cml.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i assignedit.cml
+end
+
+set cnum   $arg(3)
+set is_instructor $gt_equal (%access($(cnum)) $priv(instructor))
+set viewedit $if ($(is_instructor) Edit View)
+
+##---Handle file attach button click.
+#if $not_empty ($form(upload.x))
+#   set tx_resp $form(tx_resp)
+#   set tp_resp $form(tp_resp)
+#   "%location($(mainurl)/upload.cml?$(nch)+$arg(2)+\
+#              $arg(3)+x+$arg(5)+x+$arg(7)+$arg(8)+assignment)
+#   quit
+#end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch    $unique()
+set cname  %displayed_conf_name ($(cnum))
+
+#---Make sure user has a participation record.
+include $(main)/confpartic.i $(cnum)
+
+#------------------------------------------------------------------
+set nxt   $page_save (1 assignedit.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(viewedit) Assignment)
+
+set pagename <span class="pageTitle"><B>$(viewedit) Assignment</B></span><BR>
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(viewedit) Assignment) 0 0 1
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');" \
+                               onLoad="ebox_onload();"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/virus_warning.i
+
+#---Form-submission handling.
+if $and ($(is_instructor)  $not_empty ($form(is_submit)))
+   set query UPDATE assignments \
+             SET text='$escsingle($form(tx_resp))', texttype='$form(tp_resp)' \
+             WHERE asnkey = $arg(5)
+   set h $sql_query_open  ($(query))
+   eval  $sql_query_row   ($(h))
+   eval  $sql_query_close ($(h))
+end
+
+set args $(nch)+$(nxt)+$arg(3)+x+x+x+x+x
+set query SELECT asnkey ak, title, instructor, due, start, end, text, texttype \
+            FROM assignments WHERE asnkey = $arg(5)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+#---If we've just come from an upload, arg(9) & arg(10) override
+#   text and texttype.
+if $and ($(is_instructor)  $equal ($arg(9) tx_resp))
+   set text      $(tx_resp)
+   set texttype  $arg(10)
+end
+
+include $(main)/header.i  assignedit \
+         </a><a href="$(mainurl)/assign.cml?$(args)">Assignments</a>\
+         &nbsp;$(compass_arrow)&nbsp;\
+         <a href="#">$replace(32 02 $(title))</a>
+
+#---If we ever call viewitem...
+set vi_markseen 1
+
+
+#-------------------------------------------------------------
+
+#---Build entire edit toolbox inside a pretty blue curved box.
+"<form METHOD=POST NAME="ebox" 
+"      onSubmit="return ebox_submit();"
+"      ACTION="assignedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+x+x+x">
+"<input type="hidden" name="is_submit" value="1">
+
+"<table cellspacing=0 cellpadding=0 border=0 >
+if $(is_instructor)
+"<tr>
+"<td><img $(src_eboxtl)></td>
+"<td $(eboxbg) colspan=5></td>
+"<td width=19 align=right><img $(src_eboxtr)></td>
+
+#"<tr $(eboxbg)>
+#"<td colspan=7><img $(src_clear) width=1 height=3></td>
+#"<td><img $(src_clear) width=1 height=3></td>
+
+#---Actual textarea editing box.
+include $(main)/ebox_type.i
+set ttype $word (1 $(texttype) html)
+if $and ($tablefind ($(ttype) html cml)  $(ebox_rt))
+   include $(main)/abox_rt.i $(ttype) text i_resp ASSIGN/$arg(5)
+end
+else
+   set ebox_rt 0
+   set ebox_ta 1
+   include $(main)/abox_ta.i $word (1 $(texttype) format) text i_resp ASSIGN/$arg(5)
+end
+
+"<tr $(eboxbg)>
+"<td>&nbsp;</td>
+"<td colspan=5>
+   #---Buttons below editing box (post+view, etc.)
+   if $(ebox_ta)
+      "<TABLE border=0 >
+#     "<TABLE border=0 cellspacing=0 cellpadding=0>
+#     "<TR valign=top>
+      "<tr>
+      "<TD><INPUT TYPE=SUBMIT NAME="submitpv" 
+      "          VALUE="Save Changes">&nbsp; </TD>
+      "<TD></TD>
+   
+      "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+   
+      "<TD></td>
+      "<TD></td>
+   
+      "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      "<TD>
+          include $(main)/boxsize.i 0
+      "</TD>
+      "</table>
+   end
+
+   if $(ebox_rt)
+      "<table border=0>
+      "<TR>
+      "<TD><INPUT TYPE=SUBMIT NAME="submitpv"
+      "          VALUE="Save Changes">&nbsp; </TD>
+      "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      "</table>
+   end
+"</td>
+"<td>&nbsp;</td>
+
+"<tr>
+"<td><img $(src_eboxbl)></td>
+"<td colspan=5 $(eboxbg)>&nbsp;</td>
+"<td width=19 align=right><img $(src_eboxbr)></td>
+"<td>&nbsp;&nbsp;</td>
+"<td>&nbsp;&nbsp;</td>
+"</table>
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0 >
+"<tr><td><img $(src_clear) width=19 height=1></td>
+
+"<tr><td></td>
+ "<TD><img $(src_bullet)>&nbsp;Here's what it looks like to the students:
+end
+
+"<tr><td>&nbsp;</td>
+
+"<tr><td></td><td colspan=8>
+   set akey $(ak)
+
+   #---CML response text
+   if $equal ($(texttype) cml)
+      "$cleanhtml(prohibited \
+            $protect($mac_expand($reval($cleanhtml(_empty $(text)))) ))
+      "<BR CLEAR=ALL>
+   end
+
+   #---HTML response text
+   elif $equal ($(texttype) html)
+      "$cleanhtml(prohibited \
+            $protect($mac_expand($cleanhtml(_empty $(text)))))
+      "<BR CLEAR=ALL>
+   end
+
+   #---"Literal" response text
+   elif $equal ($(texttype) literal)
+      "<PRE>
+      "$cleanhtml (prohibited $protect($mac_expand($t2html($(text)))))
+      "</PRE>
+   end
+
+   #---Word-wrapped response text
+   else
+      "$cleanhtml (prohibited $protect($mac_expand($wrap2html($(text)))))
+   end
+"</td>
+"</table>
+"</form>
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+
+set pagename
+#-----------------------------------------------------------------

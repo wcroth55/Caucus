@@ -1,0 +1,65 @@
+#
+#---H_PERS.CML.   Help about Personal Conference List
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_pers.cml $quote(Help on Personal Conference List)
+"<P>
+
+"<B>What Is It?</B><BR>
+"The Personal Conference List is simply a list of your favorite
+"conferences.&nbsp;
+"You control what is on this list; you may add to or remove
+"conferences from this list at any time.
+
+"<P>
+"<B>What Is Its Purpose?</B><BR>
+"Your Personal Conference List helps you track and quickly view
+"new activity in your favorite conferences in three ways:
+
+"<P>
+"<OL>
+"<LI>
+   "Any new activity in these conferences
+   "is automatically reported on the
+   "<A HREF="$(helpurl)/h_center.cml?x+x">
+   "$(center_name)</A>
+   "page.&nbsp;
+   "For each conference, the <B>number of items</B> with new 
+   "activity appears next to
+   "the conference name.
+   "<P>
+
+"<LI>
+   "You can immediately view the new discussion in a particular
+   "conference by clicking on the number of items.
+   "<P>
+
+"<LI>
+   "You can click on
+   "<U>Read all new discussion</U>
+   "to immediately read <B>all</B> of the new discussion
+   "in <B>all</B> of the conferences in your personal conference list.&nbsp;
+"</OL>
+
+"<P>
+"<B>How Do I Change It?</B><BR>
+"Go to the 
+"$(center_name),
+"and click on 
+"<U>Personal Conference List</U>.&nbsp;
+"You'll see a large text box, containing the names
+"in your personal conference list.&nbsp;
+"Click in the box, and use the mouse and the arrow keys
+"to edit the list of conferences in the box.&nbsp;
+"See <A HREF="$(helpurl)/h_myconfs.cml?x+x">Changing your
+"Personal Conference List</A> for more information.
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

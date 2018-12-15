@@ -1,0 +1,23 @@
+The program files in this directory are, unless otherwise
+indicated, Copyright (C) 2005 CaucusCare.com, a registered DBA 
+in the state of Michigan of the United States of America.
+
+This program is "open source" software; you can redistribute it and/or 
+modify it under the terms of the Common Development and Distribution
+License ("CDDL") as published by Sun Microsystems; either version 1
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+Common Development and Distribution License for more details,
+which is also included in this directory in the file cddl.txt.
+
+You can contact CaucusCare at:
+
+    info@caucuscare.com
+or
+    CaucusCare
+    2630 Lillian Road
+    Ann Arbor, MI 48104
+

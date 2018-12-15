@@ -1,0 +1,290 @@
+#
+#---I_RESP.CML.   Info about the response box
+#
+#  arg(1)  nch to defeat caching
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i i_resp.cml $quote(Help on the response box) $arg(3)
+"<P>
+
+"<B>What Is This?</B><BR>
+"When you are reading the responses to an item,
+"you'll see a big box towards the bottom of the page.&nbsp;
+"This is the "response box", where you get to add your
+"own response to the discussion.
+"(The "get <U>Help</U>" link just above the
+"box displays this help page.)&nbsp;
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Basically, two things: <B>Pass</B> (say nothing and go on), 
+"or <B>Post</B> (write a response and add it to the discussion).
+"<TABLE>
+"<TR VALIGN=top><TD><UL><LI>If you have nothing to add to this discussion 
+"    right now, just press the green Pass button (above and to the right of
+"    <FONT COLOR=BLUE>Help</FONT>).
+"</TD>
+"<TD><IMG $(src_pass)></TD>
+"<TR><TD COLSPAN=2><FORM NAME=r1>
+"    <UL><LI>To add your own thoughts to the discussion,
+"    click in the large response box, and type your response.&nbsp;
+"    When you're finished, press the
+"    <INPUT TYPE=BUTTON VALUE="Post &amp; View"> button below the 
+"    response box.
+"    </UL></FORM></TD>
+"</TABLE>
+"<P>
+"That's it!&nbsp;
+"Everything else is really just an extension of those two choices.
+
+"<P>
+"<B>What Else Can I Do?</B><BR>
+"The rest of this page describes, in detail, all the other things
+"you can do with the response box.&nbsp;
+"We've tried to put them in order, with the most frequent or useful
+"choices coming first.
+
+"<P>
+"<OL>
+
+"<P>
+"<FORM NAME=r2>
+"<B><LI>
+" <INPUT TYPE=BUTTON VALUE="Post &amp; View"> vs.
+" <INPUT TYPE=BUTTON VALUE="Post &amp; Go"></B><BR>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=bottom><TD>
+"<B>Post &amp; View</B> adds ("posts") your response to the end of the
+"discussion ("item"), and then displays the item again with your
+"response.&nbsp;
+"You can then add another response, or use the blue <B>edit</B> button
+"to change your first response,
+"or <B>Pass</B> on to the next item or page.</TD>
+"<TD>&nbsp;&nbsp;<IMG $(src_edit)></TD>
+"<TR><TD>&nbsp;</TD>
+"<TR><TD COLSPAN=2>
+"<B>Post &amp; Go</B> posts your response, and immediately goes on
+"to the next item or page.&nbsp;
+"</TD>
+"</TABLE>
+"</FORM>
+
+"<B><LI>Editing your text</B>.&nbsp;
+"  While you're writing your response, you can do simple editing.&nbsp;
+"  The response box works like a very simple word processor -- you can
+"  BACKSPACE and DELETE, or click on part of the text to move the
+"  little vertical insertion bar, and so forth.&nbsp;
+"  You can cut and paste text in the response box, by dragging
+"  the mouse over text and using the
+"  browser <B>Edit</B> menu (at the very top of the window).
+"  <P>
+"  If your text gets longer than the height of the response box,
+"  use the elevator bar at the right of the box to move up and down
+"  in your response.
+
+"<P>
+"<FORM NAME=r3>
+"<B><LI>
+"Enter your 
+" <SELECT>
+" <OPTION VALUE=1>word-wrapped
+" <OPTION VALUE=2>"literal"
+" <OPTION VALUE=3>HTML
+" <OPTION VALUE=4>CML
+"</SELECT>
+"response...</B><BR>
+"Normally, any text you write in your response is treated as
+""word-wrapped".&nbsp;
+"This means that your browser will "wrap" your paragraphs automatically,
+"adjusting them to fit the width of your browser window.&nbsp;
+"(If this is not clear, try clicking on the bottom right corner of 
+"your browser window, and drag it around.&nbsp;
+"You'll see the text adjust to fit the width of your window.)&nbsp;
+"<P>
+"You can tell Caucus to treat your response differently.&nbsp;
+"If you click on <B>word-wrapped</B> and select <B>"literal"</B>,
+"your text will appear exactly as you typed it, with line breaks where
+"you put them, and in a fixed-pitch font.&nbsp;
+"Literal mode is useful for entering tables of numbers, or
+"computer source code, or anything that looks better with
+"a fixed layout.
+"<P>
+"If you select <B>HTML</B>, Caucus will interpret your text as 
+"HTML, as if you were writing a web page.&nbsp;
+"Selecting <B>CML</B> treats your text as Caucus Markup Language, an
+"extension of HTML with many functions.&nbsp;
+"(See the CML Reference Guide at 
+"<A HREF="http://www.caucuscare.com">www.caucuscare.com</A>.)
+"</FORM>
+
+"<P>
+"<B><LI> <IMG $(src_upload) ALIGN=middle> a file</B><BR>
+"Clicking on <B>Attach</B> literally attaches a file from your
+"PC to your response.&nbsp;
+"You can attach anything: text, HTML, web pages, images,
+"spreadsheets -- anything.&nbsp;
+"(For more information, click on the attach button, and then
+"the <B>Help</B> button at the top of that page.)
+
+"<FORM NAME=r4>
+"<P>
+"<B><LI> <INPUT TYPE=RESET VALUE="Clear Box"></B>&nbsp;
+"does exactly that -- clears (empties) the response box.
+"</FORM>
+
+"<P>
+"<B><LI>Box width:</B> <IMG $(src_arleft) ALIGN=absmiddle>&nbsp;
+" <IMG $(src_arrite) ALIGN=absmiddle><BR>
+"These two buttons shrink or expand the width of the response
+"box.
+
+"<P>
+"<FORM NAME=r5>
+"<B><LI>Forget this item? <INPUT TYPE=checkbox></B><BR>
+"If this entire discussion item is uninteresting to you,
+"you can "forget" it by checking this box (and then pressing
+"<B>Pass</B>).&nbsp;
+"Caucus will simply ignore it for you in the future.&nbsp;
+"(You can always "remember" it if you need to, by going to the
+"conference home page and clicking on "manage items 
+"<FONT COLOR=BLUE>individually</FONT>".)
+"</FORM>
+
+"<P>
+"<B><LI><FONT COLOR=BLUE>Who has seen this item?</FONT></B><BR>
+"Click on this link to find out exactly who has seen this item,
+"and just how <I>much</I> of it they've seen.&nbsp;
+"(This really doesn't have much to do with writing a response,
+"but it follows as one of the last things you'd want to do
+"with or about an item.)
+
+"<p>
+"<img $(src_symbols) align=right>
+"<b><li>Symbols </b><br>
+"Click on the symbols button to see a pop-up "menu" of
+"mathematical symbols that you can add to your response.&nbsp;
+"When you click on one, a special "macro" (see next section) will
+"be added to the text of your response.&nbsp;
+"When your response is displayed, the matching symbol will
+"appear.
+
+
+"<A NAME="mac"><P></A>
+"<B><LI>Text Macros</B><BR>
+"Macros are a way to add text formatting (such as bold and italics) 
+"and other capabilities to your response.&nbsp;
+"(There's no button for macros; they're something you type in the
+"response box.)
+"<P>
+"We've noted that the response box acts like a simple word
+"processor -- a <I>very</I> simple word processor.&nbsp;
+"You can type and edit text, but there's no formatting, no
+"bold text or font size or color or anything.&nbsp;
+"This is an unfortunate limitation of HTML and the Web.
+"<P>
+"You can get around this somewhat by using Caucus' text macros.&nbsp;
+"By typing special codes <B>inside</B> your text, you can add 
+"text formatting to your response -- at least, formatting that you can see 
+"<I>once your response is posted</I>.&nbsp;
+"Below is a list of the text macros that you can type in
+"the response box:
+"<TABLE>
+"<TR><TD><B>&nbsp;&nbsp;Type this:</B></TD>  <TD>&nbsp;&nbsp;</TD>
+"    <TD><B>&nbsp;&nbsp;To see this:</B></TD>
+"<TR><TD>Some \%b(boldface) text</TD><TD></TD>
+"    <TD>Some <B>boldface</B> text</TD>
+"<TR><TD>Text in \%i(italics)</TD><TD></TD>
+"    <TD>Text in <I>italics</I></TD>
+"<TR><TD>\%tt(Fixed pitch)</TD><TD></TD>
+"    <TD><TT>Fixed pitch</TT></TD>
+"<TR><TD>\%u(underlined)</TD><TD></TD>
+"    <TD><U>underlined</U></TD>
+"<TR><TD>\%big(Big) text</TD><TD></TD>
+"    <TD><BIG>Big </BIG>text</TD>
+"<TR><TD>\%small(Small) text</TD><TD></TD>
+"    <TD><SMALL>Small</SMALL> text</TD>
+"<TR><TD>H\%sub(2)O</TD><TD></TD>
+"    <TD>H<SUB>2</SUB>O</TD>
+"<TR><TD>E=mc\%sup(2)</TD><TD></TD>
+"    <TD>E=mc<SUP>2</SUP></TD>
+"<TR><TD>\%strike(geek) guru</TD><TD></TD>
+"    <TD><STRIKE>geek</STRIKE> guru</TD>
+"<TR><TD>Red as \%color(red blood)</TD><TD></TD>
+"    <TD>Red as <FONT COLOR=RED>blood</FONT></TD>
+"</TABLE>
+
+"<P>
+"(<B>Caveats</B>:&nbsp;
+" this means that if you actually want to type a \% followed by
+" the name of a macro, you have to "escape" it by preceeding
+" it with a "\" -- a backslash.&nbsp;
+"Otherwise Caucus will interpret it for you, as in the examples above.&nbsp;
+"Also, when you type a % or a \$ <B>inside</B> a macro, you have to
+"escape them as well -- e.g. type "\%bold(cost in \\$)"
+"to produce "<B>cost in \$</B>".)
+
+"<P>
+"There are other macros that provide active links outside
+"the response -- to other sites, files, or even other conferences
+"and items in Caucus:
+"<P>
+"<DL>
+"<DT><B>\%person(roth)</B>
+"<DD>Becomes a link to the person in Caucus with userid "roth" -- such
+"as <U><FONT COLOR=BLUE>Charles Roth</FONT></U>.
+
+"<P>
+"<DT><B>\%response(5)</B>
+"<DD>Becomes a link to <U><FONT COLOR=BLUE>Response 5</FONT></U>
+"in the current item.&nbsp;  Clicking on this link would take the
+"reader directly to response number 5.
+
+"<P>
+"<DT><B>\%item(17)</B> or <B>\%item(17 12)</B>
+"<DD>Becomes a link to <U><FONT COLOR=BLUE>Item 17</FONT></U> or
+"<U><FONT COLOR=BLUE>Item 17:12</FONT></U> (item 17, response 12).
+
+"<P>
+"<DT><B>\%conference(new_conf)</B> or 
+"  <NOBR><B>\%conference(new_conf 23)</B></NOBR> or 
+"  <NOBR><B>\%conference(new_conf 23 4)</B></NOBR>
+"<DD>Becomes a link to conference
+"<U><FONT COLOR=BLUE>New Conf</FONT></U> or
+"<U><FONT COLOR=BLUE>New Conf Item 23</FONT></U> or
+"<NOBR><U><FONT COLOR=BLUE>New Conf Item 23:4</FONT></U></NOBR>.
+
+"<P>
+"<DT><B>\%url(http://caucuscare.com CaucusCare)</B>
+"<DD>Becomes a link to the URL, with the given name 
+"(e.g. <A HREF="http://caucuscare.com" TARGET="_blank">CaucusCare</a>.)
+
+"<P>
+"<DT><B>\%mailto(clinton@whitehouse.gov)</B>
+"<DD>Becomes an active e-mail link to 
+"<U><FONT COLOR=BLUE>clinton@whitehouse.gov</FONT></U>.
+
+"<P>
+"<DT><B>\%image(http://caucuscare.com/logo.gif)</B>
+"<DD>Actually shows the image that the URL points to:
+"<IMG $(src_logo) ALIGN=top>
+
+"<P>
+"<DT><B>\%imagelink(http://caucuscare.com/logo.gif http://caucuscare.com)</B>
+"<DD>Shows an image, and makes it a clickable link to the 2nd URL:
+"<A HREF="http://caucuscare.com" TARGET="_blank"
+"   ><IMG $(src_logo) ALIGN=top BORDER=0></A>
+
+"</DL>
+
+"</OL>
+
+
+"<P>
+include $(help)/hb.i $arg(3)
+#-----------------------------------------------------------------------

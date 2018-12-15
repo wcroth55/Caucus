@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.14: Response Information</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.14:&nbsp; Response Information</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref413.html">PREV</A>]
+   [<A HREF="ref415.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+The &quot;re_&quot; functions provide information about a particular
+response.&nbsp;  As in the previous section, <I>cnum</I> refers to a
+conference number, <I>inum</I> to an item number, and <I>rnum</I>
+to a response number.
+
+<P>
+<DL>
+
+<P><DT><A NAME="re_exists">$re_exists(cnum inum rnum)</A>
+<DD>
+Evaluates to &quot;1&quot; if the response exists, and &quot;0&quot;
+if the response does not exist or was deleted.
+
+<P><DT><A NAME="re_author">$re_author(cnum inum rnum)</A>
+<DD>
+Evaluates to the full name of the author (at the time the response
+was written).
+
+<P><DT><A NAME="re_owner">$re_owner(cnum inum rnum)</A>
+<DD>
+Evaluates to the userid of the author (owner) of the response.
+
+<P><DT><A NAME="re_time">$re_time(cnum inum rnum)</A>
+<DD>
+Evaluates to the time and date the response was written.
+
+<P><DT><A NAME="re_text">$re_text(cnum inum rnum)</A>
+<DD>
+Evaluates to the text of the response.
+
+<P><DT><A NAME="re_prop">$re_prop(cnum inum rnum)</A>
+<DD>
+Evaluates to the text 
+<A HREF="prop.html">property number</A> of the response.&nbsp;  (The
+property numbers are, for the moment, arbitrary, but are being
+used to distinguish how the user meant a response to be displayed
+-- e.g., as literal text with explicit line breaks, as plain text
+to be reformatted as simple HTML, or as explicit HTML as written
+by the responder.)
+
+<P><DT><A NAME="re_title">$re_title(cnum inum rnum)</A>
+<DD>
+Evaluates to the title of the response.&nbsp;  Only response 0 has
+a title, which is the title of the item.
+
+<P><DT><A NAME="re_delete">$re_delete(cnum inum rnum)</A>
+<DD>
+Deletes specified response.&nbsp;  If <I>rnum</I> is 0, deletes entire
+item.&nbsp;  Only the owner of the item or response (or an organizer)
+can successfully delete an item or response.
+
+<P><DT><A NAME="re_epoch">$re_epoch(cnum inum rnum)</A>
+<DD>
+Evaluates to &quot;epoch&quot; timing (number of seconds since
+Jan 1 1970) when this response was written.
+
+<P><DT><A NAME="re_bits">$re_bits(cnum inum rnum)</A>
+<DD>
+Evaluates to any special properties  possesed by this particular
+response.&nbsp;  A bit value of 0x10 means the response was originally
+written by an organizer.
+
+<P><DT><A NAME="re_copier">$re_copier(cnum inum rnum)</A>
+<DD>
+Evaluates to the userid of the person who <B>copied</B> this
+response to its current location.&nbsp;
+(If the response was not copied, this evaluates to nothing, i.e.
+an empty string.)
+
+<P><DT><A NAME="re_copied">$re_copied(cnum inum rnum)</A>
+<DD>
+Evaluates to the "copied" string stored by 
+response adding functions.&nbsp;
+It contains the data "<I>conference_name item response date time</I>".&nbsp;
+(If the response was not copied, this evaluates to nothing, i.e.
+an empty string.)
+
+</DL>
+
+<P>
+Note: as in chapter 4.13, all of these functions may be written
+with <I>no</I> arguments.&nbsp;  In that case, the arguments from the
+previous use of any of these functions (in the same CML page)
+that <I>did</I> have arguments, are re-used.
+</BLOCKQUOTE>
+
+<HR>
+</BODY>
+</HTML>

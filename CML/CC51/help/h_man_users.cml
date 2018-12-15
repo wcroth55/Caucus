@@ -1,0 +1,49 @@
+#
+#---H_MAN_USERS.I    Help about "Manage Individual Users" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_users.cml $quote(Help on Manage Individual Users)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Manage Individual Users page allows authorized managers to delete Caucus userids
+"and change user passwords.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Manage individual user accounts</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"This page contains sections for each of those functions, but you will only 
+"see those you are authorized for.  For instance, if you are only authorized
+"to change passwords, the delete users section won't appear on
+"this page.<P>
+
+"<DL>
+"<DT><B>Delete a userid</B>
+"<DD>To delete a Caucus user, enter their userid in the <B>Userid</B> field
+"and press the </B>Delete this user</B> button.&nbsp;  This process is not
+"reversible, so type carefully.&nbsp;
+"If you're not sure of a person's userid, click on the <B>People</B>
+"icon to look for the person by name.&nbsp;
+"Their userid will appear in parenthesis () at the top of the page.
+
+"<P>
+"<DT><B>Change a password</B>
+"<DD>To change a user's password, enter their userid in the <B>Userid</B>
+"field and type a password twice, once in the <B>Password:</B> field and
+"again in the <B>Verification</B> field.&nbsp;  The password will not appear as
+"plain text, so type carefully.&nbsp; Press the <B>Change Password</B> button
+"to effect the change.<P>
+"As a security measure, passwords of Caucus managers may only be changed
+"by the primary manager.<P>
+
+"</DL>
+include $(help)/hb.i

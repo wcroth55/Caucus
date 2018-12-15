@@ -1,0 +1,96 @@
+:
+#---FIXDATE.    Fix (create) the Caucus "date-entry" files.
+#
+#   Invoked as:
+#      fixdate    Cnnn
+# or
+#      fixdate    all
+#
+#   Arguments:
+#      Cnnn       conference, e.g. "C001"
+#      all        keyword "all", means fix all conferences.
+#
+#   Purpose:
+#      Deletes and re-creates the Caucus "item-time-entry" files XCED/XCEN
+#      and "response-time-entry" files XCFD/XCFN for the entire
+#      conference.
+#
+#      Needed to convert pre 1-MAY-93 release conferences to support
+#      new "SINCE" instance.
+#
+#   How it works:
+#      For each conference to be fixed:
+#         (1) Add the current userid as ":included" to the end of the
+#             the userlist.
+#
+#         (2) Run the "fdate_x" program, which scans the response partfiles
+#             and rebuilds the XCED,XCEN, XCFD,XCFN time-entry files.
+#
+#         (3) Restore the original userlist file.
+#
+#      MUST be run from top-level Caucus directory.
+#     
+#   Notes:
+#      The line "userid=`whoami`" may need to be modified on different
+#      versions of Unix.  The symbol 'userok' controls whether to ask
+#      the user for confirmation that the userid is correct.
+#
+#   History of revisions:
+#: CN  5/16/93 13:50 New script
+#: CP  8/05/93 17:10 Use $LOGNAME instead of 'whoami'.
+#----------------------------------------------------------------------------
+#
+#
+#
+if test "x$1" = "x"; then
+   echo " "
+   echo "Usage:  fixdate  Cnnn"
+   echo "   or:  fixdate  all"
+   exit
+fi
+
+userok=0
+userid=$LOGNAME
+confid=`pwd`
+
+if test "$userok" = "0"; then
+   echo -n "Is your userid \"$userid\"? (y/n) "
+   read answer
+   if test "$answer" != 'y'; then
+      echo "Please edit 'fixdate' to get your userid properly."
+      exit
+   fi
+fi
+
+
+if test "$1" = "all"; then
+   for cdir in C[0-9]*; do
+      echo " "
+      echo "Conference $cdir:"
+      cp $cdir/userlist $cdir/oldulist
+      echo ":include" >>$cdir/userlist
+      echo "$userid"  >>$cdir/userlist
+   
+      BIN2/fdate_x $confid $cdir
+   
+      rm -f $cdir/userlist
+      mv    $cdir/oldulist $cdir/userlist
+   done
+
+elif test -r $1/userlist; then
+   echo " "
+   echo "Conference $1:"
+   cp  $1/userlist   $1/oldulist
+   echo ":include" >>$1/userlist
+   echo "$userid"  >>$1/userlist
+
+   BIN2/fdate_x $confid $1
+
+   rm -f $1/userlist
+   mv    $1/oldulist $1/userlist
+
+else
+   echo " "
+   echo No such conference \"$1\".
+fi
+#----------------------------------------------------------------------------

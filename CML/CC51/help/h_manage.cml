@@ -1,0 +1,129 @@
+#
+#---H_MANAGE.I    Help about "Manage" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_manage.cml $quote(Help on Manage Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Caucus Management pages provide privileged individuals with the ability
+"to globally manage Caucus conferences, users, and settings.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+
+"<UL>
+
+include $(help)/h_pagetop.i
+
+"</UL><P>
+"<DL><DT><B>Server Information:</B>
+"<DD>The first section of the page displays the version of Caucus and the 
+"number of registered users.<P>
+
+"<DT><B>Management Options:</B>
+"<DD>The second section of the page consists of links to all of the 
+"different management functions.&nbsp;  Managers can be given privileges which 
+"give them access to only some of the available functions, so some
+"functions may not be highlighted for you.
+
+"<P>
+"Click on a link below for information about each of the function pages.<P>
+"<DL>
+"<DT><A HREF=$(helpurl)/h_man_create.cml?x+x">
+"Create a conference</A>
+"<DD>Create a new conference with yourself as the primary organizer, 
+"or restore a conference from the archive.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_cname.cml?x+x">
+"Rename a conference</A>
+"<DD>Change the name of an existing conference.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_archive.cml?x+x">
+"Archive a conference</A>
+"<DD>Save a compressed copy of a conference in the archive.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_remove.cml?x+x">
+"Delete a conference</A>
+"<DD>Completely remove a conference and its contents from the system.<P>
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_org.cml?x+x">
+"Conference Settings</A>
+"<DD>Change a conference's primary organizer or add yourself as an organizer.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_list.cml?x+x">
+"Manage the list of managers</A>
+"<DD>Define who can exercise manager privileges and what they can do.<P>
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_groups.cml?x+x">
+"Manage user groups</A>
+"<DD>Create, edit, and delete user groups.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_ucr.cml?x+x">
+"Create individual user accounts</A>
+"<DD>Create a new userid, and optionally register information about
+"the new user.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_users.cml?x+x">
+"Manage individual user accounts</A>
+"<DD>Delete userids or change passwords, 
+"depending on your privileges. 
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_date.cml?x+x">
+"Manage users by date</A>
+"<DD>List and optionally delete users by date of last access. 
+
+"<P>
+"<DT>
+
+
+#--------------------------
+
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_switch.cml?x+x">
+"Edit the Caucus "switches"</A>
+"<DD>Set the value of various variables that control the way Caucus behaves.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_popular.cml?x+x">
+"Edit the Popular Conference list</A>
+"<DD>Set the conference choices offered to new users.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_cc.cml?x+x">
+"Control Caucus Center Layout</A>
+"<DD>Customize the look, feel, and function of the $(center_name) page.
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_shut.cml?x+x">
+"Shutdown Caucus</A>
+"<DD>Shutdown all Caucus processes and users, 
+"and optionally restart the Caucus server. 
+
+"<P>
+"<DT><A HREF=$(helpurl)/h_man_rereg.cml?x+x">
+"Relicense Caucus</A>
+"<DD>Apply a new activation key to change or upgrade your Caucus
+"license -- on the fly!
+
+"</DL></DL><P>
+include $(help)/hb.i

@@ -1,0 +1,431 @@
+#
+#---convert.cml     Convert Caucus 4.x data into Caucus 5.x tables.
+#
+#   Currently converts:
+#     I. Conference list
+#    II. All site-variables and conference variables.
+#   III. All item variables.
+#    IV. All users (user personal info, and user variables)
+#     V. All Caucus4 groups and filesafe groups.
+#    VI. Conference userlists (=> conference groups)
+#   VII. "Course conference" filesafe fixups.
+#  VIII. Manager permissions (=> manager groups)
+#    IX. Update tasks table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 08/29/05 First version
+#:CR 12/09/05 Add more output during conversion.
+#:CR 12/20/05 Rename uploaded files directory (for confs with aliases)
+#----------------------------------------------------------------
+
+set main CC50/main
+include $(main)/macros.i
+
+set iface CC50
+
+"Hello, world!
+
+set step_i    1
+set step_ii   1
+set step_iv   1
+set step_v    1
+set step_vi   1
+set step_vii  1
+set step_viii 1
+set step_ix   1
+
+#---I. Convert conference list.
+if $(step_i)
+"
+"Converting conference list
+eval $sql_query_open (DELETE FROM confs);
+
+set num 1000
+while 1
+   set num $plus($(num) 1)
+   set fullpath $caucus_path()/MISC/confs$str_sub (1 3 $(num))
+   if $not ($exists($(fullpath)))
+      break
+   end
+
+   set fd $open ($(fullpath) r)
+   while $readln ($(fd) line)
+      if $not ($tablefind ($str_sub (0 1 $(line)) ! ~))
+         set line $replace(# 32 $(line))
+
+         set cnum $plus ($word(3 $(line)) 0)
+         set lib0 $word (1 $(line))
+         set name $replace(32 _ $upper1($replace(_ 32 $word (1 $(line)))))
+         set alias $site_var (ConfAlias_$(cnum))
+         if $not_empty ($(alias))
+            set name $replace (32 _ $(alias))
+         end
+         set name $replace (' _ $(name))
+         set name $replace (% _ $(name))
+
+         #---Rename uploaded files directory, if necessary.
+         if $not_empty ($(alias))
+            set  lib1 $lower($(name))
+            eval $rename ($caucus_path()/public_html/LIB/$(lib0) \
+                          $caucus_path()/public_html/LIB/$(lib1))
+         end
+
+         set query INSERT INTO confs (cnum, name) \
+                   VALUES ('$(cnum)', '$(name)')
+         set h $sql_query_open ($(query))
+         "h=$(h), $(query)
+         eval  $sql_query_close($(h))
+      end
+   end
+   eval  $close ($(fd))
+   eval  $sql_sequence(confs)
+   set max $sql_query_select(SELECT MAX(cnum + 1) FROM confs)
+   set h $sql_query_open(UPDATE sequence_confs SET id='$(max)')
+   eval  $sql_query_close($(h))
+   "new sequence = $sql_sequence(confs)
+end
+end
+
+
+#---II. Convert all site-variables and conference variables.
+if $(step_ii)
+"
+"Converting site variables...
+for sitevar in $list_site_var()
+   eval $set_site_data (0 - $(sitevar) $site_var ($(sitevar)))
+end
+
+"
+"Converting conference variables...
+for cnum in $cl_list()
+   "   cnum=$(cnum)
+   for cf in $list_conf_var($(cnum))
+      eval $set_site_data ($(cnum) - $(cf) $conf_var ($(cnum) $(cf)))
+   end
+end
+
+#---III. Convert all item variables
+"
+"Converting item variables...
+for cnum in $cl_list()
+   "   cnum=$(cnum)
+   eval $it_join ($(cnum))
+   count inum 1 $it_last($(cnum))
+      for iv in $list_item_var($(cnum) $(inum))
+         eval $set_site_data ($(cnum) $(inum) $(iv) \
+                              $item_var ($(cnum) $(inum) $(iv)))
+      end
+   end
+end
+end
+
+if $(step_iv)
+"
+"Converting users (personal inf, user vars)...
+#---IV. Convert all users (personal info and user variables)
+for name size dir in $dirlist(2 $caucus_path()/USER001)
+   if $not ($(dir))
+      continue
+   end
+   set uid $(name)
+   "   uid=$(uid)
+   set name  $per_name($(uid))
+   set lname $word ($sizeof($(name)) $(name))
+   set fname $words (1 $minus ($sizeof($(name)) 1) $(name))
+   eval $set_user_info ($(uid) lname $(lname)) $(uid) $(fname) $(lname))
+   eval $set_user_info ($(uid) fname $(fname))
+   eval $set_user_info ($(uid) intro $per_intro($(uid)))
+   eval $set_user_info ($(uid) phone $per_phone($(uid)))
+   eval $set_user_info ($(uid) email $user_var ($(uid) e-mail))
+   eval $set_user_info ($(uid) laston %yyyymmddOf($per_laston($(uid))))
+   eval $set_user_info ($(uid) homepage $user_var ($(uid) homepage))
+   set picpos $str_index (PICTURES $user_var ($(uid) picture))
+   if $greater ($(picpos) 0)
+      eval $set_user_info ($(uid) picture \
+                $str_sub ($plus($(picpos) 9) 1000 $user_var ($(uid) picture)))
+   end
+
+   for var in $list_user_var ($(uid))
+      if $not ($tablefind ($(var) e-mail homepage picture my_confs))
+         set value $user_var ($(uid) $(var))
+         eval $set_user_data ($(uid) $(var) $(value))
+      end
+   end
+end
+end
+
+
+
+#---V. Convert "old" Caucus4 groups and filesafe groups.
+"
+"Converting Caucus4 groups, filesafe groups...
+
+#---Build list of standalone filesafes
+if $(step_v)
+set filesafes
+for fn in $list_site_var (x FN_)
+   set filesafes $(filesafes) $str_sub (3 1000 $(fn))
+end
+
+set query DELETE FROM grouprules WHERE owner IN ('Caucus4', 'Filesafe')
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+set query DELETE FROM groups WHERE owner IN ('Caucus4', 'Filesafe')
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+for filename size isdir in $dirlist (2 $caucus_path()/GROUPS)
+   "   groupname=$(filename)
+   if $or ($(isdir)  \
+           $equal ($str_index (conf_ $(filename)) 0) \
+           $equal ($str_sub(0 1 $(filename)) .) )
+      continue
+   end
+   set gtype $if ($tablematch ($(filename) $(filesafes)) Filesafe Caucus4)
+   set fd $open ($caucus_path()/GROUPS/$(filename) r)
+   while  $readln ($(fd) line)
+      set c1 $str_sub (0 1 $(line))
+      set w1 $word (1 $(line))
+      if $or ($equal ($(c1) #)  $empty($(w1)))
+         continue
+      end
+
+      set grkey $sql_sequence(grouprules)
+      if $equal ($(c1) <)
+         set w1      $word (1 $str_sub(1 1000 $(line)))
+         set subtype $if ($tablematch ($(w1) $(filesafes)) Filesafe Caucus4)
+         set q1 INSERT INTO grouprules  \
+                (grkey, owner, name, subowner, subname, access) VALUES \
+                ($(grkey), '$(gtype)', '$(filename)', '$(subtype)', '$(w1)', 20)
+      end
+      else
+         set w1 $replace(* % $(w1))
+         set wildcard $if ($gt_equal ($str_index (% $(w1)) 0) 1 0)
+         set q1 INSERT INTO grouprules \
+                (grkey, owner, name, userid, access, wildcard) VALUES \
+                ($(grkey), '$(gtype)', '$(filename)', '$(w1)', 20, $(wildcard))
+      end
+
+      set h $sql_query_open ($(q1))
+      eval  $sql_query_close($(h))
+
+   end
+   eval $group_update ($quote($(gtype) $(filename)))
+#  "Updated $(gtype).$(filename)
+   eval $close($(fd))
+end
+end
+
+#---VI. Conference userlists -> conference groups.
+if $(step_vi)
+"
+"Converting conference userlists...
+set query DELETE FROM grouprules WHERE owner='CONF' AND access >= -1
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+set query DELETE FROM groups     WHERE owner='CONF'
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+set accessNames :primary :organizer :instructor :include :readonly :exclude
+set accessNumbs 100      40         30          20       10        0
+for cnum in $cl_list()
+   "   cnum=$(cnum)
+   set f1 $open ($caucus_path()/C%digit4($(cnum))/userlist r)
+   set access 0
+   while $readln ($(f1) line)
+      set w1 $word    (  1 $(line))
+      set c1 $str_sub (0 1 $(w1))
+      if $or ($empty($(w1)) $equal ($(c1) #))
+         continue
+      end
+
+      if $equal ($(w1) :primary)
+         set access 100
+         set c1 _
+         set w1 $word (2 $(line))
+      end
+
+      if $equal ($(c1) :)
+         set pos $tablefind ($(w1) $(accessNames))
+         set access $word ($plus ($(pos) 1) 0 $(accessNumbs))
+         continue
+      end
+
+      if $equal ($str_index (<conf_ $(w1)) 0)
+         include convert_confgrp.i $str_sub(1 1000 $(w1))
+         continue
+      end
+
+      if $equal ($(c1) *)
+         include $(main)/man_grplist.i $(cnum) x x
+         for uid in $(list)
+            set grkey $sql_sequence(grouprules)
+            set q1 INSERT INTO grouprules \
+                  (grkey, owner, name, userid, access) VALUES \
+                  ($(grkey), 'CONF', '$(cnum)', '$(uid)', $(access))
+            set h $sql_query_open ($(q1))
+            eval  $sql_query_close($(h))
+         end
+      end
+
+      set grkey $sql_sequence(grouprules)
+      if $equal ($(c1) <)
+         set w1 $word (1 $str_sub(1 1000 $(line)))
+         set q1 SELECT DISTINCT owner FROM grouprules \
+                 WHERE owner IN ('Caucus4', 'Filesafe') \
+                   AND name = '$(w1)'
+         set gtype $word (1 $sql_query_select ($(q1)) Caucus4)
+         set q1 INSERT INTO grouprules  \
+                  (grkey, owner, name, subowner, subname, access) \
+                  VALUES ($(grkey), 'CONF', '$(cnum)', '$(gtype)',  \
+                          '$(w1)', $(access))
+      end
+      else
+         set optional $if ($equal (* $(w1)) 1 0)
+         set w1 $replace(* % $(w1))
+         set wildcard $if ($gt_equal ($str_index (% $(w1)) 0) 1 0)
+         set q1 INSERT INTO grouprules \
+                  (grkey, owner, name, userid, access, wildcard, optional) \
+                VALUES ($(grkey), 'CONF', '$(cnum)', '$(w1)', $(access), \
+                        $(wildcard), $(optional))
+      end
+      set h $sql_query_open ($(q1))
+      if $less ($(h) 0)
+         "h=$(h), query=$(q1)
+      end
+      eval  $sql_query_close($(h))
+
+   end
+   eval $close($(f1))
+   eval $group_update ($quote(CONF $(cnum)))
+end
+end
+
+#---VII. Make all "course conference" filesafes simply inherit the CONF group.
+if $(step_vii)
+"
+"Converting course conference filesafes...
+for cnum in $cl_list()
+   if $equal (x$site_data ($(cnum) - confType) xCourse)
+      "   cnum=$(cnum)
+      set newname          $cl_name($(cnum))
+      set oldname filesafe_$(newname)
+      set query DELETE FROM grouprules \
+                 WHERE owner='Filesafe' AND name='$(oldname)'
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+      
+      set query DELETE FROM groups     \
+                 WHERE owner='Filesafe' AND name='$(oldname)'
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+
+      set grkey $sql_sequence(grouprules)
+      set q1 INSERT INTO grouprules  \
+             (grkey, owner, name, subowner, subname, access) VALUES \
+             ($(grkey), 'Filesafe', '$(newname)', 'CONF', '$(cnum)', -1)
+      set h $sql_query_open ($(q1))
+      eval  $sql_query_close($(h))
+      eval $group_update ($quote(Filesafe $(newname)))
+   end
+end
+end
+
+#---VIII. Manager groups
+if $(step_viii)
+"
+"Converting manager groups...
+set query DELETE FROM grouprules WHERE owner='MGR' AND access >= 0
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+set query DELETE FROM groups WHERE owner='MGR'
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+for uid mask in $mgr_list()
+   "   uid=$(mask)
+   set mgroups
+   if $equal (-1 $(mask))
+      set mgroups systemAllPrivileges
+   end
+   else
+      if $bit_and (   1 $(mask))
+         set mgroups groupEditAll groupEditNonManager
+      end
+      if $bit_and (   2 $(mask))
+         set mgroups $(mgroups) conferenceCreate
+      end
+      if $bit_and (   4 $(mask))
+         set mgroups $(mgroups) conferenceDelete
+      end
+      if $bit_and (   8 $(mask))
+         set mgroups $(mgroups) conferenceChange
+      end
+      if $bit_and (  32 $(mask))
+         set mgroups $(mgroups) passwordChangeUsers
+      end
+      if $bit_and (  64 $(mask))
+         set mgroups $(mgroups) userCreate
+      end
+      if $bit_and ( 128 $(mask))
+         set mgroups $(mgroups) userDelete userEdit userReports
+      end
+      if $bit_and ( 512 $(mask))
+         set mgroups $(mgroups) filesafeManage interfaceManage userReports \
+                                systemBulletins
+      end
+      if $bit_and (4096 $(mask))
+         set mgroups $(mgroups) conferenceArchive conferenceRestore
+      end
+      if $bit_and (8192 $(mask))
+         set mgroups $(mgroups) systemShutdown systemBulletins
+      end
+   end
+   for mg in $(mgroups)
+      "   Add $(uid) to $(mg)
+      set grkey $sql_sequence(grouprules)
+      if $equal ($str_sub (0 1 $(uid)) <)
+         set w1 $str_sub (1 1000 $(uid))
+         set q1 SELECT DISTINCT owner FROM grouprules \
+                 WHERE owner IN ('Caucus4', 'Filesafe') \
+                   AND name = '$(w1)'
+         set gtype $word (1 $sql_query_select ($(q1)) Caucus4)
+         set q1 INSERT INTO grouprules  \
+                  (grkey, owner, name, subowner, subname, access) \
+                  VALUES ($(grkey), 'MGR', '$(mg)', '$(gtype)',  \
+                          '$str_sub (1 1000 $(uid))', 20)
+      end
+      else
+         set q1 INSERT INTO grouprules (grkey, owner, name, userid, access) \
+                  VALUES ($(grkey), 'MGR', '$(mg)', '$(uid)', 20)
+      end
+      set h $sql_query_open ($(q1))
+      eval  $sql_query_close($(h))
+
+      eval $group_update ($quote(MGR $(mg)))
+   end
+end
+end
+
+#---IX. Update tasks table (add towner field).
+if $(step_ix)
+   "
+   "Updating tasks table...
+   set query alter table tasks add column towner varchar(240)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+
+   set query alter table tasks add index (towner)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+end
+
+"$errors()
+#----------------------------------------------------------------

@@ -1,0 +1,144 @@
+#
+#---quizAllScores.cml.   View scores across ALL quizzes (report)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/22/07 New file.
+#: CR 06/25/07 Rewrite scoring display (so that it works!)
+#: CR 12/03/07 Bug fix: put correct item id in item$(qkey)Id.
+#: CR 01/08/08 Handle (skip) quizzes with includeScore=0.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quizAllScores.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set pagename <span class="pageTitle">All&nbsp;Quizzes</span>
+
+set nxt   $page_save (1 quizAllScores.cml \
+             $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+             # All&nbsp;Quizzes)
+include $(main)/head.i $arg(3)  $quote(All&nbsp;Quizzes)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  </A><a href="#top">All Quizzes
+
+
+#---Get top row of score report (list of quizzes, total points for each)
+set query \
+    SELECT h.item0, h.item1, h.item2, h.item3, h.item4, h.item5, \
+           i.id, q.title quiztitle, m.qkey, m.pkey, p.title, p.deleted, \
+           q.qkey, SUM(p.totalpoints) points, q.includeScore \
+     FROM quizmap m, quiz q, quizproblems p, items i, conf_has_items h \
+    WHERE q.qkey=m.qkey AND p.pkey=m.pkey AND p.deleted=0 \
+      AND i.qkey=q.qkey AND h.cnum=$(cnum) AND h.items_id=i.id \
+      AND q.includeScore=1 \
+    GROUP BY q.qkey \
+    ORDER BY item0, item1, item2, item3, item4, item5
+
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=bottom>
+"<td colspan=2 align=right><div class="quizAllScores">Student&nbsp;</div></td>
+
+set quizkeys
+set quizItems
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set key$(qkey)Total $(points)
+   set quizkeys  $(quizkeys)  $(qkey)
+   set quizItems $(quizItems) $(id)
+   "<td><div class="quizAllScores"
+   "  ><a href="quiz_take.cml?$(nch)+$(nxt)+$arg(3)+$(id)+x+x+x+x"
+   "  >$item_tuplet ($(item0) $(item1) $(item2) $(item3) $(item4) $(item5)):
+   "    $(quiztitle)</a></div></td>
+end
+eval $sql_query_close($(h))
+"<td align=right>&nbsp;Totals</td>
+
+
+#---Now do each student...
+set quser SELECT u.userid, u.lname, u.fname \
+            FROM (user_info u, groups g) \
+           WHERE u.active >= 10 \
+             AND u.userid  = g.userid AND g.owner='CONF' AND g.name='$(cnum)' \
+             AND g.access >= $priv(minimum) \
+           ORDER BY lname, fname
+set qh $sql_query_open ($(quser))
+set counter 0
+set parity  1
+while  $sql_query_row  ($(qh))
+   set counter $plus($(counter) 1)
+   set parity  $minus(1 $(parity))
+
+   #---Get their scores for all quizzes in this conf.
+   set q2 \
+      SELECT i.id, i.qkey, SUM(s.points) stotal \
+        FROM (items i, conf_has_items h) \
+        LEFT JOIN quizscore s \
+          ON (s.qkey=i.qkey AND s.userid='$(userid)') \
+       WHERE h.cnum=$(cnum) AND h.items_id=i.id \
+         AND i.qkey IS NOT NULL \
+       GROUP BY s.qkey \
+       ORDER BY item0, item1, item2, item3, item4, item5
+#  "<tr><td colspan=30>$(q2)</td>
+
+   "<tr class="peoplelist$(parity)">
+   "<td align=right>&nbsp;$(counter).&nbsp;</td>
+   "<td><nobr>$(lname), $(fname)&nbsp;</nobr></td>
+   
+   for key in $(quizkeys)
+      set key$(key)Value
+      set item$(key)Id
+   end
+
+   set h2 $sql_query_open($(q2))
+   while  $sql_query_row ($(h2))
+      set key$(qkey)Value $(stotal)
+      set item$(qkey)Id $(id)
+   end
+   eval   $sql_query_close($(h2))
+
+   set sumTop  0
+   set sumBottom 0
+   for key in $(quizkeys)
+      set score $(key$(key)Value)
+      set id    $(item$(key)Id)
+      if $empty ($(score))
+         "<td>&nbsp;</td>
+      end
+      else
+         set sumTop $plus ($(sumTop) $(score))
+         "<td align=right><nobr>&nbsp;<a 
+         "     href="quiz_take.cml?$(nch)+$(nxt)+$arg(3)+$(id)+x+x+x+x+$(userid)">$(score) 
+         " / $(key$(key)Total)</a>&nbsp;</nobr></td>
+      end
+      set pts  $rest (2 $(pts))
+      set sumBottom $plus ($(sumBottom) $(key$(key)Total))
+   end
+   "<td align=right><nobr>&nbsp;&nbsp;$(sumTop) / $(sumBottom)</nobr></td>
+         
+end
+eval   $sql_query_close($(qh))
+"</table>
+"<p/>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

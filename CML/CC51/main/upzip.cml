@@ -1,0 +1,89 @@
+#
+#---UPZIP.CML  Handle Uploading a Zip File
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i upzip.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 upzip.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Zip File Attach )
+
+include $(main)/head.i $arg(3)  $quote(Zip File Attach)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     upzip  Zip File Attach
+
+if $not_empty($(filelist))
+
+  "<BLOCKQUOTE>
+# "rmdir='$(rmdir)'<BR>
+# "bbase='$(bbase)'<BR>
+# "zipout=$(zipout)<BR>
+# "<P>
+  "You have attached a zip archive, and the files in that archive have been
+  "expanded and stored in the file library for this conference.
+  "<P>The files in your archive are listed below.&nbsp;
+  " If you wish to include
+  "links to any of these files in the text you were editing when you 
+  "pressed the Attach button, check the box next to the filename.<BR>
+
+  "<FORM METHOD=POST ACTION="upzipf.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+  "<UL>
+  set num 0
+  for fname in $(filelist)
+    set num  $plus($(num) 1)
+    set line $unquote($(line))
+    "<INPUT TYPE=CHECKBOX NAME=FILE$(num) VALUE="$(fname)"> $(fname)<BR>
+  end
+  "</UL>
+  "<INPUT TYPE=HIDDEN NAME="num" VALUE=$(num)>
+
+  "<P>You will probably want to check at least one filename.
+
+  "<P>You can also choose how you would like the selected files to 
+  "appear.&nbsp;  Show the files as:
+  "<UL>
+  "<INPUT TYPE=RADIO NAME="utype" VALUE="link" CHECKED>Linked 
+  "                                           filenames&nbsp;&nbsp;
+  "<INPUT TYPE=RADIO NAME="utype" VALUE="url">Full URLs&nbsp;&nbsp;
+  "<INPUT TYPE=RADIO NAME="utype" VALUE="img">Images 
+  "</UL>
+
+  "<P>Once you have selected the files you wish to have links to, 
+  "press the button below to finish the attachment process.
+  "<P><INPUT TYPE=SUBMIT VALUE="Finish Attach">
+  "</FORM>
+
+  "</BLOCKQUOTE>
+
+  include $(main)/trailer.i   upload   Attach File
+end
+else
+
+  "<BLOCKQUOTE>
+  "You attempted to attach a zip archive, but the archive could not be
+  "decompressed.  The text of the error was:
+  "<PRE>$(zipout)</PRE>
+  "Please try your attachment again.
+  "</BLOCKQUOTE>
+end
+
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

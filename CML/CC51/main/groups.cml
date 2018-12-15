@@ -1,0 +1,72 @@
+#
+#---GROUPS.CML.  Group list for organizers
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i groups.cml
+end
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set pagename <H2>Customize Users: Groups</H2>
+
+include $(main)/head.i $arg(3)  $quote(Customize Users : User Groups)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  groups  </A><A HREF="custom_users.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize Users</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">User Groups</A>
+
+
+"This is a list of groups on this system. Select one to see its contents.<P>
+include $(main)/groups.i
+if $empty($(groups))
+   "<B>There are no user groups defined on this system.</B><P>
+end
+else
+   "<UL>
+   for filename in $(groups)
+      set handle $open($caucus_path()/GROUPS/$(filename) r)
+      eval $readln($(handle) desc)
+      "<LI><A HREF=groups.cml?\
+    $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$(filename)>
+      "$(filename)</A> 
+      if $equal ($word(1 $(desc)) #)
+         "-- <SMALL>$rest(2 $(desc))</SMALL>
+      end
+      if $equal ($arg(9) $(filename))
+        "<UL>
+        if $not_equal ($word(1 $(desc)) #)
+           "<LI>$(desc)
+        end
+        while $equal($readln($(handle) line) 1)
+        "<LI>$(line)
+        end
+         "</UL><P>
+      end
+      eval $close($(handle))
+   end
+   "</UL><P>
+end
+
+"Contact your Caucus manager if you need to create or modify a user group.
+
+"<P>
+"<A HREF=custom_users.cml?$arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)#members>
+"Return to the Customize:Users page.</A>
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

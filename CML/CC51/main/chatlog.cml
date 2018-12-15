@@ -1,0 +1,89 @@
+#
+#---chatlog.cml.   Display a particular chat log
+#
+#   Argument usage:
+#     $arg(9)      Full log file name (w/o directory)
+#
+#: CR 07/16/03 New file.
+#: CR 08/22/03 Parse userid and text from either side of ">" in chat log text.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i chatlog.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set chatparts $replace (. 32 $arg(9))
+set chatroom  $word (1 $(chatparts))
+set chatname  $upper1 ($(chatroom))
+set chatepoch $word (2 $(chatparts))
+
+set nxt   $page_save (1 chatlog.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Chat&nbsp;Log )
+
+include $(main)/head.i $quote(Chat Log)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  chatlog  </a><a href="chatlist.cml?$arg(1)+$arg(2)+\
+        $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$(chatroom)" \
+        >Chat&nbsp;Logs: $(chatname)</a>&nbsp;$(compass_arrow)&nbsp;\
+        <a href="#">$dateof($(chatepoch))
+
+"<p>
+"<blockquote>
+"Conversation log for chat room <b>$upper1 ($word (1 $(chatparts)))</b>,
+"starting $dateof($word (2 $(chatparts)))
+"<p>
+
+set counter 0
+set fd $open ($caucus_path()/CHATLOGS/$arg(9) r)
+if $greater ($(fd) 0)
+   "<table cellspacing=4 cellpadding=0 border=0>
+   while $readln ($(fd) line)
+      set counter $plus ($(counter) 1)
+      "<tr valign=top><td align=right>$(counter))&nbsp;</td>
+#     "<td>%person($word (2 $replace (> 32 $(line)))):&nbsp;&nbsp;
+      include $(main)/chatloguid.i $quote($(line))
+      "<td>%person($(uid)):&nbsp;&nbsp;
+
+      #---If this is 'launch (someurl)', hyperlink it.
+#     set chattext $rest (3 $(line))
+      set chattext $str_sub ($plus ($str_index (> $(line)) 1) 100000 $(line))
+      set lparen $str_index ($char(40) $(chattext))
+      set rparen $str_index ($char(41) $(chattext))
+      set chattext $replace (40 32 $(chattext))
+      set chattext $replace (41 32 $(chattext))
+      if $and ($greater ($(lparen) 0)           \
+               $greater ($(rparen) $(lparen))   \
+               $equal ($sizeof($(chattext)) 2)  \
+               $equal ($word (1 $(chattext)) launch))
+         set adr $word (2 $(chattext))
+         set url $(adr)
+         if $not_equal ($str_index (http $(url)) 0)
+            set url http://$(adr)
+         end
+         "launch (<a href="$(url)" target="_blank">$(adr)</a>)</td>
+      end
+
+      #---Otherwise, just show the text.
+      else
+#        "$rest (3 $(line))</td>
+         "$str_sub ($plus ($str_index (> $(line)) 1) 100000 $(line))</td>
+      end
+   end
+   eval $close ($(fd))
+   "</table>
+end
+
+"</blockquote>
+"<HR>
+"</BODY>
+"</HTML>
+#-----------------------------------------------------------------------

@@ -1,0 +1,262 @@
+#
+#---MAN_UCREATED.CML.   Create & display list of users (from man_batch.cml).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This file is *not* open source, and is part of the "batch registration"
+# add-on package. You must purchase a license to use this package.
+#
+#: CR 03/29/03 New file.
+#: CR 06/21/03 Warn about already existing users, but keep going.
+#: CR 04/15/04 Allow for registration if can't add to user auth source.
+#: CR 09/28/04 Force userids to lower-case, no blanks; if user is
+#              not registered, delete newly created userid first before
+#              creating it (in caucus_passwd).
+#: CR 12/08/05 Rewrite for C5.
+#: CR 01/19/06 Add new user to interface_registered, any wildcard match groups.
+#: CR 03/15/06 Fill in user_info.registered.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_ucreated.cml
+end
+
+include $(main)/secure.i manage userCreate
+
+set nch   $unique()
+set nxt   $page_save (2 man_ucreated.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Newly created users )
+
+include $(main)/head.i $quote(Manager Options : Newly created users)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_org  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Newly&nbsp;created&nbsp;users
+
+"<BLOCKQUOTE>
+"<p>
+
+#---Phase One: read through each line of the file, and look for any errors.
+set errors   0
+"<table cellspacing=0 cellpadding=0 border=0>
+set fd $open ($form(upload) r)
+while $readln ($(fd) line)
+   set thiserr
+   set thiswarn
+   if $or ($equal ($str_sub (0 1 $(line))  #) \
+           $equal ($str_sub (0 2 $(line)) "#))
+      continue
+   end
+
+   #---Translate all newlines into ^C's, so we can find & restore them later;
+   #   translate all <tab>s into newlines, so we can use $lines() to
+   #   parse the individual fields out.
+   set line $replace (10 03 $(line))
+   set line $replace (09 10 $(line))
+  
+   #---Userid.
+   set column 0
+   include $(main)/columnfield.i
+   set newuid $lower ($replace (32 _ $(field)))
+   if $empty ($(newuid))
+      set thiserr $(thiserr)Empty userid.&nbsp;&nbsp;&nbsp;
+   end
+   if $not_empty ($user_info ($(newuid) lname))
+      set thiswarn $(thiswarn)Userid already exists.&nbsp;&nbsp;&nbsp;
+   end
+
+   #---Password
+   include $(main)/columnfield.i
+   set newpw  $(field)
+   if $and ($empty ($(newpw))  $pw_can_add())
+      set thiserr $(thiserr)Empty password.
+   end
+
+   if $not_empty ($(thiserr))
+      set errors 1
+      "<tr><td>Error:&nbsp;</td><td>$(newuid)</td> <td></td> <td>$(thiserr)</td>
+   end
+   if $not_empty ($(thiswarn))
+      "<tr><td>Warning:&nbsp;</td>
+      "    <td>$(newuid)&nbsp;&nbsp;</td><td></td><td>$(thiswarn)</td>
+   end
+end
+eval $close ($(fd))
+"</table>
+
+#---Complain about errors, and stop there.
+if $(errors)
+   "<p>
+   "<b>No users were created.</b>&nbsp;
+   "Fix the problems in your spreadsheet (or remove the rows
+   "containing the problems), and return to the
+   "<A HREF="man_batch.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+          $arg(6)+$arg(7)+$arg(8)"
+   "  >Batch creation</a> page and try again.
+end
+
+#---Otherwise, Phase Two: process the whole file again, only *this* time
+#   actually create the users and their info.
+else
+   "<p>
+   "Newly created users are shown below:
+   "<p>
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr><td></td><td>&nbsp;&nbsp;</td>
+   "<td><b>Full name</b></td> <td>&nbsp;&nbsp;</td>
+   "<td><b>Userid</b></td>    <td>&nbsp;&nbsp;</td>
+   "<td><b>E-mail address</b></td>
+  
+   #---Read through each line of the file, and create that user.
+   set fd $open ($form(upload) r)
+   while $readln ($(fd) line)
+      if $or ($equal ($str_sub (0 1 $(line))  #) \
+              $equal ($str_sub (0 2 $(line)) "#))
+         continue
+      end
+  
+      #---Translate all newlines into ^C's, so we can find & restore them later;
+      #   translate all <tab>s into newlines, so we can use $lines() to
+      #   parse the individual fields out.
+      set line $replace (10 03 $(line))
+      set line $replace (09 10 $(line))
+  
+      #---Userid. If user already exists, just skip them.
+      set column 0
+      include $(main)/columnfield.i
+      set newuid $lower ($replace (32 _ $(field)))
+      if $not_empty ($user_info ($(newuid) lname))
+         continue
+      end
+   
+      #---Password
+      include $(main)/columnfield.i
+      set newpw  $(field)
+
+      #---Groups
+      include $(main)/columnfield.i
+      set groups $(field)
+    
+      #---Step 2: create userid & pw.
+      if $(batch_first_call)
+         set create_error
+         set error 0
+         if $empty ($(newuid))
+            set error -10
+         end
+         elif $and ($empty ($(newpw))   $pw_can_add())
+            set error -10
+         end
+         elif $and ($pw_can_add()  $not_empty ($(newuid)) $not_empty ($(newpw)))
+            eval $pw_delete ($(newuid))
+            set error $pw_add($(newuid) $(newpw) 0)
+         end
+         if $not_equal($(error) 0)
+            if $equal($(error) -1)
+               set create_error Not permitted
+            end
+            elif $equal($(error) -10)
+               set create_error No id or pw
+            end
+            elif $equal($(error) 1)
+               set create_error Program error
+            end
+            elif $equal($(error) 2)
+               set create_error Already exists
+            end
+            elif $equal($(error) 6)
+               set create_error Password too long
+            end
+            elif $equal($(error) 8)
+               set create_error Lock failure
+            end
+            elif $equal($(error) 9)
+               set create_error Read failure
+            end
+            elif $equal($(error) 10)
+               set create_error Modify failure
+            end
+            elif $equal($(error) 11)
+               set create_error System error
+            end
+         end
+  
+         if $not_empty ($(create_error))
+            "<tr>
+            "<td><b>$(create_error):</b></td>  <td></td>
+            "<td>$(newfname) $(newlname)</td>  <td></td>
+            "<td>($(newuid))</td>
+            continue
+         end
+  
+         #---Step 3: actually register user, set first & last name.
+         eval $set_user_info ($(newuid) lname x-x-x-x)
+         eval $set_user_info ($(newuid) regface $(iface))
+
+         #---Step 3.5, add them to the selected groups
+         for group in $(groups)
+            set grkey $sql_sequence(grouprules)
+            set query \
+               INSERT INTO grouprules (grkey, owner, name, userid, access) \
+               VALUES ($(grkey), '$userid()', '$(group)', '$(newuid)', 20)
+            set h $sql_query_open ($(query))
+            eval  $sql_query_close($(h))
+            eval  $group_update_rule ($(newuid) $quote($userid() $(group)))
+         end
+
+         #---Step 4, all other fields!
+         while 1
+            #---Pluck out the next column field, remove newline, then quotes.
+            include $(main)/columnfield.i
+            set fieldname $word ($minus ($(column) 3) $(fieldlist))
+            if $empty ($(fieldname))
+               break
+            end
+            if $not ($tablefind ($(fieldname) registeredon regface laston))
+               eval $set_user_info ($(newuid) $(fieldname) $(field))
+            end
+         end
+
+         #---Step 5, add them to interface_registered group
+         include $(main)/group_registered.i $(newuid)
+
+         #---Step 6, add user to groups with wildcard matches.
+         include $(main)/group_addnewusers.i $(newuid)
+      end
+  
+      "<tr><td></td> <td></td>
+      "<td>%person($(newuid))</td>   <td></td>
+      "<td>($(newuid))</td>          <td></td>
+      "<td><a href="mailto:$user_info ($(newuid) email)"
+      "      >$user_info ($(newuid) email)</a></td>
+  
+      eval $logevent (adduser $(iface) 0 0 0 0 0 0 $(newuid))
+
+#     #---Record registration interface & timestamp
+#     set urcdir $str_sub (4 1000 $(urcbase))
+#     set urcdir $str_sub (0 $minus ($strlen($(urcdir)) 1) $(urcdir))
+#     eval $set_user_var ($(newuid) ur__regdir $(urcdir))
+#     eval $set_user_var ($(newuid) ur__time $dateof($time()))
+  
+#     #---Integration: create user in outside web app.
+      include $(main)/intg_encpass.i  $(newuid)    other_pw
+      include $(main)/intg_create.i   $(newuid)  $(other_pw)
+   end
+   "</table>
+   eval $close ($(fd))
+end
+
+"</BLOCKQUOTE>
+
+"<HR>
+include $(main)/errors.i
+"</BODY>
+"</HTML>
+
+set error
+set batch_first_call 0
+#------------------------------------------------------------------------

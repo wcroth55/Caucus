@@ -1,0 +1,45 @@
+#0001 lisa 0 07-MAR-95  8:22 Lisa Kimball (lisa)
++3 5 321
+ I don't know the why's, mark, but it's true that different browsers
+ interpret things slightly differently the same way that different
+ computer screen types and other things make windows look different...
+ It's fun to look at the same page with different browsers to get
+ a sense of how it will look to various people ...
+#0002 bolz 0 07-MAR-95  9:10 Andrew Taylor, Bolz Ctr. for Arts Admin. (bolz)
++3 16 773
+ Mark,
+ Just a note.  The World Wide Web actually began before browser programs
+ existed.  It was just a hyperlink/text markup language that looked
+ like ascii text.  Browser programs came a year or so later that took
+ that ascii information and formatted it.  So, every browser should
+ look similar but different.  Further, each individual can set the
+ parameters of the browser interface (type size, font, colors, etc.).
+ 
+ To make it even more complex, now some browser developers, like
+ Netscape, are adding new codes to HTML that most non-Netscape
+ browsers will just ignore.  So, for example, if you use the <CENTER>
+ code to center text or graphics in Netscape, they will come up
+ flush left in Mosaic.
+ 
+ It's a publications designer's nightmare.  But it's still better than
+ ascii text.
+#0003 kanter 0 07-MAR-95 10:46 Beth Kanter Arts Wire (kanter)
++1 tmn.com 3
+ The Internet was designed a distributed system without a central control -- in case we got invaded by aliens -- this decentralized communications system would  have a better chance of survival.
+ 
+ Thus, it is a logical extension that browsers would give the user more control of what they are viewing.  The browsers are designed so you can select your own  helper (viewer) programs -- so thatwill change from user to user.  For example, some graphic viewers load pictures faster and paint them differently from others.
+ 
+ It is a design pain in the butt.  At minimum, you should test your page with a couple of browsers -- don't look at it only in Netscape because in addition to  the extensions -- Netscape is very forgiving and doesn't always show your mistakes.  Also, use the default viewers that the browser developers recommend in terms of graphic viewers as this is what most users will have set up in their browser configuration.
+ 
+ Here's an excerpt from a brief faq I'm working on for Arts Wire.
+ 
+ Do all BROWSERS present the WEB information to the viewer in the identical way?
+ 
+ No.  Unlike traditional print publishing methods, you do not full control over what your html document will look like when viewed in different browsers.  Ther e are a number of reasons why this happens.
+ 
+ One reason is that the font, font size, background color, and other presentation variables are controlled by the browser and may be set according to the user' s preference.  In other words, if I decide that I don't like the default gray background, I can change the color on my browser settings.  Thus, this changes the background color for any web document I view.  I can choose to do the same with the fonts, fontsize and other presentation variables, with one click of my mouse.
+ 
+ In addition. some browsers recognize some HTML commands that are not included in the standard code.   Netscape has a set of extensions that are only recognized by Netscape viewers and will be ignored by others.  (The Netscape Home Page contains detailed documentation on the extensions and how to use them -- if you want to be a Netscape snob.)
+ 
+ Another major difference is the display of jpeg files.  At present, only Netscape will display jpeg images as part of the document.  (I'm sure this change soon).  All other browsers will presenta box or image icon instead of the actual image.  So what might look great in Netscape, looks terrible in Mosaic.  Also, Netscape is the most forgiving browser available.  If you make a mistake such as forget an end-tag for a bold area, Netscape tends to ignore it.  However, Mosaic will dutifully executive your mistake and show your entire document in bold typeface.
+ 

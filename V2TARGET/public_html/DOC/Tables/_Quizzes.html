@@ -1,0 +1,27 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; 
+<span class='title'>Category Quizzes&nbsp;&nbsp;&nbsp;</span>
+<p/>
+<table cellspacing=0 cellpadding=0 border=0>
+<tr valign=top class='row0'><td align=right class='counter'>1.&nbsp;</td>
+<td><a href='quiz.html'>quiz</a>&nbsp;</td>
+<td width='90%'>Quizzes.  Each quiz has a unique key (qkey); each row represents a single quiz.  </td>
+<tr valign=top class='row1'><td align=right class='counter'>2.&nbsp;</td>
+<td><a href='quizanswers.html'>quizanswers</a>&nbsp;</td>
+<td width='90%'>Each problem may have multiple "rows" of answers, e.g. a three-choice multiple-choice problem has 3 rows which define the possible answers.  </td>
+<tr valign=top class='row0'><td align=right class='counter'>3.&nbsp;</td>
+<td><a href='quizmap.html'>quizmap</a>&nbsp;</td>
+<td width='90%'>Maps sets of problems to a quiz.  This tells us which quizzes "own" or "contain" which problems.  Each row relates (connects) one problem to one quiz.  </td>
+<tr valign=top class='row1'><td align=right class='counter'>4.&nbsp;</td>
+<td><a href='quizproblems.html'>quizproblems</a>&nbsp;</td>
+<td width='90%'>Each problem has a unique key (pkey); each row represents a single problem.  </td>
+<tr valign=top class='row0'><td align=right class='counter'>5.&nbsp;</td>
+<td><a href='quizscore.html'>quizscore</a>&nbsp;</td>
+<td width='90%'>Records Takers' scores on problems.  One row per Taker/problem/quiz/session combination.  (Allows for a single problem to be shared across multiple quizzes, and also for taking a quiz more than once.) .  </td>
+</table>
+</body>
+</html>

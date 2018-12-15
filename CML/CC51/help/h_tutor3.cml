@@ -1,0 +1,34 @@
+#
+#---H_TUTOR3.CML.   Tutorial page 2 from help window
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_tutor3.cml $quote(Caucus Tutorial: 3)
+
+"<P>
+
+include $(help)/tutor3.i 2
+
+"<FORM METHOD=POST ACTION="h_tutor4.cml?x+x">
+"<TABLE WIDTH="100%">
+"<TR><TD>&nbsp;&nbsp;</TD>
+"<TD>
+"<INPUT TYPE="submit" NAME="submit" VALUE="Click Here to Continue Tutorial">
+"<BR>
+"</TD>
+"<TD ALIGN=right><INPUT TYPE="button" VALUE="Back" onClick="history.back();">
+"<INPUT TYPE="button" VALUE="Close" 
+"    onClick="window.opener.pop_gone('help'); window.close();"></TD>
+"<TR><TD></TD>
+"<TD>(Last section: Writing your own responses.)</TD>
+"</TABLE>
+"</FORM>
+
+
+"</BODY>
+"</HTML>
+#--------------------------------------------------------

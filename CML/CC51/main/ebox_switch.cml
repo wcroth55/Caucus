@@ -1,0 +1,20 @@
+#
+#---ebox_switch.cml   Handle "switching" editors in midstream.
+#
+#   Switch to the desired editor, and return to the calling page.
+#
+#   arg(1)  no-cache
+#   arg(2)  nxt    (index of page that called us)
+#   arg(3)  editor (1=richtext, 0=plaintext)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 06/04/2004 New file.
+#--------------------------------------------------------------
+
+set  ebox $if (0$arg(3) Richtext Textbox)
+eval $set_user_data ($userid() ebox $(ebox))
+
+"%location($(mainurl)/$page_return($arg(2) #ebox))

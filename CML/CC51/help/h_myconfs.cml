@@ -1,0 +1,74 @@
+#
+#---H_MYCONFS.I   Help about "Personal Conference List" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_myconfs.cml $quote(Help on Personal Conference List)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"Your Personal Conference List is, as the name suggests, a list of
+"the conferences that are important to <B>you</B>.&nbsp;
+"Normally this list appears on the $(center_name) page, 
+"and shows a summary of how much new activity (items and responses
+"that you haven't read yet) has happened in each conference.
+
+"<P>
+"Generally, the first time that you join a conference, 
+"you're offered the option to add that conference to your
+"Personal Conference List.&nbsp;
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), next to <B>Your Personal Conference List</B>,
+"click on <U>edit your list</U>.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"Use this page to change which conferences are on your Personal
+"Conference List, and how they appear.&nbsp;
+"<P>
+"The column on the left shows conferences that are in your list;
+"the column on the right shows conferences (that you can join)
+"that are <B>not</B> in your list.&nbsp;
+"<UL>
+"<LI><B>Removing Conferences.</B>&nbsp;
+"To remove one or more conferences from your list, 
+"click on them in the left column.&nbsp;
+"(Depending on your computer, you may need to click, shift-click,
+"or control-click to select more than one.)&nbsp;
+"Then check the "Delete" box, and click on <B>Make These Changes</B>.
+"<P>
+"<LI><B>Adding Conferences.</B>&nbsp;
+"To add conferences, click (or shift-click or control-click) on
+"the ones you want in the right column.&nbsp;
+"Or type a conference name in the box immediately underneath the
+"right column.&nbsp;
+"Check "Add selected conferences", and click on <B>Make These Changes</B>.
+
+"<P>
+"<LI><B>Details.</B>&nbsp;
+"Further down the page is a checkbox called "Show detail...".&nbsp;
+"Checking 'detailed' shows more precise information (on the $(center_name)
+"page) about how many
+"new items and responses appear in your conferences; clearing the
+"box shows you one simple number (# of items with new activity).
+
+"<P>
+"<LI><B>Alphabetized List?</B>&nbsp;
+"The second checkbox in this section causes your Personal Conference List
+"to be alphabetized.&nbsp;
+"Some people find this handy; others prefer to order their list in
+"their own way.
+
+"<P>
+"<LI><B>New material first?</B>&nbsp;
+"This checkbox causes the conferences with new material to always appear
+"<B>first</B> in your Personal Conference List, even if you've also 
+"checked the "Alphabetize" box.
+"</UL>
+include $(help)/hb.i

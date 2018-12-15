@@ -1,0 +1,27 @@
+#
+#---CUS_ENURLF.CML     Handle form in cus_en.cml to change login URL for
+#                      e-mail notification entry.
+#
+#   arg(3)   conf num
+#
+# CR 12/29/03 New file.
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#---------------------------------------------------------------------------
+
+include $(main)/secure.i ins $arg(3)
+
+if $not_equal (x$form(en_loginurl) x(default-URL) )
+   eval $set_site_data ($arg(3) - en_loginurl $form(en_loginurl))
+end
+
+if $not_equal (x$form(enotifyif) x(default-interface) )
+   eval $set_site_data ($arg(3) - enotifyif $form(enotifyif))
+end
+
+"%location($(mainurl)/custom.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#---------------------------------------------------------------------------

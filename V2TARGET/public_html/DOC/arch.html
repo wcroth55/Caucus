@@ -1,0 +1,477 @@
+<HTML>
+<HEAD>
+<TITLE>Caucus Architecture Description</TITLE>
+
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=100%  BORDER=0>
+<TR><TD><B><font size=+2>Caucus Architecture
+   </B></font></TD>
+<TD ALIGN=RIGHT><A HREF="http://caucuscare.com"><IMG 
+   SRC="globe100.gif" BORDER=0 ></a></td>
+</TABLE>
+
+<P>
+<blockquote>
+
+<B>1.&nbsp; Introduction</B>
+<P>
+This document describes the overall architecture of Caucus.&nbsp;
+This includes the mechanics of how the web interface actually
+works, and the location, names, and formats of the most important
+files.
+<P>
+While it is not necessary to read or understand
+this document in order to <I>use</I> or even to <I>install</I>
+Caucus, it is very helpful if you intend to modify the web interface,
+or to connect other applications or programs to Caucus.
+<P>
+This document assumes a general familiarity with HTML, Web server
+management, Unix commands and processes, and the use of Caucus.
+
+<P>
+
+<P>&nbsp;<P>
+<B>2.&nbsp; Caucus Design Goals</B>
+<P>
+There were seven main design goals that shaped the architecture
+of Caucus:
+<P>
+<OL>
+<LI>Allow the use of <I>any</I> Web browser to provide a graphical
+user interface to Caucus conferences.&nbsp; (In practice, this has come
+to mean Netscape 2 or Internet Explorer 3.02 or higher.)<BR>
+<P>
+<LI>Provide the tools for Webmasters to build a completely customizable
+Caucus interface.&nbsp; Caucus uses &quot;CML&quot; (Caucus Mark-up
+Language) scripts, which are analogous to individual HTML pages.
+<P>
+ Caucus includes a default set of such scripts (pages), but they
+may be completely customized by the local site.&nbsp; This is in keeping
+with the long-standing Caucus tradition of complete customizability.
+<P>
+<LI>The Caucus server was built on top of the existing Caucus
+API (applications programmer interface) function library, minimizing
+development time and guaranteeing data compatibility.<BR>
+<P>
+<LI>Caucus works side by side with existing Caucus (&quot;text
+interface&quot;) software.&nbsp; A Caucus user may access conferences
+through the Web <I>or</I> the text interface, without conflict.
+<P>
+<LI>Caucus works with existing Unix HTTP servers,
+through the CGI interface.&nbsp; The Caucus server could also be adapted
+to work with a custom HTTP server to provide for higher efficiency.
+<P>
+<LI>The Web &quot;access authorization&quot; userid and password
+scheme is used to provide secure access to Caucus.&nbsp; When a userid
+has been verified by the Web server, that same userid is used
+to identify the particular Caucus user.&nbsp; All normal Caucus security
+(access to specific conferences, etc.) applies.&nbsp;
+<P>
+An interface to other authorization schemes is also available as
+part of the Caucus server.
+<P>
+<LI>Transactions between the browser and the Caucus server must
+be as efficient as possible.&nbsp; The main effect of this on the design
+is the creation of a dedicated &quot;sub-server&quot; process
+for each user's Caucus session.
+</OL>
+
+<A NAME="diagram"><P>&nbsp;<P></A>
+<B>3.&nbsp; Caucus Web Interface: Transactions</B>
+<P>
+This section describes what actually happens when a person uses
+a Web browser to access Caucus.&nbsp;  In the steps listed below, &quot;swebd&quot;
+refers to the master Caucus server process.  &quot;Swebs&quot;
+is the dedicated user &quot;subserver&quot; process.  &quot;Swebsock&quot;
+is a light-weight program that passes data to and from swebd.
+&quot;Httpd&quot; is the standard name for the HTTP server process.
+<BR>
+<P>
+<B>3.1 Initial connection to Caucus</B>
+<P>
+<OL>
+<LI>The user's browser sends a connection request (over the Internet,
+or a local intranet) to the host's HTTP server.
+<P>
+<LI>The HTTP server immediately spawns (or connects to a pre-existing)
+child httpd process to handle the request.
+<P>
+<LI>The initial &quot;connection to the Caucus server&quot; is
+actually an access-authorization (i.e., userid and password) protected
+URL that runs a CGI program called swebsock.&nbsp;  Swebsock opens a
+socket to Swebd (the master Caucus server).
+<P>
+<LI>Swebd spawns a child, called the swebs subserver, which gets
+the userid from the browser.&nbsp;  The subserver is now &quot;dedicated&quot;
+to this userid, and continues running on its own.&nbsp; The subserver
+constructs the initial HTML page, and passes it (along with its
+process id and a unique security code) back to swebsock.&nbsp;  Swebsock
+passes everything back through the HTTP server child to the browser.
+</OL>
+<P>
+This process is illustrated in the following diagram:
+<P>
+<IMG SRC="archit1.gif" WIDTH=583 HEIGHT=236>
+<P>
+<B>3.2 Subsequent requests</B>
+<P>
+Once the initial connection is made, all subsequent Caucus requests
+by the browser are passed through to the dedicated swebs subserver.
+Each such request uses a particular CML script as part of the
+URL.&nbsp;  Such a request will produce the following sequence of events:
+<BR>
+<P>
+<OL>
+<LI>The browser sends the new request to the HTTP server.<BR>
+<P>
+<LI>The HTTP server immediately spawns (or  reuses) a child httpd
+to handle the request.<BR>
+<P>
+<LI>The httpd child starts a new instance of swebsock, which passes
+the request on to the dedicated subserver.&nbsp; The subserver reads
+(or writes) the requested information to the Caucus database,
+through the Caucus API.&nbsp; The subserver then formats the information
+according to the codes in the requested CML page, and passes the
+resulting dynamically created HTML page back through the HTTP
+server child to the browser.<BR>
+</OL>
+<P>
+This process is illustrated in the following diagram:
+<P>
+<IMG SRC="archit2.gif" WIDTH=630 HEIGHT=285>
+<P>
+<B>3.3 Notes</B>
+<P>
+<OL>
+<LI>In the diagrams, the large dashed boxes are computer systems.
+The small boxes are processes, and the rounded boxes are disk
+files.&nbsp; Lines indicate communication paths, either HTTP, CGI (stdin/stdout),
+sockets, or file reading and writing.<BR>
+<P>
+<LI>Note that <I>each</I> browser request involves one or two
+new processes: the HTTP child, and the CGI swebsock.&nbsp;  These processes
+are kept as lightweight as possible.<BR>
+<P>
+<LI>In contrast, since there is one swebs subserver per user, and
+each subserver persists across the entire user's browser session,
+the subservers cache all sorts of information.&nbsp; The subserver also
+has a timeout period -- i.e., after a certain period with no requests,
+it exits.&nbsp;  Otherwise the system might fill up with inactive subservers.
+</OL>
+
+<P>&nbsp;<P>
+<B>4. CML: The Caucus Markup Language</B>
+<P>
+<B>4.1 CML Description</B>
+<P>
+The entire Caucus user interface is built out of CML ("Caucus Markup Language")
+scripts or pages.&nbsp;
+CML can be thought of as a superset of HTML, with an embedded
+scripting programming language that is interpreted (by the "swebs" process)
+<I>on the server</I>.&nbsp;
+Thus, CML pages can not only generate dynamic HTML, but also access
+the Caucus database on the server, and other files or even programs
+on the server.
+
+<P>
+CML as a language contains most of the standard control directives
+that one would find in any programming language (if/else, loops, etc.),
+plus a rich set of functions for manipulating web data, Caucus database
+data, and connections to other programs or files.&nbsp;
+It is not strictly speaking a superset of HTML (in that it does not
+understand or parse HTML), but in practice most CML pages contain
+a large amount of embedded HTML, plus some CML control statements
+and functions.
+
+<P>
+CML pages contain 4 kinds of text:
+<P>
+<OL>
+<LI><B>Comments</B>.&nbsp; In the Unix tradition, all lines beginning
+with &quot;#&quot; are comments and are ignored.&nbsp; Entirely blank
+lines are also ignored.<BR>
+<P>
+<LI><B>HTML code</B>.&nbsp;  All lines beginning with a single quote
+(&quot;) are parsed for CML functions, but are otherwise passed
+on (as HTML) to the browser.&nbsp;  (The quote is removed.)
+<P>
+<LI><B>CML functions</B>.&nbsp;  Strings of the form &quot;$xyz()&quot;,
+&quot;$xyz(value)&quot;, or &quot;$(value)&quot; are parsed and
+replaced by the appropriate Caucus values.&nbsp;  The CML functions
+are described in the 
+<A HREF="http://caucuscare.com/TLIB/CMLREF">CML Reference Guide</A>.
+<P>
+<LI><B>CML directives</B>.&nbsp;  Directives are like C program code:
+they describe actions to be taken.&nbsp;  Directives include conditional
+statements (&quot;if&quot; and &quot;else&quot;) and loop controls
+(&quot;for&quot; and &quot;count&quot;).
+</OL>
+<P>
+A single logical line may be broken across several physical lines;
+a &quot;\&quot; as the last character means &quot;continued on
+next (physical) line&quot;.&nbsp; This is generally unneeded, except
+for HTML &lt;PRE&gt; text that is being built out of mixed text
+and CML functions.<BR>
+<BR>
+<P>
+<B>4.2 CML directives</B>
+<P>
+The CML directives provide some simple control structures recognizable
+from other programming languages, including:
+<P>
+<UL>
+<PRE>
+   for <I>variable</I> in <I>list</I>
+
+   count <I>variable first_val last_val</I>
+
+   if <I>condition</I>
+
+   else
+
+   set <I>variable value</I>
+</PRE>
+</UL>
+<P>
+For more information, see the 
+<A HREF="http://caucuscare.com/TLIB/CMLREF">CML Reference Guide</A>.
+<P>
+<B>4.3 CML functions<BR>
+</B>
+<P>
+All CML functions evaluate to strings of characters.&nbsp;  There is
+no other data type.&nbsp;  The same holds true for CML variables.&nbsp;  The
+CML functions provide access to Caucus data, browser and server
+control, string manipulation, and logic functions.&nbsp;  Again, see
+the reference guide.<BR>
+
+<P>&nbsp;<P>
+<B>5. Layout of Caucus files</B>
+<P>
+This section describes the layout of the Caucus files -- their
+location and purpose.&nbsp;  All of the files live in or under the Caucus
+home directory, and (unless explicitly noted elsewhere) should
+always be owned by the Caucus userid.<BR>
+<P>
+<B>Important: </B>If you are editing these files for any purpose,
+you must do it while logged in as the Caucus userid.&nbsp;  In particular,
+do <I><B>not</B></I> modify the Caucus files, or run the conference
+management programs, while logged in as &quot;root&quot; or &quot;administrator&quot;.
+<BR>
+<P>
+<B>5.1 CML pages<BR>
+</B>
+<P>
+The CML pages control the precise look and feel of the Caucus
+web interface.&nbsp;  They are all located under the CML directory.&nbsp;
+As a site may have multiple (distinct) interfaces, each interface
+gets its own sub-directory under CML.&nbsp;  The default set of CML
+pages is contained in the directory <B>CML/CC44</B>.
+<P>
+The CML pages are ordinary ascii text files, usually called something.cml,
+or something.i (for &quot;include&quot; -- files included in other
+.cml files).&nbsp;  Each CML interface (such as <B>CML/CC44</B>) also
+has a special subdirectory called <B>&quot;Local&quot;</B>.&nbsp;  This
+contains files that are intended to be changed for your local
+site, and that will not be touched or replaced the next time you
+install a Caucus upgrade.<BR>
+<P>
+Two particularly important files in the Local subdirectory:
+<P>
+<UL>
+<LI><B>switch.i</B> contains common &quot;switches&quot; that may
+be set for your site to change how Caucus behaves.<BR>
+<P>
+<LI><B>l_confs.i</B> is a list of conference names that will appear under
+&quot;Popular Conferences&quot; on the Caucus Welcome page.<BR>
+</UL>
+<P>
+See the header comments in these files for more information. 
+
+<P>
+In addition to the conferencing interface in <B>CML/CC44/main</B>,
+there is also a separate (and small) interface in <B>CML/CC44/reg</B>.&nbsp;
+This set of CML pages is entirely dedicated to registering a
+userid and password for a new user.&nbsp;  (It must be a separate interface,
+because it will be used by people who have not yet gotten or been
+assigned a userid and password!)<BR>
+<BR>
+<P>
+<B>5.2 The SWEB CGI directory<BR>
+</B>
+<P>
+The SWEB directory contains CGI programs and related files that
+are used to start up the regular Web interface to Caucus.
+<P>
+<UL>
+<LI><B>swebd</B> is the Caucus master server program
+<P>
+<LI><B>swebs</B> is the Caucus "subserver" program
+<P>
+<LI><B>swebd.conf</B> is the configuration file for swebd
+<P>
+<LI><B>swebsock</B> is the CGI program that communicates between httpd and
+swebd
+<P>
+<LI><B>.htaccess</B> is a file that makes <B>SWEB</B> an access-controlled
+directory (NCSA httpd)
+<P>
+<LI><B>cpw1</B> is a program to modify the httpd password file
+<P>
+<LI><B>start.cgi</B> is a CGI script used  to interpret &quot;special&quot;
+Caucus URLs, such as &quot;http://hostname/caucus/conference_name/item_number.
+</UL>
+<P>
+<B>5.3 The REG CGI directory<BR>
+</B>
+<P>
+The REG directory contains CGI programs and related files that
+are used to start up the &quot;register a userid&quot; interface.
+ This includes:<BR>
+<P>
+<UL>
+<LI><B>swebsock</B> is a copy of or link to the SWEB/swebsock program
+</UL>
+<P>
+<B>5.4 The SOCKET directory<BR>
+</B>
+<P>
+The various Caucus programs (swebd, swebs, swebsock) communicate
+with each other via a data path called &quot;sockets&quot;.&nbsp;  The
+sockets must have a name and a location; therefore they are placed
+in this directory.
+<P>
+<UL>
+<LI><B>sweb</B> is a socket to master swebd server
+<P>
+<LI>sweb<B>nnnnnn</B> is a socket for a particular swebs subserver, process
+number <B>nnnnnn</B>
+<P>
+<LI><B>debug</B>: if this file exists, debugging logs are created for
+<B>swebd, swebs,</B> and <B>swebsock.</B>
+</UL>
+<P>
+<B>5.5 The public_html directory</B>
+<P>
+A URL of the form &quot;http://yourhost/~caucus/xyz.html&quot;
+looks for the file <B>xyz.html</B> in the <B>public_html</B> directory.&nbsp;
+(Depending on your httpd server, you may have renamed <B>public_html</B>
+to something else.)&nbsp;  Caucus keeps some specific files in this
+directory:<BR>
+<P>
+<UL>
+<LI><B>caucus.html</B> is a simple HTML page to link to Caucus interface
+(via <B>SWEB/caucus.cgi</B>) and to the &quot;register a userid&quot;
+interface (via <B>REG/register.cgi</B>).<BR>
+<P>
+<LI><B>GIF41</B> is a directory containing gif and jpeg images used by
+Caucus interface.
+</UL>
+<P>
+<B>5.8 The Cnnnn conference directories</B>
+<P>
+The conference data for a particular conference is stored in a
+single directory.&nbsp;  Each conference has a unique four digit number;
+thus, the data for conference number 1 is stored in the directory
+C0001.
+<P>
+Conference data is always stored in &quot;flat&quot; ascii text
+files.&nbsp;  In theory this means that the Caucus manager may edit
+these files directory.&nbsp;  In practice you should never do this without
+specific instructions from Screen Porch technical support staff.
+ This information is provided purely for reference; Screen Porch
+is not responsible for the results of unauthorized tinkering with
+these files.
+<P>
+Important files:
+<P>
+<UL>
+<LI><B>userlist</B> contains the permissions list of who may or may not access
+this conference
+<P>
+<LI><B>masteres</B> is the master list of items and number of responses to
+each item
+<P>
+<LI><B>0010000000</B> is the text of item 1 (and some responses)
+<P>
+<LI><B>0050210000</B> is the text of item 5, response 21 (and some following
+responses)
+<P>
+<LI><B>introduc</B> is the conference &quot;introduction&quot;
+<P>
+<LI><B>greet</B> is the conference &quot;greeting&quot;
+<P>
+<LI><B>membr001</B> is the list of conference members
+<P>
+<LI><B>variable</B> contains conference variables (from CML $set_conf_var()
+function)
+</UL>
+<P>
+<B>5.10 USER001, Caucus user files<BR>
+</B>
+<P>
+In addition to the conference-specific files, and the Caucus-wide
+data files, there is also data stored about each user.&nbsp;  Data files
+for a userid <B>alpha</B> are stored under <B>USER001/alpha</B>.&nbsp;
+(Some systems enforce so-called &quot;sanity limits&quot; on
+the number of sub-directories in a directory; if your system is
+one of them, Caucus may automatically create directories USER002,
+USER003, and so forth as needed.)<BR>
+<P>
+Important files in each user directory:
+<P>
+<UL>
+<LI><B>register</B> contains &quot;registration&quot; information about this
+person, including their name, telephone number, brief self-description
+(introduction), and so forth.
+<P>
+<LI><B>p000100</B> is the participation record in conference 1
+</UL>
+<P>
+<B>5.11 TEXT001, temporary user files<BR>
+</B>
+<P>
+Temporary files created for each user (for example, during the
+entry or editing of items and responses) are stored here.&nbsp;  It
+has the same structure as <B>USER001</B> (one sub-directory per
+userid).&nbsp;  <B>Note:</B> The permissions for this directory and
+its sub-directories should be write-all.<BR>
+<BR>
+<P>
+<B>5.12 Files in the Caucus home directory</B>
+<P>
+There are some Caucus files which do not fit in the purposes described
+for the previously listed sub-directories.&nbsp;  These files are kept
+in top level of the Caucus home directory.&nbsp;
+(Many of the programs and scripts are now obsoleted by the 
+web-based features of the Caucus 4.0 manager's page.)
+<P>
+<UL>
+<LI><B>caucus_passwd</B> is the password file used by NCSA httpd
+<P>
+<LI><B>fixdate</B> is a script to update date or &quot;SINCE&quot; information
+about old conferences
+<P>
+<LI><B>fixmaster</B> is a script to automatically corrected corrupted C<B>nnn</B>/masteres
+files
+<P>
+<P>
+<LI><B>fixtext</B> is a script to recreate missing TEXT001 sub-directories
+<P>
+<LI><B>passprog</B> is a script to run the cpw1 program to modify caucus_passwd
+or other httpd password file
+<P>
+<LI><B>swebstop</B> is a script to stop all running Caucus web-interface
+processes (swebd, swebs, etc.)
+<P>
+<LI><B>testconf</B> is a script to test consistency of conference item
+&amp; response data
+<P>
+</UL>
+<P>
+<HR>
+</BODY>
+</HTML>

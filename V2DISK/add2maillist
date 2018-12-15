@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+#---ADD2MAILLIST.   Add a newly registered Caucus user to a mailing list.
+#
+#   Invoked as:
+#      add2maillist path listname address name1 name2 ...
+#
+#   Arguments:
+#      path         full pathname of Caucus home directory
+#      listname     name of mailing list
+#      address      e-mail address of new user
+#      name1...     full name of new user (may be multiple words)
+#
+#   Purpose:
+#      Add the new user to a mailing list specified by LISTNAME.
+#      This script is automatically run by Caucus when a new
+#      user self-registers.  (It should not, as a rule, be run manually.)
+#
+#   How it works:
+#      This is a proto-type script for this purpose that simply adds
+#      the user's e-mail address to the end of a sendmail-style 
+#      mailing list.  The idea is to replace the code in this script
+#      with something that adds the person to a more sophisticated
+#      mailing list tool.
+#
+#      Note: Caucus "locks" the use of this script with an internal
+#      advisory lock.  Thus the writer of this script need *not* be
+#      concerned about handling multiple simultaneous uses of this
+#      script by different processes.
+#
+#   History of revisions:
+#: CR  5/09/00 16:33 Prototype script.
+#----------------------------------------------------------------------------
+#
+if test "x$4" = "x"; then
+   exit
+fi
+
+echo "	($4 $5 $6 $7 $8 $9)	$3," >>$1/$2
+
+#----------------------------------------------------------------------------

@@ -1,0 +1,67 @@
+#
+#---H_MAN_SAFE.CML    Help about Manage FileSafe
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/11/0l New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_man_safe.cml $quote(Help on managing a FileSafe)
+
+set help_not_found 0
+
+set lowerfs $lower ($(filesafe_name))
+
+"<B>What Is It?</B><BR>
+"Use this page to 'manage' an individual $(lowerfs), 
+"i.e. make changes to the $(lowerfs) that do not involve
+"just adding or removing files.
+"<p>
+"Each numbered section is described in detail below.
+
+"<p>
+"<ol>
+"<li><b>Editing the $(lowerfs) display options</b> means changing the
+"changing the way individual $(lowerfs)(s) appear -- fonts, colors,
+"etc.&nbsp;  These are for purely cosmetic changes.
+
+"<p>
+"<li><b>Create a new $(lowerfs).</b>&nbsp;
+"Enter the name of a new $(lowerfs) in the box, and click on <b>Go</b>.
+"The page will redisplay, with the new $(lowerfs) as the selected
+"entry in option 3.
+
+"<p>
+"<li><b>Edit $(lowerfs) (name).</b>&nbsp;
+"Select a $(lowerfs) from the pull-down menu to edit that $(lowerfs).&nbsp;
+"Enter or change the text in the boxes to change the $(lowerfs) description,
+"or any or all of the section names.&nbsp;
+"<p>
+"<b>Note:</b> 
+"it's a good idea to change the section names only when absolutely
+"necessary, because the 
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x#macros">\%filesafefile()</a>
+"macro points to a file based on its section name.&nbsp;
+"So this option should be used mostly when first creating section names.
+"<p>
+"Checking the <b>Readonly $(filesafe_name)</b> box makes the $(lowerfs) default
+"to "readonly" -- in which case no-one can add files to it.
+"<p>
+"To delete an entire section, check the box for that section under
+"the <b>Delete Section?</b> column.
+"<p>
+"To actually make any of these changes, press <b>Make Changes</b>.
+"<p>
+"Alternately, you may delete the <b>entire</b> $(lowerfs), sections and
+"files and all, by clicking on <b>Delete this entire $(lowerfs)</b>.&nbsp;
+"Do not do this lightly!
+
+"<p>
+"<li>Lastly, <b>Go to $(lowerfs):</b> provides a quick way to get 
+"to (see and upload/download files) the selected $(lowerfs).
+"</ol>
+
+
+include $(help)/hb.i

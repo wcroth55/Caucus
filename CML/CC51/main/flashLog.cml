@@ -1,0 +1,79 @@
+#
+#---flashLog.cml.   Show log of specific flashchat conversation.
+#
+#   Argument usage:
+#     $arg(8)       starting chat entry id key
+#     $arg(9)       conf number
+#
+#: CR 09/29/09 New script.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i flashLog.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set room  %displayed_conf_name ($arg(9))
+set nxt   $page_save (1 flashLog.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Chat&nbsp;Log )
+
+include $(main)/head.i $arg(3)  $quote(Chat Log: $upper1($(room)))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  chatlogs  Chat Log: $upper1($(room))
+
+
+"<p/>
+"<blockquote>
+"This is the archived history of a specific chat in conference
+"<b>$upper1($(room))</b>.&nbsp;
+"<p/>
+
+#CREATE TABLE `flashcoms_chat_history` (
+#  `id` int(9) unsigned NOT NULL auto_increment,
+#  `roomId` varchar(255) NOT NULL default '',
+#  `sender` varchar(255) NOT NULL default '',
+#  `receiver` varchar(255) NOT NULL default '', 
+#  `time` datetime NOT NULL default '0000-00-00 00:00:00',
+#  `body` text NOT NULL, 
+#  `ip` varchar(255) NOT NULL default '',
+#  `whisper` enum('true','false') NOT NULL default 'true',
+#  PRIMARY KEY  (`id`)
+#) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+
+"<table cellspacing=2 cellpadding=0 border=0>
+"<tr>
+"<td><b>Time&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td><b>Person and comment</b></td>
+
+set lastTime
+set quantumTime 3600
+set qChat SELECT id, unix_timestamp(time) unixTime, sender, body \
+            FROM flashcoms_chat_history \
+           WHERE roomId=$(roomNum) \
+             AND id >= $arg(8)
+
+set hChat $sql_query_open($(qChat))
+while     $sql_query_row ($(hChat))
+   set lastTime $word (1 $(lastTime) $(unixTime))
+   if $greater ($minus($(unixTime) $(lastTime)) $(quantumTime))
+      break
+   end
+   "<tr valign=top>
+   "<td>$dateof($plus($(unixTime) $(deltaTime)))&nbsp;</td>
+   "<td><b>$(sender):</b> $(body)</td>
+   set lastTime $(unixTime)
+end
+eval $sql_query_close($(hChat))
+"</table>
+"</blockquote>
+
+"</body>
+"</html>
+#-----------------------------------------------------------------------

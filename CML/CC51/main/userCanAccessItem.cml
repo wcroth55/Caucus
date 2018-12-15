@@ -1,0 +1,42 @@
+#
+#---userCanAccessItem.cml.  Can a user access a specific item?
+#
+#   Input: (variables)
+#      inc(1)    userid
+#      inc(2)    conference key
+#      inc(3)    item id
+#
+#   Output: (text evaluation)
+#      1 yes
+#      0 no
+#
+# Copyright (C) 2008 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 10/10/08 New file.
+#:CR 10/28/08 Use new $priv() function for privilege levels.
+#-----------------------------------------------------------------------
+
+#---Organizers/instructors always have access.
+if $gt_equal ($group_access ($inc(1) CONF $inc(3)) $priv(instructor))
+   "1
+   quit
+end
+
+#---Accessible if there are *no* permissions set for this item.
+set permissionsForThisItem $sql_query_select(\
+   SELECT count(*) FROM groups WHERE owner='Item' AND name = '$inc(3)')
+if $equal ($(permissionsForThisItem) 0)
+   "1
+   quit
+end
+
+if $less ($group_access ($inc(1) Item $inc(3)) $priv(writeonly))
+   "0
+   quit
+end
+
+"1
+
+#-----------------------------------------------------------------------

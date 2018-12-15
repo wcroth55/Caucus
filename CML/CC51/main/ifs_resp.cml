@@ -1,0 +1,30 @@
+#
+#--- %ifs_resp (item [resp])            ("InterFace Storage RESPonse")
+#    Evaluates to text of Interface_Storage_$(iface)/ITEM:RESP, interpreted
+#    as CML.
+#
+#    inc(1) iface
+#    inc(2) item label
+#    inc(3) response number
+#
+# CR 06/19/09 Rewrite to use SQL.
+# CR 08/19/09 Do nothing if item label = 0
+# CR 03/24/11 Fix call to showResponseText.i
+#-------------------------------------------------------------------------
+
+if $equal ($inc(2) 0)
+   return
+end
+
+set _ic $cl_num(interface_storage_$inc(1))
+set _ii $item_id($(_ic) $inc(2))
+
+set qIFS SELECT r.text, r.prop FROM resps r \
+          WHERE r.items_id = $(_ii) AND r.rnum=$inc(3) AND r.deleted=0 AND r.version = \
+              (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) 
+set hi $sql_query_open ($(qIFS))
+eval   $sql_query_row  ($(hi))
+eval   $sql_query_close($(hi))
+
+include $(main)/showResponseText.i $(prop)
+

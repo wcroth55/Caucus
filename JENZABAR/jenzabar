@@ -1,0 +1,6 @@
+#!/bin/sh
+
+cd /home/jenzabar/JENZABAR
+
+exec java -jar jenzabar.jar  jdbc:mysql://localhost:3306/caucus_jenzabar \
+                           jenzabar lookfar https://pathway.ciis.edu

@@ -1,0 +1,53 @@
+#
+#---editUserLatLongOnMap.cml  Edit user's latitude/longitude on a google map.
+#
+#   Called from me.cml page, where user is editing their personal info.
+#   Assumes lat/long data is in opener.document.forms[0].latitude_longitude.
+#
+# CR 05/15/08 New file.
+#----------------------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+"<html>
+"<head>
+   include $(main)/css.i
+"</head>
+"<body>
+"   <div id="map_canvas" style="width: 350px; height: 200px"></div>
+"   <p/>
+"   Dragging the marker automatically updates the latitude and 
+"   longitude in your personal information.
+"
+"   <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=$config(GoogleMapKey)"
+"           type="text/javascript"></script>
+"   <script type="text/javascript">
+"
+"   var addrpnt;
+"   var map;
+"   var zoom = 3;
+"   var usersLatLng = opener.document.forms[0].latitude_longitude;
+"   var usersLat =  37.4419;   // default to center of US.
+"   var usersLng = -95.1419;
+"   if (usersLatLng.value.indexOf(',') > 0) {
+"      var ll = usersLatLng.value.split(',');
+"      usersLat = ll[0] - 0;
+"      usersLng = ll[1] - 0;
+#      confirm (usersLat + "," + usersLng);
+"      zoom = 12;
+"   }
+
+include $(main)/googleMaps.i
+
+"    function newpoint( ) {
+"       map.setCenter(addrpnt.getPoint()) ;
+"       var latlong = addrpnt.getLatLng();
+"       usersLatLng.value = latlong.lat() + "," + latlong.lng();
+"    }
+
+"    initialize();
+"    </script>
+"
+"</body>
+"</html>

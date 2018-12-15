@@ -1,0 +1,178 @@
+#
+#---H_UPLOAD.I    Help about the Upload Page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/15/00 10:30 Add explanation of "no blue" URL option.
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#: CR  4/20/00 14:12 Add explanation of iframe option.
+#-------------------------------------------------------------
+
+include $(help)/ht.i h_upload.cml $quote(Help on Attach Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Attach File Page lets you copy ("attach") a file from your
+"computer to an item or
+"response in a Caucus conference, so that conference participants may 
+"see or share the file.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Then click on the title of a particular item.&nbsp;
+"At the bottom of that page should be a response box,
+"with an <B>Attach</B> icon just above the box.&nbsp;
+"Click on the icon to attach a file to a response.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"From this page you can browse your computer to find the file 
+"you wish to attach, and tell Caucus exactly how to treat it
+"in the conference.
+
+"<P>
+"The rest of this help page describes the different parts of
+"the Attach File Page in detail.
+
+"<P><OL>
+
+include $(help)/h_pagetop.i
+
+"<P><LI>
+   "<B>Choose a File to Attach:</B>&nbsp;
+   "Where it says "I want to attach the file named:",
+   "press the <B>Browse</B> button.&nbsp;
+   "This opens a standard file dialogue box, which lets
+   "you "browse" through your computer to locate the file you 
+   "want to attach.&nbsp;
+   "Once you've found the file you want, double-click on it, and
+   "the dialogue box should close.
+
+   "<P>
+   "If you prefer, you may instead click in the small text box, 
+   "and type the full name (including directories) of the file
+   "you wish to attach.&nbsp;
+   "But using the Browse button is typically much easier.
+
+   "<P>
+   "(<I>If you don't see a Browse button</I>: your browser does not
+   "support file attaching.&nbsp;
+   "We recommend that you try 
+   "%url(http://home.netscape.com Netscape) 3 or higher.)
+
+   "<P>
+   "<I>Attaching multiple files:</I>&nbsp; 
+   "You may attach as many files as you like to your item or 
+   "response.&nbsp;  
+   "Each file, however, requires a separate visit to the 
+   "<B>Attach File</B> page.&nbsp;  
+   "Each time you visit the page, you may attach a <I>single</I> file.&nbsp;
+   "If you wish to attach three files, you must visit the 
+   "Attach File page three times.&nbsp;
+   "If you want to attach <B>many</B> files all at once, 
+   "you can use 
+   "<A HREF="http://www.winzip.com" TARGET="_winzip">WinZip</A> 
+   "or PKZip to put them all in a "zip"
+   "archive file and then attach that one file.&nbsp; See the
+   "description of the Zip file choice below.
+
+
+"<P><LI>
+   "<B>What kind of file is this?</B>:&nbsp;
+   "Where it says "Show my file as:", you must
+   "tell Caucus how to treat your file, by clicking on one
+   "of the little "radio buttons":
+   "<P>
+   "<UL>
+   "<LI><B>Plain text</B> means that Caucus puts
+   "   the text of your file directly into the big text box
+   "   where you were creating your item or response.&nbsp;
+   "   (If you already had text in that box, the contents of the
+   "   file are added onto the end.)
+   "<P>
+   "   Note that for this choice, your file must contain "plain" or "ascii"
+   "   text.&nbsp;
+   "   (If you prepared your file in a word processor, you must
+   "   "save as" plain text.)&nbsp;
+   "   If this is confusing, please see your network support person or
+   "   a knowledgeable friend.
+
+   "<P>
+   "<LI><B>HTML</B> puts your file into the big text box, where
+   "   Caucus treats it as HTML code.&nbsp;
+   "   You could use this to copy a simple web page directly into your
+   "   response.
+
+   "<P>
+   "<LI><B>a <FONT COLOR=BLUE><U>URL</U></FONT></B> ("blued") means that 
+   "    Caucus will place a URL (a link
+   "    that begins with "http:")
+   "    <B>to your file</B> into your item or response.&nbsp;
+   "   Other people in the conference will see the URL and may
+   "   click on it to get your file.
+
+   "<P>
+   "<LI><B>a URL</B> (not blued) means that 
+   "    Caucus will place the text of a URL
+   "   to your file into your item or response.&nbsp;
+   "   (It can't be clicked on, it's just text.&nbsp;
+   "   It may be useful for people writing their own HTML codes.)
+
+   "<P>
+   "<LI><B>a link named:</B> &nbsp;
+   "   is very similar to the <FONT COLOR=BLUE><U><B>URL</B></U></FONT> 
+   "   choice.&nbsp;
+   "   Caucus places a link to your file into your item or response.&nbsp;
+   "   But in this case, you get to choose what to call the link.&nbsp;
+   "   Click in the text box next to the button, and type the name you want
+   "   for the link.
+
+   "<P>
+   "<LI><B>an image</B> means you are attaching an image file, such
+   " as a gif or jpeg file.&nbsp;
+   " Caucus will display the image <B>as part of</B> your item 
+   "or response.&nbsp;
+
+   "<P>
+   "<LI><B>an iframe</B> shows your file or document in an "IFrame",
+   " a mini-window that is embedded directly in your response.&nbsp;
+   "(Not all browsers support Iframes; if yours does not, you will
+   "see a link to your file in a box.&nbsp;
+   "Clicking on the link shows your file in a separate window.)
+
+   "<P>
+   "<LI><B>a ZIP file</B> is an archive; a collection of many files,
+   " combined into a single ZIP file.&nbsp;
+   "Caucus automatically "unzips" the archive into its component files,
+   "and lets you link to any or all of them.&nbsp;
+   "(This can be used to attach an entire web page, including all of
+   "its graphic files, to a response.)
+   "</UL>
+
+"<P><LI>
+   "<B>Press Attach!</B>&nbsp; 
+   "When you've finished the previous steps, press the <B>Attach</B>
+   "button.&nbsp;
+   "Caucus automatically attaches the file you chose, and then
+   "takes you back to the Item (or Create Item) page where you started.&nbsp;
+
+   "<P>
+   "Once you are back at the response (or new item) text box, 
+   "you'll see some new text in the box.&nbsp;
+   "If you chose "plain text" or "HTML", you'll see the text of your
+   "file in the box.&nbsp;
+   "If you chose "a URL", you'll see the actual URL of your file.&nbsp;
+   "If you chose "a link" or "an image", you'll see a special code
+   "to display the link or the image.
+
+   "<P>
+   "<B>To finish the attach process</B>, you must push the appropriate button
+   "to <B>Post</B> your response (or create your item).&nbsp;
+   "When attaching files, it's a good idea to press <B>Post+View</B>
+   "(or Create+View), to see what the final result looks like.
+"</OL>
+include $(help)/hb.i
+

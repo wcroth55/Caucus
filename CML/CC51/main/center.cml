@@ -1,0 +1,92 @@
+#
+#---CENTER.CML.   "Caucus Center" Page.
+#
+#   Overview of (and initial entry to) conferences.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/03/00 15:48 Wrap <FORM> just around 'Join conf by name'.
+#: CR 03/27/00 20:56 Add e-mail address check and warning.
+#: CR 01/13/02 19:30 Remove default toolbar at bottom
+#: CR 01/14/02 15:50 Add intg_create include.
+#: CR 03/01/02 10:40 Get l_confs from site variable.
+#: CR 10/19/05 Create default set of cenblks if needed.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i center.cml
+end
+#eval $cl_list (interface_storage_$(iface))
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch  $unique()
+set nxt  $page_save (1 center.cml \
+                    $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) # \
+                    $(center_name))
+set last_conf x
+
+include $(main)/intg_create.i  $userid()  $(encpass)
+
+set pagename <span class="pageTitle"><B>$(center_name)</B></span>
+
+#---HTML declaration, header, and BODY tag.
+
+include $(main)/head.i $arg(3)  $quote($(center_name))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+#---Caucus header.
+include $(main)/cenrow1.i  center
+include $(main)/cenrow2.i  center
+
+#---The various ways of getting to the conferences all appear
+#   as numbered entries, within one large table.
+
+#---If no center "blocks", set the default pattern.
+set cencount 0
+if $empty  ($site_data (0 - if_$(iface)_blks))
+   eval $set_site_data (0 - if_$(iface)_blks 10)
+   eval $set_site_data (0 - if_$(iface)_blk1  0)
+   eval $set_site_data (0 - if_$(iface)_blk2  0)
+   eval $set_site_data (0 - if_$(iface)_blk3  y)
+   eval $set_site_data (0 - if_$(iface)_blk4  0)
+   eval $set_site_data (0 - if_$(iface)_blk5  o)
+   eval $set_site_data (0 - if_$(iface)_blk6  0)
+   eval $set_site_data (0 - if_$(iface)_blk7  n)
+   eval $set_site_data (0 - if_$(iface)_blk8  0)
+   eval $set_site_data (0 - if_$(iface)_blk9  b)
+   eval $set_site_data (0 - if_$(iface)_blk10 0)
+end
+
+#---Interpret each block in turn.
+count ib 1  $site_data (0 - if_$(iface)_blks)
+   set  w   $site_data (0 - if_$(iface)_blk$(ib))
+   set  w1  $str_sub  (0 1 $(w))
+   set  w2  $rest     (2   $(w))
+   include $(main)/cenblk.i
+end
+
+#---E-mail address check:
+if $empty($(checked_email_address))
+   set e-mail $user_info ($userid() email)
+   if %bad_email_address($(e-mail))
+      "<script type="text/javascript" language="javascript">
+      "  alert ("Your e-mail address is incorrect. Please click on your " +
+      "         " name to correct or remove it.");
+      "</SCRIPT>
+   end
+   set checked_email_address 1
+end
+
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>
+
+set pagename
+#------------------------------------------------------------------------

@@ -1,0 +1,33 @@
+#
+#---PER_ENNEW.CML.   Create a new, (personal) empty, e-mail notification group
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i per_ennew.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+#---add user to list of those in this
+#   conf with private e-mail notifications.
+
+#---Add en_user_U variable; means user has private e-mail groups.
+eval $set_site_data ($arg(3) - en_user_$userid() 1)
+
+#---Now actually add new group.
+set  group $time()
+eval $set_user_data ($userid() en_items_$arg(3)-$(group) \
+                    1 0 0 $it_last($arg(3)) 0 (none))
+eval $set_user_data ($userid() en_hours_$arg(3)-$(group) 0)
+
+"%location($(mainurl)/per_engrp.cml?$(nch)+$arg(2)+$arg(3)+\
+                                 $arg(4)+$(group)+x+x+x)
+
+#------------------------------------------------------------------

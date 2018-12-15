@@ -1,0 +1,204 @@
+#
+#---CUSTOMIZE.CML.   Menu for organizer customizing conference
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/11/01 14:00 Add archive and delete options.
+#: CR 02/01/02 13:20 Expand conf info text to note email notification interface
+#: CR 04/08/02 E-mail all users option.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/27/03 Add conference aliases.
+#: CR  5/13/03 Mention 'markseen' option.
+#: CR  8/11/03 Add link to user statistics wizard.
+#: CR 08/26/03 Include assign_custom.i to allow making assignments.
+#: CR 12/30/03 Remove reference to email notification interface setting.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 10/04/05 Minor C5 changes.
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 custom.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Customize $(cname))
+set pagename <span class="pageTitle">Customize <B>$(cname)</B></span>
+
+
+include $(main)/head.i $arg(3)  $quote(Customize $(cname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i      custom  Customize $(cname)
+
+set my_access  $group_access ($userid() CONF $(cnum))
+
+"<P>
+"<BLOCKQUOTE>
+"You are an <B>organizer</B> of this conference.&nbsp;
+"You can use the links on this page to define who may read the conference
+"and to customize various aspects of the user interface.&nbsp;
+
+
+"For more information about how to organize a conference, see
+"the documents:
+"<UL>
+#<LI> <a href="http://screenporch.com/sp/DOCS/organize.html"
+"<LI> <a href="/~$caucus_id()/organize.html"
+"        $(target_window)>Guide for Conference Organizers</a>, and
+
+#<LI> <a href="http://screenporch.com/sp/DOCS/howto.html"
+"<LI> <a href="/~$caucus_id()/orghowto.html"
+"        $(target_window)>Conference Organizer's How To</a>.
+"</UL>
+
+if ($not_empty ($(result))
+   "$(result)
+   "<P>
+end
+
+"<p>There are several different areas that you can customize:<p>
+"<dl>
+
+"<dt><b
+"><A HREF="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+CONF+_+$arg(3)"
+"   >Access Control</A></b>
+"<dd>Control who may use this conference, and what their privilege level is.
+
+
+#---Manager can archive the conference? 
+if $or (%mgr_in_group ($userid() conferenceArchive conferenceAllPrivileges) \
+         $gt_equal ($(my_access) $priv(organizer)))
+   "<p/>
+   "<dt><b><A HREF="cus_archive.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x"
+   "  >Archive</A></b>
+   "<dd>Make a back-up archive (snapshot) of the entire conference.
+end
+
+
+if $gt_equal ($(my_access) $priv(instructor))
+   "<p>
+   "<dt><b><A HREF="custom_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Capabilities</A></b>
+"<dd>What are members allowed to do?&nbsp;
+    "Set options for creating and modifying items and responses,
+    "and control what is 'new' for new members.
+end
+
+"<p/>
+"<dt><b><A HREF="custom_home.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+     $arg(6)+$arg(7)+$arg(8)"
+">Conference Information &amp; Options</A></b>
+"<dd>Set conference type (course or regular), the conference description, 
+" the 'greeting' text, 
+"the default views for item lists,
+"the name of the home page, and links to any variant conference home
+"pages.<p>
+
+"<p>
+"<dt><b><A HREF="custom_color.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Colors</A></b>
+"<dd>Set the background, text, and link colors for this conference.<p>
+
+"<p>
+"<dt><b><A HREF="attachConfCss.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">CSS</A></b>
+"<dd>Set the CSS for the conference.</p>
+
+#---Only selected managers or full organizer can delete conf.
+if $or (%mgr_in_group ($userid() conferenceDelete conferenceAllPrivileges) \
+        $gt_equal ($(my_access) $priv(organizer)) )
+   "<script type="text/javascript" language="javascript">
+   "function really() {
+   "   if (confirm ('Are you sure you want to delete $escsingle($(cname))?')) 
+   "      return true;
+   "   return false;
+   "}
+   "</SCRIPT>
+
+   "<dt><b><A HREF="cus_del.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)"
+" onClick="return really();">Delete</A></b>
+   "<dd>Delete the entire conference.&nbsp;
+   " (Be sure this is really what you want to do!)
+end
+
+#---E-mail all users (any organizer)
+"<p>
+"<dt><b><A HREF="cus_mailall.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                                 $arg(6)+$arg(7)+$arg(8)"
+"   >E-mail all users</a></b>
+"<dd>Send a brief e-mail to everyone in the conference.
+
+if $or ($(e_notify) $site_data ($arg(3) - en_allow))
+   "<p/>
+   "<dt><b><A HREF="cus_en.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+       $arg(6)+$arg(7)+$arg(8)">E-mail Notification</A></b>
+   "<dd>Control e-mail notification to members of new material.&nbsp;
+   "Currently <B>$if (0$site_data ($arg(3) - en_on) on off)</B>.<P>
+end
+
+#---Announcements
+if $gt_equal ($(my_access) $priv(instructor))
+   "<p>
+   set ann_cnum $word (1 $cl_list (system_announcements) 0)
+   if $gt_equal (%access($(ann_cnum)) $priv(instructor))
+      "<dt><b><A HREF="additem.cml?$(nch)+$(nxt)+$(ann_cnum)+x+x+x+x+x"
+      " >Make announcements</a></b> to everyone in your conference(s).
+   end
+   else
+      "<DT><B>Make announcements</b> to all (or some) users.&nbsp;&nbsp;
+      "(You do not have 'include' access to the System Announcements
+      "conference, or it does not exist.)
+      "<p>
+   end
+   "<DD>Make an announcement to all users in this conference
+   "(or any conference that you are an organizer of).&nbsp;
+   "Creates an announcement item in 
+   "the %conference (system_announcements) conference.
+end
+
+"<p/>
+if $not_empty ($(mail_out))
+  "<dt><b><A HREF="custom_email.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Participating via E-mail</A></b>
+  "<dd>Modify the options for users participating by email.<P>
+end
+
+#---Assignments
+#include $(main)/assign_custom.i
+
+
+set addQuiz $word (1 $site_data ($arg(3) - addQuiz) 0)
+if $(addQuiz)
+   "<p/>
+   "<dt><b><a href="quizAllScores.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x"
+   " >Quiz Scores</a></b>
+   "<dd>Show the scores for all quizzes for all members.
+end
+
+#---User statistics for this conference.
+   "<p>
+   "<dt><b><A HREF="man_statwiz.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x+x+x+$arg(3)"
+   " >User Statistics Wizard</a></b>
+   "<dd>Run a 'wizard' to display standard usage statistics for 
+   "this conference.
+
+"</dl>
+
+"</BLOCKQUOTE>
+"<P>
+"<HR>
+"</div>
+"</body></HTML>
+
+set pagename
+#------------------------------------------------------------------

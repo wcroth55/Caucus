@@ -1,0 +1,140 @@
+#
+#---GOTO.CML  Pop-up window to "go to" another conf/item/resp.
+#
+# arg(1)   conference number
+#     2    $(nxt) from original calling page
+#     3    unique (defeat caching)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 02/21/03 Selecting conf alias from list puts *real* conf name in box.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 10/13/04 Use CSS.
+#: CR 09/21/05 Use SQL query to get "My Conferences" list.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#============================================================================
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+"Content-type: text/html
+"
+
+"<HTML>
+"<HEAD>
+"<TITLE>Go to a Location</TITLE>
+if $empty ($(mainurl))
+   "<script type="text/javascript" language="javascript">
+   "window.opener.pop_reload();
+   "window.close();
+   "</SCRIPT>
+   "</HEAD>
+   "</HTML>
+   return
+end
+
+if $(use_resize)
+  "<script type="text/javascript" language="javascript">
+"   var started = new Date();
+"   function resizer() {
+"      var thistime = new Date();
+"      if (thistime.getTime() - started.getTime() < 3000)
+"         return;
+  "    var xv = $if ($(is_netscape4) window.innerWidth  document.body.clientWidth);
+  "    var yv = $if ($(is_netscape4) window.innerHeight document.body.clientHeight);
+  "    window.opener.xs_goto = xv;
+  "    window.opener.ys_goto = yv;
+  "    location.href = "gotor.cml?$arg(1)+$arg(2)+$arg(3)+" + xv + "+" + yv;
+  "  }
+  "</SCRIPT>
+end
+include $(main)/css.i 1
+"</HEAD>
+
+"<BODY $(body_bg) $ifthen ($(use_resize) onResize="resizer();") >
+
+"<form NAME="gto" METHOD=POST ACTION="gotof.cml?$arg(1)+$arg(2)">
+
+"<a NAME="top"><img $(src_clear) width=1 height=1></a>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR>
+"<TD><span class="bigger"><B>Go to a Location:</B></span></TD>
+"<TD COLSPAN=2 ALIGN=RIGHT><INPUT TYPE="button" VALUE="Close" 
+"        onClick="window.opener.pop_gone('goto'); window.close();"
+#"><INPUT TYPE="button" VALUE="Reload" onClick="document.reload();"
+">&nbsp;&nbsp;</TD>
+"<TR>
+"<TD>
+  "<SELECT NAME="sconf"
+   "onChange="gto.gconf.value=gto.sconf.options[gto.sconf.selectedIndex].value;">
+   "<OPTION VALUE="0">(Select a Conference)</OPTION> 
+     
+#  for tci in $gen_sort (1 $lower($(m_confs)))
+#     set thisconf $word ($(tci) $(m_confs))
+#     set cnm $cl_num($(thisconf))
+
+#     #---If the conf exists and we can access it...
+#     if $(cnm)
+#        set cname %displayed_conf_name ($(cnm))
+#        if %access($(cnm))
+#           #--- ...and if we're a member...
+#           if $it_member($(cnm))
+#              "<OPTION VALUE="$(cnm)">$(cname)</OPTION> 
+#              "<OPTION VALUE="$cl_name($(cnm))">$(cname)</OPTION> 
+#           end
+#        end
+#     end
+#  end
+
+   set ismgr %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges \
+                            interfaceManage)
+   set query  \
+      SELECT c.name, c.cnum, g.access, h.hidden FROM (confs c, groups g) \
+        LEFT JOIN confhidden h \
+          ON (h.userid = '$userid()'  AND  g.name = h.cnum) \
+       WHERE  g.userid = '$userid()'  AND  g.active > 0  AND g.access >= $priv(minimum) \
+         AND  g.owner = 'CONF'  AND  c.cnum = g.name  AND c.cnum >= 0 \
+         AND  c.deleted = 0 \
+       ORDER BY c.name
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+
+      #---Skip interface_storage confs, unless appropriate manager or organizer.
+      if $or ($equal ($str_index (interface_storage $lower($(name))) 0) \
+              $equal (system_announcements          $lower($(name))))
+         if $and ($not($(ismgr))  $less ($(access) $priv(instructor)))
+            continue
+         end
+      end
+
+      if $not (0$(hidden))
+         set cname $replace(_ 32 $(name))
+         "<OPTION VALUE="$(name)">$(cname)</OPTION> 
+      end
+   end
+   "</SELECT>&nbsp;
+"</TD>
+
+"<TD COLSPAN=2><INPUT TYPE=text NAME="gconf" SIZE=16
+if $not_equal ($arg(1) x)
+   "VALUE="$cl_name($arg(1))"
+end
+"></TD>
+
+"<TR><TD>&nbsp;&nbsp;Item number or title</TD>
+"    <TD COLSPAN=2><INPUT TYPE=text SIZE=16 NAME="gitem"></TD>
+"<TR>
+"<TD>&nbsp;&nbsp;Response number</TD>
+"<TD><INPUT TYPE=text SIZE=4  NAME="gresp">&nbsp;</TD>
+
+"<TD ALIGN=right><INPUT TYPE=submit NAME=submit VALUE="Go There"
+"   >&nbsp;&nbsp;</TD>
+"</TABLE>
+
+"</FORM>
+"</div>
+"</body>
+"</HTML>

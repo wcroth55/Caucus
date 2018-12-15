@@ -1,0 +1,121 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.11: My Information</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.11:&nbsp; "My" Information</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref410.html">PREV</A>]
+   [<A HREF="ref412.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+The &quot;$my_&quot; and &quot;$set_my_&quot; functions relate
+to registration information about the current user.
+
+<P>
+<DL>
+
+<P><DT><A NAME="my_exist">$my_exist()</A>
+<DD>
+Evaluates to &quot;1&quot; if the current user is registered
+with Caucus, and &quot;0&quot; otherwise.
+
+<P><DT><A NAME="my_name">$my_name()</A>
+<DD>
+Evaluates to the current user's full name.
+
+<P><DT><A NAME="my_phone">$my_phone()</A>
+<DD>
+Evaluates to the current user's telephone number.
+
+<P><DT><A NAME="my_intro">$my_intro()</A>
+<DD>
+Evaluates to the text of the current user's &quot;brief introduction&quot;.
+
+<P><DT><A NAME="my_laston">$my_laston()</A>
+<DD>
+Evaluates to the time and date the current user was &quot;last
+on&quot; Caucus.
+
+<P><DT><A NAME="my_text">$my_text()</A>
+<DD>
+Evaluates to a number which represents when a person's items
+or responses should appear as &quot;new&quot;.&nbsp;  0 means &quot;later&quot;
+(only after someone else adds a response), 1 means now (immediately
+becomes new), and 2 means never (it is immediately treated as
+&quot;seen&quot;).
+
+<P><DT><A NAME="set_my_text">$set_my_text(n)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets the value of  my_text, as defined above, to <I>n</I>.
+
+<P><DT><A NAME="set_my_name">$set_my_name(name)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets the current user's full name to <I>name</I>.&nbsp;  (Will not
+change the user's name if <I>name</I> is empty.)&nbsp;  Evaluates to
+'1' on success, '0' on failure.&nbsp;  (Fails if attempting to create
+a new user, and the maximum total number of users for this license
+has been reached.)
+
+<P><DT><A NAME="set_my_phone">$set_my_phone(number)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets the current user's telephone number to <I>number</I>.&nbsp;  (May
+be set to nothing).&nbsp;  Evaluates to nothing.
+
+<P><DT><A NAME="set_my_intro">$set_my_intro(text)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets the current user's brief introduction to <I>text</I>.&nbsp;  (May
+be set to nothing).&nbsp;  <I>Text</I> may contain newlines.&nbsp;  Evaluates
+to nothing.
+
+<P><DT><A NAME="passwd">$passwd(id newpw oldpw)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+<B>Obsolete</B>.&nbsp;
+See the <A HREF="ref421.html">new password functions</A>.&nbsp;
+Change the password for user <I>id</I>, to <I>newpw</I> (from
+<I>oldpw</I>).&nbsp;  Evaluates to a success code: 0 means success;
+non-zero is an error code.
+
+<P><DT><A NAME="passcheck">$passcheck(id pw)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+<B>Obsolete</B>.&nbsp;
+See the <A HREF="ref421.html">new password functions</A>.&nbsp;
+Evaluates to '1' if <I>id</I> and <I>pw</I> are a valid password
+pair, and '0' otherwise.&nbsp;  If $passcheck() fails, most CML functions
+that reference actual Caucus data are disabled.&nbsp;  (If $passcheck()
+is called again and succeeds, the functions are enabled.&nbsp;  Functions
+are enabled by default.)
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,347 @@
+#
+#---archiver.cml    Archive a 5.1+ conference.
+#
+#   Standalone sweba script.
+#
+#   arg(1)  conference key
+#   arg(2)  archive name
+#   arg(3)  optional email address
+#
+#   Called from man_archivef.cml.  Assumes that the data is good,
+#   i.e. that the conference exists, and no archive named $arg(2)
+#   already exists.
+#
+#   Writes all the archive information, including:
+#      item .xml files and attachments
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/17/07 New file.
+#: CR 01/24/08 Fix escaping of <,> from $xmlesc().
+#: CR 08/21/10 Add new response fields location, lat_long, approved
+#------------------------------------------------------------
+
+set email $arg(3)
+if $not_empty($(email))
+   set baseDir $caucus_path()/public_html/ARCHIVE5/$arg(2)
+   eval $mkdir ($(baseDir) 711)
+end
+else
+   set baseDir $caucus_path()/ARCHIVE5/$arg(2)
+   eval $mkdir ($(baseDir) 700)
+end
+
+set pid $word (1 $replace(/ 32 $pid()))
+eval $mkdir (/tmp/archive$(pid))
+
+#===Section 1: Do the conference items & attachments. ================
+set archDir $(baseDir)/items
+eval $mkdir ($(archDir) 700)
+
+set textTypes wordwrap literal html cml
+eval $mac_define (libimg2 $char(3)caucus:image src="\$(id)/\$(rnum)/@3" \
+          macro="\\%libimg2(@@)" /$char(4))
+
+eval $mac_define (libimg2r $char(3)caucus:image src="\$(id)/\$(rnum)/@3" \
+          macro="\\%libimg2r(@@)" align="right" /$char(4))
+
+eval $mac_define (libname2 $char(3)caucus:attach src="\$(id)/\$(rnum)/@3" \
+          macro="\\%libname2(@@)"$char(4)@3$char(3)/caucus:attach$char(4))
+
+eval $mac_define (liblink2 $char(3)caucus:attach src="\$(id)/\$(rnum)/@3" \
+          macro="\\%libname2(@@)"$char(4)\$(id)/\$(rnum)/@3$char(3)/caucus:attach$char(4))
+
+eval $mac_define (liburl2 $char(3)caucus:attach src="\$(id)/\$(rnum)/@3" \
+          macro="\\%liburl2(@@)"$char(4)\$(id)/\$(rnum)/@3$char(3)/caucus:attach$char(4))
+
+
+set itemDirs
+set qArch SELECT i.id, i.frozen, i.title, i.userid, i.qkey, i.type, \
+                 h.item0, h.item1, h.item2, h.item3, h.item4, h.item5, \
+                 h.resps_parent, h.hidden, h.retired \
+            FROM items i, conf_has_items h \
+           WHERE h.cnum=$arg(1) AND h.items_id = i.id \
+             AND h.deleted=0 \
+           ORDER BY h.item0, h.item1, h.item2, h.item3, h.item4, h.item5
+set ha $sql_query_open ($(qArch))
+while  $sql_query_row  ($(ha))
+   set tuplet $(item0) $(item1) $(item2) $(item3) $(item4) $(item5)
+   set label $item_tuplet ($(tuplet))
+   eval $output ($(archDir)/$(label).xml 700)
+
+   set itemParent $replace(. 32 $(label))
+   set itemParent $words (1 $minus ($sizeof($(itemParent)) 1) $(itemParent))
+   set itemParent $item_tuplet($(itemParent))
+
+   "<?xml version="1.0"?>
+   "<caucus:item xmlns:caucus="http://www.caucus.com/caucus-xml" \
+          frozen="$(frozen)" responseParent="$(resps_parent)" \
+          itemParent="$(itemParent)" \
+          hidden="$(hidden)" retired="$(retired)" >
+   "   <caucus:label>$(label)</caucus:label>
+   "   <caucus:title>$xmlesc($(title))</caucus:title>
+   "   <caucus:userid>$(userid)</caucus:userid>
+   "   <caucus:type>$(type)</caucus:type>
+   if $exists($caucus_lib()/ITEMS/$(id))
+      "   <caucus:attachDir>$(id)</caucus:attachDir>
+   end
+
+   for varname in $list_site_data ($arg(1) $(id))
+      "   <caucus:variable name="$(varname)"\
+             >$xmlesc($site_data($arg(1) $(id) $(varname)))</caucus:variable>
+   end
+
+   last rnumPrev 0
+   set qResp SELECT r.rnum, r.userid, r.prop, r.bits, r.deleted, r.time, r.text, \
+                    r.versioned, r.version, r.approved, r.edittime, r.editid, u.fname, u.lname, \
+                    r.approved, r.lat_long, r.location \
+               FROM resps r, user_info u \
+              WHERE r.items_id=$(id) AND u.userid=r.userid \
+              ORDER by r.rnum
+   set hr $sql_query_open ($(qResp))
+   while  $sql_query_row  ($(hr))
+
+      count rdeleted $plus($(rnumPrev) 1) $minus($(rnum) 1)
+         "   <caucus:response bits="0" deleted="1">
+         "      <caucus:rnum>$(rdeleted)</caucus:rnum>
+         "      <caucus:userid />
+         "      <caucus:username />
+         "      <caucus:time />
+         "      <caucus:text />
+         "   </caucus:response>
+      end
+
+      "   <caucus:response bits="$(bits)" deleted="$(deleted)">
+      "      <caucus:rnum>$(rnum)</caucus:rnum>
+      "      <caucus:version>$(version)</caucus:version>
+      "      <caucus:versioned>$(versioned)</caucus:versioned>
+      "      <caucus:approved>$(approved)</caucus:approved>
+      "      <caucus:edittime>$(edittime)</caucus:edittime>
+      "      <caucus:editid>$(editid)</caucus:editid>
+      "      <caucus:userid>$(userid)</caucus:userid>
+      "      <caucus:username>$(fname) $(lname)</caucus:username>
+      "      <caucus:time>$(time)</caucus:time>
+      "      <caucus:lat_long>$(lat_long)</caucus:lat_long>
+      "      <caucus:location>$(location)</caucus:location>
+      "      <caucus:approved>$(approved)</caucus:approved>
+             if $(deleted)
+         "      <caucus:text />
+             end
+             else
+         "      <caucus:text type="$word($plus($(prop) 1) $(textTypes))" \
+                 >$str_replace(&#xE004; > $str_replace(&#xE003; < $xmlesc($mac_expand($(text)))))\
+                </caucus:text>
+             end
+      "   </caucus:response>
+      set rnumPrev $(rnum)
+   end
+   eval   $sql_query_close($(hr))
+
+   if $not_empty($(qkey))
+      set qQuiz \
+          SELECT q.visible0, q.visible1, q.onepage, q.seesummary, q.seeAnswers \
+            FROM quiz q, items i \
+           WHERE i.id=$(id) AND q.qkey=i.qkey
+      set hq $sql_query_open ($(qQuiz))
+      eval   $sql_query_row  ($(hq))
+      eval   $sql_query_close($(hq))
+      "   <caucus:quiz onepage="$(onepage)" seesummary="$(seesummary)" \
+                       seeAnswers="$(seeAnswers)">
+      "      <caucus:visible0>$(visible0)</caucus:visible0>
+      "      <caucus:visible1>$(visible1)</caucus:visible1>
+
+      set qProbs \
+          SELECT p.category, p.title, p.text, p.texttype, p.totalpoints, \
+                 p.floating, p.pkey \
+            FROM quizproblems p, quizmap m \
+           WHERE m.pkey = p.pkey AND m.qkey = $(qkey) AND p.deleted=0
+      set hp $sql_query_open ($(qProbs))
+      while  $sql_query_row  ($(hp))
+      "      <caucus:quizproblem floating="$(floating)">
+      "         <caucus:title>$xmlesc($(title))</caucus:title>
+      "         <caucus:text>$xmlesc($(text))</caucus:text>
+      "         <caucus:texttype>$(texttype)</caucus:texttype>
+      "         <caucus:points>$(totalpoints)</caucus:points>
+
+         set qAnswers \
+             SELECT text1, type, text2, answer, sortorder, points, newrow \
+               FROM quizanswers WHERE pkey=$(pkey)
+         set hs $sql_query_open ($(qAnswers))
+         while  $sql_query_row  ($(hs))
+         "         <caucus:quizanswer newrow="$(newrow)">
+         "            <caucus:text1>$xmlesc($(text1))</caucus:text1>
+         "            <caucus:type>$(type)</caucus:type>
+         "            <caucus:text2>$xmlesc($(text2))</caucus:text2>
+         "            <caucus:answer>$xmlesc($(answer))</caucus:answer>
+         "            <caucus:sortorder>$(sortorder)</caucus:sortorder>
+         "            <caucus:points>$(points)</caucus:points>
+         "         </caucus:quizanswer>
+         end
+         eval   $sql_query_close($(hs))
+
+      "      </caucus:quizproblem>
+      end
+      eval   $sql_query_close($(hp))
+  
+      "   </caucus:quiz>
+   end
+
+   "</caucus:item>
+
+   eval $output()
+
+   if $exists($caucus_lib()/ITEMS/$(id))
+      set itemDirs $(itemDirs) $(id)
+   end
+end
+eval   $sql_query_close($(ha))
+
+#---Now copy the item attachments.
+eval $output (/tmp/archive$(pid)/Items 755)
+"(cd $caucus_lib()/ITEMS;  tar cf - $(itemDirs)) | (cd $(archDir); tar xf - )
+eval $output ()
+eval $xshell (1 1 1 /tmp/archive$(pid)/Items)
+
+
+#===Section 2: Archive a text version of the Assignments table that will allow
+#   us to easily recreate it on "unarchiving". ============================
+
+set archDir $(baseDir)/assignments
+eval $mkdir ($(archDir) 700)
+set assignDirs
+
+eval $mac_define (libimg2 $char(3)caucus:image src="\$(asnkey)/@3" \
+          macro="\\%libimg2(@@)" /$char(4))
+
+eval $mac_define (libimg2r $char(3)caucus:image src="\$(asnkey)/@3" \
+          macro="\\%libimg2r(@@)" align="right" /$char(4))
+
+eval $mac_define (libname2 $char(3)caucus:attach src="\$(asnkey)/@3" \
+          macro="\\%libname2(@@)"$char(4)@3$char(3)/caucus:attach$char(4))
+
+eval $mac_define (liblink2 $char(3)caucus:attach src="\$(asnkey)/@3" \
+          macro="\\%libname2(@@)"$char(4)\$(asnkey)/@3$char(3)/caucus:attach$char(4))
+
+eval $mac_define (liburl2 $char(3)caucus:attach src="\$(asnkey)/@3" \
+          macro="\\%liburl2(@@)"$char(4)\$(asnkey)/@3$char(3)/caucus:attach$char(4))
+
+set qAssign \
+    SELECT asnkey, instructor, title, start, end, due, text, texttype, item \
+      FROM assignments WHERE cnum=$arg(1)
+set ha $sql_query_open ($(qAssign))
+while  $sql_query_row  ($(ha))
+   eval $output ($(archDir)/$(asnkey).xml 700)
+   "<?xml version="1.0"?>
+   "<caucus:assignment xmlns:caucus="http://www.caucus.com/caucus-xml" \
+         key="$(asnkey)">
+   "   <caucus:instructor>$(instructor)</caucus:instructor>
+   "   <caucus:title>$xmlesc($(title))</caucus:title>
+   "   <caucus:start>$(start)</caucus:start>
+   "   <caucus:end>$(end)</caucus:end>
+   "   <caucus:due>$(due)</caucus:due>
+   "   <caucus:text type="$(texttype)" \
+          >$str_replace(&#xE004; > $str_replace(&#xE003; < $xmlesc($mac_expand($(text)))))</caucus:text>
+   if $not_empty($(item))
+      "   <caucus:item>$item_label($arg(1) $(item))</caucus:item>
+   end
+   if $exists($caucus_lib()/ASSIGN/$(asnkey))
+      "   <caucus:attachDir>$(asnkey)</caucus:attachDir>
+      set assignDirs $(assignDirs) $(asnkey)
+   end
+   "</caucus:assignment>
+
+   eval $output()
+end
+eval $sql_query_close($(ha))
+
+#---Now copy the assignment attachments.
+eval $output (/tmp/archive$(pid)/Assign 755)
+"(cd $caucus_lib()/ASSIGN;  tar cf - $(assignDirs)) | (cd $(archDir); tar xf - )
+eval $output ()
+eval $xshell (1 1 1 /tmp/archive$(pid)/Assign)
+
+
+#===Section 3: Archive conference variables ===========================
+set archDir $(baseDir)
+eval $output ($(archDir)/variables.xml 700)
+"<?xml version="1.0"?>
+"<caucus:variables xmlns:caucus="http://www.caucus.com/caucus-xml">
+for varname in $list_site_data ($arg(1) -)
+   "   <caucus:variable name="$(varname)" \
+          >$xmlesc($site_data($arg(1) - $(varname)))</caucus:variable>
+end
+"</caucus:variables>
+eval $output()
+
+#===Section 4: Archive grade information ===========================
+set archDir $(baseDir)/grades
+eval $mkdir ($(archDir) 700)
+
+set query1 \
+    SELECT taskkey, class, title, type, added, due, points, weight, comment \
+      FROM grade_tasks WHERE cnum=$arg(1)
+set h $sql_query_open ($(query1))
+while $sql_query_row  ($(h))
+   eval $output ($(archDir)/$(taskkey).xml 700)
+   "<?xml version="1.0"?>
+   "<caucus:grades xmlns:caucus="http://www.caucus.com/caucus-xml" \
+          key="$(taskkey)">
+   "   <caucus:class>$xmlesc($(class))</caucus:class>
+   "   <caucus:title>$xmlesc($(title))</caucus:title>
+   "   <caucus:type>$xmlesc($(type))</caucus:type>
+   "   <caucus:added>$(added)</caucus:added>
+   "   <caucus:due>$(due)</caucus:due>
+   "   <caucus:points>$(points)</caucus:points>
+   "   <caucus:weight>$(weight)</caucus:weight>
+   "   <caucus:comment>$xmlesc($(comment))</caucus:comment>
+
+   set query2 SELECT userid, scorenumb, scoretext, done, comment \
+                FROM grade_scores WHERE taskkey=$(taskkey)
+   set h2 $sql_query_open ($(query2))
+   while  $sql_query_row  ($(h2))
+   "   <caucus:student>
+   "      <caucus:userid>$(userid)</caucus:userid>
+   "      <caucus:scorenumb>$(scorenumb)</caucus:scorenumb>
+   "      <caucus:scoretext>$(scoretext)</caucus:scoretext>
+   "      <caucus:done>$(done)</caucus:done>
+   "      <caucus:comment>$xmlesc($(comment))</caucus:comment>
+   "   </caucus:student>
+   end
+   eval   $sql_query_close($(h2))
+   "</caucus:grades>
+   eval $output()
+end
+eval  $sql_query_close($(h))
+
+#===Section 5: Pack and compress the archived data, then delete the
+#   working directory. ============================================
+eval $output (/tmp/archive$(pid)/Pack 755)
+"cd $(baseDir)
+"tar cf ../$arg(2).tar .
+"cd ..
+"gzip      $arg(2).tar
+if $not_empty($(email))
+   "chmod 644 $arg(2).tar.gz
+end
+eval $output ()
+eval $xshell (1 1 1 /tmp/archive$(pid)/Pack)
+eval $deldir  ($(baseDir))
+
+eval $deldir  (/tmp/archive$(pid))
+
+if $not_empty($(email))
+   set archiveReady /tmp/caucus.archive.$(pid)
+   eval $output($(archiveReady) 0664)
+   "
+   "The archive of your conference is ready.  You can download it directly from:
+   "
+   "   http://$host()/~$caucus_id()/ARCHIVE5/$arg(2).tar.gz
+   eval $output()
+
+   eval $xshell (1 1 1 $config(mailx) -s "Your archive for $arg(2) is ready" $(email) <$(archiveReady))
+#  eval $delfile ($(archiveReady))
+end
+
+#------------------------------------------------------------

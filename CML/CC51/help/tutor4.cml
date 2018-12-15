@@ -1,0 +1,44 @@
+#
+#---TUTOR4.CML.   Tutorial, page 4.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#----------------------------------------------------------------------
+
+set nch  $unique()
+
+if $empty ($(helpurl))
+   include $cml_dir()/startup.i center.cml
+end
+ 
+set nch $unique()
+
+include $(main)/head.i $quote(Caucus Tutorial (page 4 of 4)) 0 $(href)/
+
+include $(main)/body.i $arg(3) 
+
+include $(main)/headquit.i Tutorial_(page_4_of_4)
+
+include $(main)/location.i Tutorial (page 4)
+
+"<P>
+include $(help)/tutor4.i
+
+"<FORM METHOD=POST ACTION="center.cml?$(nch)+$(nxt)+x+x+x+x+x+x">
+"<CENTER>
+"<INPUT TYPE="submit" NAME="submit" VALUE="Go to the Caucus Center">
+"<BR>
+"...and welcome to Caucus!
+"</CENTER>
+"</FORM>
+
+"<HR>
+"<CENTER>
+"The Caucus Tutorial is Copyright (C) 1997 by 
+"<A HREF="http://caucuscare.com" TARGET="_blank">CaucusCare/A>.
+"</CENTER>
+"<HR>
+"</BODY>
+"</HTML>

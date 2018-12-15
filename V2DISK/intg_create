@@ -1,0 +1,23 @@
+#!/bin/sh
+
+#---intg_create.   New caucus user to be created in outside app.
+#
+#   $1 email
+#   $2 first name
+#   $3 last name
+#   $4 password
+#   $5 phone
+#
+#   This is a sample of an intg_create script that used 'curl'
+#   (see http://curl.haxx.se) to post the new caucus user's info
+#   to a cold fusion page that in turn created the user.
+
+urlencode=intg_urlencode
+email=`echo "$1" | $urlencode`
+first=`echo "$2" | $urlencode`
+lastn=`echo "$3" | $urlencode`
+passw=`echo "$4" | $urlencode`
+phone=`echo "$5" | $urlencode`
+
+curl -d "email=$email&firstName=$first&lastName=$lastn&password=$passw&phone=$phone&title= \
+   http://coldfusion.xyz.com/transfer/adduser.cfm

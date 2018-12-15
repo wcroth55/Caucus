@@ -1,0 +1,164 @@
+#
+#---H_ACTON.I    Help about "Act on on checked responses" window
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_acton.cml $quote(Help on 'Act on checked responses')
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The "Act on checked responses" function allows you to select a set 
+"of responses and 
+"perform some operation on all of them at once.
+
+"<P><B>How do I use it?</B><BR>
+"When you're reading an item, you'll notice a checkbox next to the number of 
+"each response. Checking this box is your way of indicating that you want to
+"do something with a particular response or set of responses.<P>
+
+"Once you've checked a response or set of responses, clicking on the <B><U>Act
+"on checked responses</U></B> link at the bottom of the page will open a new,
+"smaller window containing several options:<P>
+
+"<FORM><DL>
+"<DT><U>Add</U> them to <SELECT SIZE=1><OPTION>(Create New Category)</SELECT>
+"<DD>This option allows you to add the selected responses to your Caucus
+"<A HREF=$(helpurl)/helpabou?notebook+Notebook>Notebook</A> for later reference.
+"You can choose from your existing Notebook categories using the adjoining
+"menu, or use the <TT>(Create New Category)</TT> option to start a new 
+"category for the responses you have selected.<P>
+
+"<DT><U>Clear</U> them all and close this window.
+"<DD>Choose this option if you decide not to do anything with the checked
+"responses. The extra window will close and all of the checkboxes will be
+"cleared.<P>
+
+"<DT><U>Copy</U> or <U>Move</U> to <INPUT TYPE=CHECKBOX> new item or item 
+"<INPUT TYPE=TEXT SIZE=5> in <SELECT SIZE=1><OPTION>Demonstration</SELECT>
+"<DD>This option is easiest to understand if you read it as a sentence. You 
+"can a) Copy the selected responses to a new location, or b) Move the selected 
+"responses to a new location (deleting them from the current location). You 
+"will only be able to use this option if both the conference you're in and
+"the destination conference allow responses to be copied or moved.  You'll
+"only be able to move responses if you're authorized to delete them from
+"the current conference.<P>
+
+"The destination for your copied or moved responses can be a <B>new item</B>,
+"in which case you should check the checkbox, or an existing item, in 
+"which case you should enter the item number in the text field.  Your copied 
+"or moved responses will be added to the end of the item you specify. 
+"Each will be marked with a small "Moved here by..." message indicating
+"the original location of the response.<P>
+
+"If you are an organizer of the current conference, you'll see an additional
+"option: (<INPUT TYPE=CHECKBOX> anon'ly).  Checking this option will
+"suppress the "Moved here by..." message on responses copied or moved into
+"conferences where you are an organizer.<P>
+
+"Finally, you need to specify a destination conference for your selected
+"reponses.  The current conference is the default, but you can select any
+"conference on your Personal Conference List.<P>
+
+"<DT><U>Delete</U> them.
+"<DD>This option allows you to permanently remove the selected responses from 
+"this conference.  You must be the author of the response or a conference
+"organizer to delete a response.<P>
+
+"<DT><U>Mark</U> first one (and following) as "new".
+"<DD>This option allows you to set the first marked response and all 
+"subsequent responses "new" so that they will appear as new material the 
+"next time you visit this conference.
+
+"</DL>
+
+"Once you select an option, if it is carried out successfully, the small
+"window will close automatically.  If there are any problems carrying
+"out your request, or any additional information required, you'll see an
+"update in the small window.  You can click the <B>Close</B> button to 
+"close the window at any time.<P>1 h_additem.cml
+#
+#---H_ADDITEM.I    Help about "Create Item" page
+#
+
+set help_not_found 0
+
+"<B>What Is It?</B>
+
+"<P>
+"The Create Item Page is the place to add a new item of discussion to a 
+"Caucus conference.
+
+"<P>
+"<B>What Can I Do From Here?</B>
+
+"<P>
+"At the Create Item Page you can create a new item and add it to the current
+"conference.&nbsp;  
+"You will give this item a title and enter some text to start
+"the discussion of the new  item.
+
+"<P>
+"The rest of this help page describes the different parts of
+"the Create Item Page in detail.
+
+"<P><OL>
+
+include $(help)/h_pagetop.i
+
+"<P><LI>
+   "<B>Item Title</B>:&nbsp; 
+   "In the long one-line text box, type the title of your new item.&nbsp;
+   "Choose a title which clearly describes the purpose and content
+   "of the new discussion, and is distinct from other items in the
+   "conference.
+
+"<P><LI>
+   "<B>Item Text Box</B>:&nbsp; 
+   "To create your new item, just click in the big text box
+   "and start typing.&nbsp
+   "Caucus will automatically "wrap" the lines for you, so you don't need
+   "to hit RETURN at the end of every line. 
+   "You can edit your text with the Backspace or Delete keys,
+   "or use the mouse and the <B>Edit</B> menu at the top of your
+   "browser window.
+   "<P>
+   "See <A HREF="$(helpurl)/i_item.cml">More about the Item Box</A>, which
+   "also describes the 'macros' you can use to write 
+   "responses with text formatting (bold, italics, etc.) and
+   "links (to other items, to images, and so on).
+   "<P>
+   "Write and edit your text until you are satisfied,
+   "and then press one of the <B>Create</B> buttons (see below).&nbsp;
+   "Start learning how to create items by writing
+   "simple text items.&nbsp;  
+   "Once you've mastered that, you'll find that there's a lot
+   "<A HREF="$(helpurl)/h_itemcont.cml">More You Can Do</a> in your
+   "Caucus items.&nbsp;  
+   "A Caucus item can include 
+   "absolutely anything that can be on a Web page.
+
+"<P><LI>
+   "<B>Box width arrows</B>:&nbsp;
+   "Use these to widen or narrow the text box in which you 
+   "create your item.
+
+"<P><LI>
+   "<B>Create Buttons</B>:&nbsp;
+   "Once you are satisfied with what you've written,
+   "press one of the <B>Create</B> buttons to create your new item.
+   "<UL>
+   "<LI><B>Create + Go</B> creates your item and goes back to the 
+   "Conference Home page.
+   "<P>
+   "<LI><B>Create + View</B> displays your new item.&nbsp;
+   "If it doesn't look quite right, press the 
+   "<A HREF="$(helpurl)/h_edit.cml"><B>Edit</B> Button</A>, 
+   "and work in the text box again.
+
+"</OL>
+include $(help)/hb.i
+

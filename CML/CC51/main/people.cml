@@ -1,0 +1,97 @@
+#
+#---PEOPLE.CML.   List people...
+#
+# arg(9)  (optional) userid of person to show in pop-up window.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: MH 10/16/02 Add "everyone logged in"
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/26/06 Don't allow list members if IFS conf and not mgr/instructor.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i people.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 people.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # People )
+
+include $(main)/head.i $arg(3)  $quote(People)
+
+set onload  document.peop.who.focus(); \
+            $ifthen ($not_empty ($arg(9)) pop_up('person','$arg(9)'); )
+include $(main)/body.i $arg(3) onUnload="pop_close('all');" ONLOAD="$(onload)"
+
+include $(main)/header.i  people  People
+
+"<P>
+"Use this page to find people on Caucus.
+
+"<UL>
+"<LI> See a list of
+"<A HREF="people_on.cml?$(nch)+$(nxt)+\
+      $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)"
+     ">everyone currently logged in.</A>
+
+"<p/>
+set list_members 0
+if $not_equal ($arg(3) x)
+   set list_members $not_equal (0 $str_index (interface_storage \
+                                              $lower($cl_name($(cnum)))))
+   if $not ($(list_members))
+      set list_members $or (\
+          $gt_equal (%access($(cnum)) $priv(instructor)) \
+          %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges \
+                         groupEditNonManager))
+   end
+   if $(list_members)
+      "<LI> See a list of
+      "<A HREF="members.cml?$(nch)+$(nxt)+\
+         $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">all members</A>
+      "of the $(cname) conference.
+      "<p/>
+   end
+end
+
+"<p/>
+"<li>See <a href="grouppick.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                                USER+$userid()+_">all user groups</a>.
+
+"<form NAME=peop METHOD=POST ACTION="peoplef.cml?$(nch)+$arg(2)+\
+   $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"<LI>
+"<INPUT TYPE="submit" NAME="submit" VALUE="Find">
+"a person named:
+"<INPUT TYPE="text"   NAME="who"    SIZE=30>
+"<INPUT TYPE="hidden" NAME="people" VALUE="1">
+
+"<P>
+if $not_equal ($arg(3) x)
+   if $(list_members)
+      "<INPUT TYPE=checkbox NAME=inconf>
+      " (Only find members of the $(cname) conference.)
+   end
+end
+
+"</form>
+
+"</UL>
+
+"<HR>
+"$errors()
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

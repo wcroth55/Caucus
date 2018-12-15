@@ -1,0 +1,32 @@
+#
+#---groupdel.   Delete a C5 group.
+#
+#  arg(6)   owner: CONF, MGR, or a specific userid
+#  arg(7)   range: 
+#  arg(8)   name:  name of group  (conference number for conference groups)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/09/05 New page.
+#: CR 01/11/06 Handle deleting Caucus4 groups, too.
+#-------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i groupdel.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set owner $if ($equal ($arg(7) 0) $arg(6) $arg(7))
+set query DELETE FROM grouprules WHERE owner='$(owner)' \
+                                   AND name='$escsingle($arg(8))'
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+   
+"Location: grouppick.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+_
+"

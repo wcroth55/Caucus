@@ -1,0 +1,47 @@
+#
+#---PALETTE.CML
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Web Color Palette</TITLE>
+"</HEAD>
+"<BODY BGCOLOR=#FFFFFF>
+"<h1>Web Color Palette</h1>
+
+"Colors on the web are represented by three pairs of hexadecimal 
+"digits (hexadecimal digits count from 1 to 9 and then from A to F).&nbsp;
+"Each pair of digits speci fies how much red, green, or blue isin the color.
+
+"<P>
+"The chart below contains the colors which the major web browsers can 
+"display most accurately.&nbsp;  
+"To determine the hexadecimal code for a color, combine the values for 
+"red, green, and blue as they appear on the chart, creating a number 
+"with the form #<i>RRGGBB,</i> where <i>RR, GG,</i> and <i>BB</i> are the 
+"hexadecimal color values.
+
+"<P>
+"For example, if you want to use the pale yellow at the top right 
+"corner of the chart, locate the RED value in the column on the 
+"left (FF), the GREEN value in the row along the bottom (FF), 
+"and the BLUE value listed above that group of 
+"colors (66).&nbsp; 
+"The hexadecimal code for that color would be #FFFF66.
+
+"<P>
+"<IMG SRC=$(img)/palette.gif ALT="" WIDTH=394 HEIGHT=283>
+"<FORM>
+"<INPUT TYPE="button" VALUE="Close Window" onCLick="self.close()">
+"</FORM>
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

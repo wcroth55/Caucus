@@ -1,0 +1,79 @@
+#
+#---note_editf.cml.  Handle edit notebook entry forms, then back to the list
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+#"Content-type: text/html
+#"
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i note_edit.cml 
+end
+
+include $(main)/secure.i open
+
+if $empty($form(cancel))
+
+   set nch $unique()
+
+
+#---Figure out what category was chosen, and add it if it's new.
+   if $equal($form(category) new)
+      if $not_empty($form(categoryname))
+         set new_cat $replace(32 _ $form(categoryname))
+      end
+   end
+   else
+      set new_cat $replace(32 _ $form(category))
+   end
+   set old_cat $word($minus($mult(2 $arg(6)) 1) \
+                $user_data($userid() mark_categories))
+
+   if $not($tablefind($(new_cat) $user_data($userid() mark_categories)))
+      eval $set_user_data($userid() mark_categories \
+         $user_data($userid() mark_categories) $(new_cat) 0)
+   end
+
+#---Now change the selected entry as appropriate
+   set newlist
+   set count 0
+   for page argu anchor name watch in $user_data($userid() mark_$(old_cat))
+      set count $plus($(count) 1)
+      if $not_equal($(count) $arg(7))
+         set newlist $(newlist) $(page) $(argu) $(anchor) $(name) $(watch)
+      end
+      else
+         #---If this is a delete, don't write the old entry
+         if $not_empty($form(delete))
+         end
+         #---If the category hasn't changed, replace the old entry.
+         elif $equal($(old_cat) $(new_cat))
+#           set newlist $(newlist) $(page) $(argu) $(anchor) \
+#                     $replace(32 182 $form(name)) \
+#                     $if($equal($form(monitor) on) 1 0)
+            set newlist $(newlist) $(page) $(argu) $(anchor) \
+                      $quote($form(name)) \
+                      $if($equal($form(monitor) on) 1 0)
+         end
+         #---Otherwise, write to the new category, rather than the old.
+         else
+#           eval $set_user_var($userid() mark_$(new_cat) \
+#                     $user_var($userid() mark_$(new_cat)) \
+#                     $(page) $(argu) $(anchor) $replace(32 182 $form(name)) \
+#                     $if($equal($form(monitor) on) 1 0))
+            eval $set_user_data($userid() mark_$(new_cat) \
+                     $user_data($userid() mark_$(new_cat)) \
+                      $(page) $(argu) $(anchor) $quote($form(name)) \
+                      $if($equal($form(monitor) on) 1 0))
+         end               
+      end
+   end
+   eval $set_user_data($userid() mark_$(old_cat) $(newlist))
+end
+
+set caller $page_caller (1 $arg(2))
+"%location($(mainurl)/$page_return ($(caller) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#--------------------------------------------------------

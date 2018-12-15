@@ -1,0 +1,90 @@
+#
+#---GOTOF.CML    Handle user selection of conf/item/resp to "goto", in
+#                pop-up window from goto.cml.
+#
+#  arg(1)  starting conference number
+#      2   $(nxt) from original calling page
+#
+#  If an impossible conf or item is selected, just goes back to
+#  goto.cml to repeat choice.
+#
+#  Otherwise, sends calling (window.opener) page to proper place,
+#  which will automatically close this window.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR 11/05/07 Remove javascript dependencies.
+#:CR 09/04/09 Use the target window name, instead of window.opener.
+#------------------------------------------------------------------
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+set g_cname $replace (32 _ $form(gconf))
+set g_cnum  $word (1 $cl_list ($(g_cname)))
+
+#---If the the goto window was resized, save the new size.
+#if 0$form(changed)
+#   eval $set_user_var ($userid() xs_goto $form(xsize))
+#   eval $set_user_var ($userid() ys_goto $form(ysize))
+#end
+
+#---Bad conference name
+if $empty ($(g_cnum))
+   "%location($(mainurl)/goto.cml?$arg(1)+$arg(2)+$unique()#top)
+   "
+   return
+end
+
+#---Good conference name, no item, => conf home page
+if $empty ($form(gitem))
+   set g_loc $(mainurl)/confhome.cml?$(nch)+$arg(2)+$(g_cnum)+x+x+x+x+x
+end
+
+#---Parse item & resp number
+else
+   include $(main)/itemParse.i $(g_cnum) $quote($form(gitem))
+   if $or ($empty ($(triplet)) \
+           $greater ($sizeof($(triplet)) 3))
+      "%location($(mainurl)/goto.cml?$arg(1)+$arg(2)+$unique()#top)
+      "
+      return
+   end
+
+   #---Otherwise, goto the selected response (or the end of) that item!
+   set g_inum $word(2 $(triplet))
+   set g_rn   $word (1 $form(gresp) 99999)
+   set g_rn   $min ($(g_rn) %item_lastresp($(g_inum)))
+   set g_rn   $max ($(g_rn) 0)
+   set g_loc  $(mainurl)/viewitem.cml?$(nch)+$arg(2)+$(g_cnum)+$(g_inum)+\
+              $(g_rn)+x+x+x#here
+end
+
+if $(use_javascript)
+   "Content-type: text/html
+   "
+   "<HTML>
+   "<HEAD>
+   "<TITLE>Going...</TITLE>
+   "<script type="text/javascript" language="javascript">
+   "   mainWindow = window.open('', '$(mainWindow)', '');
+   "   if (mainWindow.pop_gone != null) mainWindow.pop_gone('goto');
+   "   mainWindow.location = '$(g_loc)';
+
+#  "   window.opener.location = "$(g_loc)";
+#  "   window.opener.pop_gone('goto');
+
+   "   window.close();
+   "</SCRIPT>
+   "<BODY BGCOLOR="#FFFFFF">
+   "</div>
+   "</body>
+   "</HTML>
+end
+else
+   "%location($(g_loc))
+end
+#------------------------------------------------------------------

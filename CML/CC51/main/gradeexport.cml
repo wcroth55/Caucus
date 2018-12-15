@@ -1,0 +1,36 @@
+#
+#---gradeexport.cml    Export gradebook view as spreadsheet
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/26/04 New file.
+#: CR 01/24/05 Minor changes.
+#-------------------------------------------------------------------
+
+#---For xls file, it's a little trickier.  Write the .xls file
+#   (which is really a tab-separated text file, but the .xls extension
+#   tricks most spreadsheets into converting into real spreadsheet form)
+#   and *then* rewrite the html file to redirect to the .xls file.
+
+set xlsfile $userid()$word(1 $replace (/ 32 $pid())).xls
+eval $output ($caucus_path()/public_html/TEMP/$(xlsfile) 644)
+include $(main)/grade_export.i x
+eval $output()
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<meta http-equiv="Refresh"
+"   content="0; URL=http://$host()/~$caucus_id()/TEMP/$(xlsfile)">
+"</head>
+"<body BGCOLOR="#FFFFFF">
+"&nbsp;<br>
+"&nbsp;<br>
+"<center>Loading the spreadsheet...</center>
+"</div>
+"</body>
+"</html>
+#------------------------------------------------------

@@ -1,0 +1,119 @@
+#
+#---quiz_takeprob.   Taker's view of a problem.
+#
+#   arg(9)  problem key
+#   arg(10) (optional) userid
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/23/06 New file.
+#: CR 02/01/06 Move most of the problem & answer display to quiz_takeprob.i
+#: CR 10/16/06 Add 'floating' field.
+#: CR 11/20/07 Handle viewing other people's scores.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_prob.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set thisUser $userid()
+if $not_empty ($arg(10))
+   set thisUser $arg(10)
+end
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+set query SELECT userid, title, seeAnswers FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set quid  $(userid)
+
+set pkey $plus (0 $arg(9))
+
+#---Get fields from current problem.
+set title
+set q3 SELECT owner, category, title, text, texttype, totalpoints, floating \
+         FROM quizproblems WHERE pkey=$(pkey) AND deleted=0
+set h3 $sql_query_open ($(q3))
+eval   $sql_query_row  ($(h3))
+eval   $sql_query_close($(h3))
+
+set nxt   $page_save (1 quiz_prob.cml \
+                  $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                  # $(title))
+
+include $(main)/head.i $arg(3)  $quote($(title))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+set arglist  $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  </A><a href="#top">$replace(32 02 $(title))
+
+"<p/>
+"<blockquote>
+"<p/>
+if $not_equal ($(thisUser) $userid())
+   "<b>Results for %person($(thisUser))</b><br>
+   "&nbsp;<br>
+end
+"<b>$(title)</b>&nbsp;&nbsp;&nbsp;
+if $(isQuiz)
+   "<i>(points: $(totalpoints))</i>
+end
+#"qkey=$(qkey), pkey=$(pkey)
+
+set is_org $gt_equal (%access($arg(3)) $priv(instructor))
+if $(is_org)
+   "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   "<a href="quiz_probedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)"
+   "  >Edit $(problemName)</a>
+end
+"<br>
+
+
+"<p/>
+"<form name="take" method="post"
+"      action="quiz_take.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)">
+
+#---Still taking test, or reviewing correct answers?
+set q5 SELECT MIN(status) FROM quizscore \
+        WHERE userid='$(thisUser)' AND qkey=$(qkey)
+set stillTaking $less ($word(1 $sql_query_select($(q5)) 0) 3)
+
+set count -1
+"<table>
+include $(main)/quiz_takeprob.i $(qkey) $(pkey) &nbsp; $(thisUser)
+"</table>
+
+"<p/>
+if $(stillTaking)
+   "<input type="submit" name="submit" value="Save">&nbsp;&nbsp;&nbsp;&nbsp;
+   "<input type="submit" name="submit" value="Cancel">&nbsp;&nbsp;
+end
+"</form>
+
+
+"</blockquote>
+
+"</div>
+"</body>
+"</html>

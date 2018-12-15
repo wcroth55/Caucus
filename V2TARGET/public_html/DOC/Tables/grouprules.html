@@ -1,0 +1,93 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>grouprules&nbsp;&nbsp;&nbsp;</span>List of rule rule definitions for all groups (individual user defined groups,  conference groups, manager groups, etc.)  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<a href='_Groups.html'>Groups</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Every group is identified by an owner, and a name.  Userid rules have the userid and wildcard fields, sub-group rules have the  subowner and subname fields.  All rules must have an access level.  An access  level of -999 (and no data except for grkey, owner, and name) acts as a  placeholder for an otherwise "empty" group.  <p/>Only userid rules may have a non-zero "optional" value.  The optional rules  are tricky, see <a href="../c5groups.html">Groups in Caucus 5</a>  for more explanation.  Basically they get used in two ways:  <ul>  <li>Group owner defines a rule as optional.  User does not get access, and is not  a member of the group -- but it allows a user to add themself (add a rule) to the  group with the identical, non-optional values.  This is how "opt-in" is implemented.  <li>Group owner grants someone access in a group.  That "someone" may choose to  opt-out, effectively by creating an "optional" exclude access rule. /* </ul>  In either case, the rule that the user created (not really created by them, but  by a UI in Caucus) is marked as "bySelf".  These rules may always be deleted later,  in case the user decides to undo their opt-in or opt-out, respectively.  <p/>Whenever a (set of) change(s) has been made to grouprules, it is the  responsibility of the page to call the CML function $group_update() to force the  recompilation of (the relevant portions of) the groups table.  This function "locks",  so only one process can be updating the groups table at a time -- other callers  will automatically wait in line.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>grkey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>owner</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Defines type of group: "CONF", "MGR", or an actual (lower-case) userid.  <br></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Name of group.  For CONF groups, it is the conference number.  <br></td>
+<tr valign=top class='row1'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> User groups only: the userid (or wild card string) for this rule.  <br></td>
+<tr valign=top class='row0'>
+<td>wildcard</td>
+<td>tinyint(1) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> User groups only: 1 if wildcard, 0 otherwise.  <br></td>
+<tr valign=top class='row1'>
+<td>subowner</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> For sub-groups rules: the sub-group's owner.  <br></td>
+<tr valign=top class='row0'>
+<td>subname</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> For sub-groups rules: the sub-group's name.  <br></td>
+<tr valign=top class='row1'>
+<td>access</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> Access level, coded as an integer.  (give examples: unknown)  <br></td>
+<tr valign=top class='row0'>
+<td>optional</td>
+<td>tinyint(1) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 0 => normal, 1 => this is an "opt (in or out)" rule.  <br></td>
+<tr valign=top class='row1'>
+<td>bySelf</td>
+<td>tinyint(1) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1 if this rule was added by the user that affects it.  <br></td>
+</table>
+</body>
+</html>

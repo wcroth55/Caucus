@@ -1,0 +1,107 @@
+#
+#---MAILALL.CML   Send e-mail to everyone (on site, in a conf, or in a group).
+#
+#   Invoked as:
+#      sweba swebd.conf mailall.cml pid  sender
+#
+#   Parameters:
+#      sweba           The Caucus stand-alone CML interpreter program
+#      swebd.conf      The normal swebd configuration file
+#      mailall.cml     This file.
+#      pid    $arg(1)  Spawning pid
+#      sender $arg(2)  caucus id of sender
+#
+#   Purpose:
+#      Send e-mail to a (potentially large) list of userids.
+#
+#   How it works:
+#      Sends the e-mail text in   /tmp/caucus.userid.mailall_txt.pid to all of
+#      the caucus users listed in /tmp/caucus.userid.mailall_lst.pid that 
+#      have a valid e-mail address.  Creates one large file for sendmail to 
+#      process.
+#
+#      See caucus manager "send e-mail" page, man_mailall.cml for more details.
+#
+#   Known bugs:
+#
+#   History of revisions:
+#: CR  4/08/02 new file
+#: CR 12/29/03 Standardize tmp file names to "caucus.userid.function.pid".
+#: CR 12/10/04 Skip non-existent users; use bcc only, not to:
+#: CR 09/22/05 Revamp for Caucus 5.
+#----------------------------------------------------------------------------
+
+#---Get the bad_email macro.
+include ENOTIFY50/main/macros.i
+
+#---Must define 'sendmail' to be full pathname to sendmail program.
+set sendmail $word (1 $config(sendmail) /usr/sbin/sendmail)
+
+#---If this id is not registered, "create" it as a person.
+if $empty  ($user_info ($userid() lname))
+   eval $set_user_info ($userid() lname Administration)
+   eval $set_user_info ($userid() fname Caucus)
+end
+
+set blocksize  20
+
+set handle $open (/tmp/caucus.$caucus_id().mailall_lst.$arg(1) r)
+set sender $user_info ($arg(2) email)
+set first1 $(sender)
+set block       0
+set eof         0
+while $not ($(eof))
+
+   #---All output goes to cau_send tmp file, which accumulates addresses
+   #   and text of e-mail to pass on to sendmail.
+   set  block $plus ($(block) 1)
+   set  blockname /tmp/caucus.$caucus_id().mailall_snd$(block).$arg(1)
+#  eval $output (/tmp/cau_send_$arg(1)_$(block) 644)
+   eval $output ($(blockname) 644)
+   "From: "$per_name($arg(2))" <$(sender)>
+
+   #---Get 'blocksize' addrs (valid e-mail addresses)
+   set addrs $(first1)
+   while $less ($sizeof ($(addrs)) $(blocksize))
+      if $readln ($(handle) line)
+         if $empty ($user_info ($(line) lname))
+            continue
+         end
+         set email $user_info ($(line) email)
+         if $and ($not_empty($(email)) $not (%bad_email_address ($(email))))
+            set addrs $(addrs) $(email)
+         end
+      end
+      else
+         set eof 1
+         break
+      end
+   end
+   set first1
+
+   #---Address the e-mail to all of them.
+#  set prefix To:
+#  for addr in $(addrs)
+#     "$(prefix) $(addr)
+#     set prefix Bcc:
+#  end
+   for addr in $(addrs)
+      "Bcc: $(addr)
+   end
+
+   #---And then toss in the actual text of the message.
+   "$readfile (/tmp/caucus.$caucus_id().mailall_txt.$arg(1))
+
+   #---And close the file and mail it.
+   eval $output  ()
+   eval $xshell  (0 1 1 $(sendmail) <$(blockname) -t)
+   eval $delfile ($(blockname))
+   eval $sleep   ($(blocksize))
+end
+eval $close ($(handle))
+
+#---Clean-up.
+eval $delfile (/tmp/caucus.$caucus_id().mailall_txt.$arg(1))
+eval $delfile (/tmp/caucus.$caucus_id().mailall_lst.$arg(1))
+
+#----------------------------------------------------------------------------

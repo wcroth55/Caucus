@@ -1,0 +1,106 @@
+#
+#---H_TOOL.CML.   Help about Caucus Tool Bar
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_tool.cml $quote(Help on Caucus Tool Bar)
+"<P>
+
+"<B>What Is It?</B><BR>
+"At the top (and bottom) of every Caucus page, you will see the 
+"<B>Caucus Tool Bar</B>&#151;the Caucus logo followed by a set of buttons
+"which perform commonly used functions.
+
+"<P>
+"<B>What Is Its Purpose?</B><BR>
+"The purpose of the toolbar is to put these features right at
+"hand, on every page, so that you can use them any time you
+"want.&nbsp;
+
+"<P>
+"The rest of this help page describes each of the buttons and
+"its purpose.
+
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top>
+"<TD><B>Button</B><HR></TD>
+"<TD></TD>
+"<TD><B>Purpose</B><HR></TD>
+
+"<TR VALIGN=top>
+"<TD><IMG $(src_quit)></TD>
+"<TD></TD>
+"<TD VALIGN=MIDDLE>Finish using Caucus.&nbsp;
+    "Please click on this button when you are done with Caucus.&nbsp;
+    "It is not required, but it does free up
+    "host resources for the next person.
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"<TR VALIGN=top>
+"<TD><IMG $(src_help)></TD>
+"<TD></TD>
+"<TD VALIGN=MIDDLE>Display the Caucus Help Index
+    "page in a new window.
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"<TR VALIGN=top>
+"<TD><IMG $(src_notebook)></TD>
+"<TD></TD>
+"<TD VALIGN=MIDDLE>Display (and optionally add locations to) your Caucus
+    "<A HREF=$(helpurl)/h_notebook.cml?x+x+Notebook>Notebook.</A>
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"<TR VALIGN=top>
+"<TD><A NAME="people"><IMG $(src_people)></A></TD>
+"<TD></TD>
+"<TD VALIGN=MIDDLE>Find out more about people on this host or in a
+    "conference.&nbsp;
+    "You can find a specific person by name, or look at the
+    "list of members of a conference.&nbsp;
+    "See the <A HREF="$(helpurl)/h_people.cml?x+x">People Page</A>
+    "for more information.
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"<TR VALIGN=top>
+"<TD><A NAME="search"><IMG $(src_search)></A></TD>
+"<TD></TD>
+"<TD VALIGN=MIDDLE>Search the items in a conference or set of conferences 
+    "for a particular word or words.&nbsp;
+    "See the <A HREF="$(helpurl)/h_search.cml?x+x">Search Page</A>
+    "for more information.
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"<TR VALIGN=top>
+"<TD><A NAME="goto"><IMG $(src_goto)></A></TD>
+"<TD></TD>
+"<TD>Go directly to another location in Caucus.<P>
+    "When you use this option, a small window will appear which you
+    "can use to go to an item anywhere in Caucus. Choose a conference
+    "from the menu that reads <TT>(Select a conference)</TT>, type an
+    "item number or part of a title in the box labeled <B>Item #</B>, 
+    "enter a response number in the box labeled <B>Response #</B> and
+    "press the <B>Go There</B> button.<P>
+
+    "You don't have to fill in all of the fields.  If you select a conference
+    "without specifying an item or response, you'll go to the home page for
+    "that conference.  If you enter an item number but no response number,
+    "you'll go to the end of the item.
+"</TD>
+"<TR><TD>&nbsp;</TD>
+
+"</TABLE>
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

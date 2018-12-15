@@ -1,0 +1,250 @@
+#
+#   REGISTER.CML     Register a new Caucus user.
+#
+#   Invoked as:
+#      register.cml?method=n&iface=name
+#
+#   Argument (aka) what
+#      method   no argument, or method=1, implies webserver based
+#               authentication (Caucus 4.3 default)
+#
+#               method=2 implies cookie-based authentication
+#               (Caucus 4.4 default)
+#
+#      iface    optional: specify interface to use for registration
+#
+#   Purpose:
+#      Register a new Caucus user, using the fields defined by the
+#      manager under the "New User Registration Layout" page.
+#
+#   Usage:
+#
+#   Internal State variables:
+#
+#   How it works
+#      Register.cml is both the form submitter and the form handler.
+#      This makes it easy to redisplay the form (with the info
+#      entered by the user) if they did something wrong, like leave
+#      out a required field.
+#
+#   Notes:
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/08/99 New version for Bonanza 1.3
+#: CR 03/15/00 <FORM ... NAME=register>; adjust ONLOAD condition.
+#: CR  4/05/00 Get sweb and reg from swebd.conf if possible.
+#: CR  5/07/00 define %leave().
+#: CR 01/28/01 Changes for interface-based new user reg page.
+#: CR 07/24/01 fix: regdef.i requires an argument!
+#: CR 03/01/02 fixes for new overrideable directory structure.
+#: CR 06/11/02 set http protocol from swebd.conf.
+#: CR 06/25/02 add authentication method choice in arguments
+#: CR 04/08/03 add option to register via a particular interface.
+#: CR 10/13/04 Use CSS.  Always use interface-based reg variables.
+#: CR 12/03/04 Load main/macros.i, in case some fields use any macros.
+#: CR 08/20/06 Add "accept" registration option.
+#: CR 04/17/16 Do not allow registration if disableSelfRegistration config is on
+#==========================================================================
+
+#---Set http protocol in use.
+set httpdefault http
+set http $word (1 $config(http) $(httpdefault))
+
+#---Or you may explicitly override it here for a particular interface.
+#set http https
+
+#---Set sweb and reg, aliases for web server password & non-password
+#   Caucus environments.
+set sweb  sweb
+set reg   reg
+if $empty ($config())
+   set sweb $word (1 $config(sweb) $(sweb))
+   set reg  $word (1 $config(reg)  $(reg))
+end
+
+#---Determine authentication method...
+if $empty ($(method))
+   set method 1
+   if $greater ($str_index (method=2 $arg(1)) -1)
+      set method 2
+   end
+end
+
+#---Was an @interface specified in the query string?  If so,
+#   re-enter registration via the correct interface.
+if $empty ($(iface))
+   set atsign $str_index (@ $request_uri())
+   if $greater ($(atsign) 0)
+      set iface $str_sub ($plus($(atsign) 1) 1000 $request_uri())
+      if $exists ($caucus_path()/CML/$(iface)/reg)
+         "Location: $(http)://$host()/$(reg)/swebsock/$pid()/\
+                              $(iface)/reg/register.cml?method=$(method)
+         "
+         quit
+      end
+   end
+   set iface   $str_sub (0 $str_revdex (/ $cml_dir()) $cml_dir())
+end
+
+#---Do we have a custom user reg page?  Define urcbase, regis
+#   appropriately.
+set regis   $cml_dir()
+set main    $(iface)/main
+
+#---Define any needed macros
+include  $(main)/macros.i
+include  $(main)/localmacros.i
+include $(regis)/macros.i
+
+#---HREF:  handy shortcut for CML href's everywhere.
+set regurl  $(http)://$host()/$(reg)/swebsock/$pid()/$(regis)
+set mainurl $(regurl)
+set img     $(http)://$host()/~$caucus_id()/GIF50
+set icon    $(img)
+set body_bg BGCOLOR="#FFFFFF"
+set center_name Caucus Center
+
+#---If not the first call, process the information.  If successful,
+#   goes on to first page in regular (logged-in) interface.
+if $not_empty ($form(submitted))
+   include $(regis)/register.i
+end
+
+#---Continue on here if either first call, or if there was a user error.
+
+
+
+"Content-type: text/html
+"
+"<!-- quirksmode -->
+"<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+"<HTML>
+"<HEAD>
+
+#---If we somehow got here but can't add userid's, complain and quit.
+if $or ($not ($pw_can_add()) $config(disableSelfRegistration))
+   "<TITLE>Cannot Register user ID</TITLE>
+   "</HEAD>
+   "<BODY BGCOLOR="#FFFFFF">
+   "<H2>Cannot Register user ID</H2>
+   "<P>
+   "This web host has not been configured to allow self-registration
+   "of new Caucus user IDs.
+   "<P>
+   "Please contact the manager of this host for more information.
+   "<P>
+   "<HR>
+   "</BODY>
+   "</HTML>
+   set ignore $goodbye()
+   return
+end
+
+
+#---OK, from here user should be able to self-register a new Caucus id.
+
+"<TITLE>Caucus User ID Registration</TITLE>
+
+#---css user & site (interface) properties
+if $empty  ($site_data (0 - if_$(iface)_css_set))
+   eval $set_site_data (0 - if_$(iface)_css_set 1)
+   eval $set_site_data (0 - if_$(iface)_css_font Arial, Helvetica, sans-serif)
+   eval $set_site_data (0 - if_$(iface)_css_size 80%)
+end
+set css_font  $site_data (0 - if_$(iface)_css_font)
+set css_size  $site_data (0 - if_$(iface)_css_size)
+set css_file  $site_data (0 - if_$(iface)_css_file)
+set ucss_font $user_data ($userid() cssfont)
+set ucss_size $user_data ($userid() csssize)
+
+set leftBox        0$site_data (0 - if_$(iface)_leftBox)
+include $(main)/browser_detection.i
+include $(main)/css.i
+
+"<script language="javascript">
+"   function checkForAcceptanceRequired() {
+"      if (document.register.acceptanceRequired != null  &&
+"          document.register.acceptanceRequired.value != "1") {
+"         alert ("You must accept the terms of registration\n" +
+"                "in order to continue.  Otherwise click on\n" +
+"                "the Quit button at the top-right corner.");
+"         return false;
+"      }
+"      return true;
+"   }
+"   function pleaseWait() {
+"      document.getElementById("pleaseWait").style.display="block";
+"      return true;
+"   }
+"</script>
+
+"</HEAD>
+
+
+"<BODY $(body_bg) 
+"   $ifthen ($empty($site_data (0 - if_$(iface)_skipRegUserid)) \
+       onLoad="document.register.userid.focus()") >
+
+if $word(1 $site_data (0 - if_$(iface)_preventReg) 0)
+   "<p/>
+   "I'm sorry, self-registration is not allowed.&nbsp;
+   "Please contact your site administrator. 
+   "iface=$(iface)
+   "</body>
+   "</html>
+   eval $goodbye()
+   quit
+end
+
+"<div $ifthen ($(leftBox) id="mainBox")>
+
+"<p/>
+"<form METHOD=POST ACTION="$(regurl)/register.cml?$unique()" NAME="register"
+"     ENCTYPE="multipart/form-data"
+"  onSubmit="return checkForAcceptanceRequired();">
+"<INPUT TYPE=HIDDEN NAME="submitted" VALUE="1">
+
+"<input type=hidden name="method" value="$(method)">
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND on_reg > 0 \
+           ORDER BY position
+set skipnames laston registered
+include $(main)/reguser.i 0 0 $quote($(query)) $quote($(skipnames))
+
+"<tr><td &nbsp;</td>
+"<td colspan="3">
+"   <div id="pleaseWait" style="border-width: 2px; display: none;">
+"   <center><blink>...working... please wait.</blink></center>
+"   </div>
+"</td>
+
+"<tr><td>&nbsp;</td>
+"<TR><TD></TD>
+"<TD colspan=3>Press 
+"   <b><input type="submit" name="submit" value="Register" onClick="return pleaseWait();"></b>
+"    when complete.</TD>
+"<TD></TD>
+
+"</TABLE>
+
+"</FORM>
+"</blockquote>
+
+"<HR>
+
+set errtext $errors()
+if $not_empty ($(errtext))
+   "<P>
+   "<FONT COLOR=RED>
+   "$t2hbr($(errtext))
+   "</FONT>
+end
+
+"</div>
+"</BODY>
+"</HTML>

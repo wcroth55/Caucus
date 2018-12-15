@@ -1,0 +1,50 @@
+#
+#---MARKALL.   Mark all items as NEW or SEEN.
+#
+#   Arguments
+#      arg(1)      (xx)   1 for seen, 2 for new, 3 for seen, goto center.cml
+#      arg(2)      (nxt)
+#      arg(3)      (cnum)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:RL 10/09/05 Include "mark all seen and return to center.cml"
+#:CR 10/09/05 Rearrange RL code slightly.
+#:CR 06/08/06 Rewrite for C5.1
+#-----------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i markall.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+#---Get list of all non-forgotten, non-hidden items.
+include $(main)/itemListOf.i $arg(3) $userid() all 0 0 1
+
+if $tablefind (x$arg(1) x1 x3)
+   for cn id rn in $(itemList)
+      eval $item_set_seen ($arg(3) $(id) $userid() %item_lastresp($(id)))
+   end
+end
+
+elif $equal (x$arg(1) x2)
+   for cn id rn in $(itemList)
+      eval $item_set_seen ($arg(3) $(id) $userid() -1)
+   end
+end
+
+if $equal (x$arg(1) x3)
+   "%location($(mainurl)/$page_return (center.cml?$(nch)+0+x+x+x+x+x+x \
+               # center.cml?$(nch)+0+x+x+x+x+x+x))
+end
+else
+   "%location($(mainurl)/$page_return ($arg(2) \
+               # center.cml?$(nch)+0+x+x+x+x+x+x))
+end
+#-----------------------------------------------------------------

@@ -1,0 +1,52 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>site_data&nbsp;&nbsp;&nbsp;</span>"Variables" about site, conferences, items.  
+<p/><b>Categories: </b>
+<a href='_Conferences.html'>Conferences</a>&nbsp;
+<a href='_Items.html'>Items</a>&nbsp;
+<a href='_Responses.html'>Responses</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Name/value "variable" pairs for the site, conferences, and items.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>cnum</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'0'</td>
+<td> 0 = site-wide variables, else conference number  <br></td>
+<tr valign=top class='row1'>
+<td>inum</td>
+<td>varchar(100) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'-'</td>
+<td> '-' = variables specific to conference cnum, else item number in conf.  <br></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>value</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</table>
+</body>
+</html>

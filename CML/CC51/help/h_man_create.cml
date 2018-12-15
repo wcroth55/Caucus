@@ -1,0 +1,82 @@
+#
+#---H_MAN_CREATE.I    Help about "Manage: Create a Conference" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_create.cml $quote(Help on Manage: Create \
+         a Conference)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Create a Conference page allows authorized managers to create a new conference,
+"specifying certain initial settings for the conference.  
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Create a Conference</U>.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"The page consists of
+"several parts:<P>
+
+"<DL><DT><B>Enter the name for your conference:</B>
+"<DD>In this field, you should enter the name of your conference as you 
+"want it to appear on conference lists. (Conference names must be less than 
+"80 characters long and contain only letters, numbers, or underscores.) <P>
+
+"<DT><B>Enter the primary organizer for this conference:</B>
+"<DD>The primary organizer is the person whose name is associated with the
+"conference on the "Join this conference?" page and the conference home
+"page.  Your userid appears here by default.  If someone else should be the
+"primary organizer, type their userid in this field.<P>
+
+"<DT><B>Enter the names of the initial organizers (other than the primary organizer):</B>
+"<DD>If people other than the primary organizer need immediate access to 
+"configure this conference, enter their userids (one per line) in this field.
+"If you specified someone else as the primary organizer, you may want to enter
+"your own userid here so that you can check to make sure that the conference
+"was created properly.<P>
+
+
+"<DT><B>Restore conference from archive:</B>
+"<DD>You can create a new conference with the contents of an old conference
+"that has been <A HREF=$(helpurl)/h_man_archive.cml?x+x">
+"archived</A>.  Available conference archives are listed on the adjoining menu.
+"If you wish to create a new, empty conference, leave this option alone.<P>
+
+"<DT><B>Make this conference open to everyone.</B>
+"<DD>If you want everyone to be able to join this conference 
+"(or at least initially), check this option.&nbsp;
+"This saves the step of manually editing the new conference's 
+"userlist to allow everyone in.&nbsp;
+"(If you <B>don't</B> check this box, you should definitely go
+"to the customize users page to determine who may be allowed in
+"this conference.)
+
+"<P>
+"<DT><B>Make me a member of this conference automatically.</B>
+"<DD>If you want to bypass the joining process the first time you enter
+"the new conference, check this option.<P>
+
+"<DT><B>Put this conference on my personal conference list.</B>
+"<DD>If you'd like this conference to appear on your personal conference
+"list as soon as it is created, check this option.<P>
+
+"<DT><B>Take me to the customization pages immediately.</B>
+"<DD>If you'd like to go right to the 
+"<A HREF=$(helpurl)/h_custom.cml?x+x">
+"customization pages</A> for this conference as soon as it is created, 
+"check this option.  Otherwise, you'll be taken back to the main
+"management menu.<P>
+
+"<DT><B>Create this Conference</B>
+"<DD>Press this button to create the conference.
+"</DL>
+include $(help)/hb.i

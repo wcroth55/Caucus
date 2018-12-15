@@ -1,0 +1,270 @@
+#
+#---URLREGISTER.CML   Automatically register a new caucus user via a single URL
+#
+#   Invoked as:
+#      http://yourhost.com/reg/swebsock/0/0/CC44/reg/urlregister.cml
+#
+#      (where the first /reg/ is the ScriptAlias for the Caucus REG
+#       directory)
+#
+#   Required parameters (passed by GET *or* PUT methods).  All parameters
+#   MUST be url-encoded.
+#      urlregpw     password required to run this script.
+#                      (See swebd.conf config parameter urlregpw.)
+#      id           new user's id
+#      lname        last name
+#      success      target URL if registration succeeds
+#      failure      target URL if registration fails
+#
+#    Optional parameters:
+#      pw           new user's password.  If pw is provided, tries to
+#                      create userid & pw in Caucus' authorization db.
+#                      If no pw, just registers user, and assumes Caucus uses
+#                      an external authorization source (such as LDAP).
+#      fname        first name
+#      intro        personal introduction
+#      email        email address
+#      hp           home page
+#      pic          picture URL
+#      phone        telephone
+#      groups       list of comma separated groups to add user to
+#      regdir       registration interface, e.g. "CC44" or other.
+#      var1         "uservar=value", way to define additional user variables
+#      var2         (etc.)
+#      ...
+#
+#   Purpose:
+#      Allow an external page or program (or even a 'curl' script)
+#      to register a Caucus user.
+#
+#   How it works
+#      If registration fails, and 'failure' is a URL, the caller/browser 
+#      is sent to the 'failure' URL, with querystring err=N.  If 'failure'
+#      is empty, then just the value of N is displayed as plain text.
+#      N values are:
+#         1   bad url registration password
+#         2   empty id
+#         4   this caucus site not allowed to add id/pw's!
+#         5   id already exists
+#         6   id too long
+#         7   bad chars in id (lower case, numbers, _, -, . only.
+#         8   unknown system error -- contact host manager
+#         9   no name!
+#
+#   Notes:
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/04/03 New script.
+#: CR 11/12/04 Use %urcregnums() instead of "count... 1000".
+#: CR 12/03/04 Add newly registered userid to special group.
+#: CR 03/15/06 Fill in user_info.registered.
+#: CR 08/15/07 Update for Caucus 5.1.
+#: CR 09/12/07 Set user_info.regface.
+#==========================================================================
+
+#"Content-type: text/plain
+#"
+#===PHASE I: get everything we need to make the script operate.
+
+#---Set http protocol and server scriptalias in use.
+set http $word (1 $config(http) http)
+set reg  $word (1 $config(reg)  reg)
+#"reg='$(reg)'
+
+
+#---Pick up GET parameters from query_string.
+set question $str_index (? $request_uri())
+if $greater ($(question) 0)
+   set querystr $str_sub ($plus($(question) 1) 5000 $request_uri())
+   set querystr $replace (& 32 $(querystr))
+end
+
+#"querystr='$(querystr)'
+set iface   $str_sub (0 $str_revdex (/ $cml_dir()) $cml_dir())
+set regis   $cml_dir()
+include $(regis)/macros.i
+
+#---Get success and failure targets.
+include $(regis)/urlregget.i success
+#"success='$(success)'
+include $(regis)/urlregget.i failure
+
+#---Check that they got the right password for url registration.
+set urlregpw xyz
+include $(regis)/urlregget.i urlregpw
+#"reg: urlregpw='$(urlregpw)'
+#"config='$config(urlregpw)'
+if $not_equal (x$(urlregpw) x$config(urlregpw))
+   include $(regis)/urlfailed.i 1
+end
+
+#===PHASE II: Attempt to create the userid & password.
+
+#---Handle empty id or password or name.
+include $(regis)/urlregget.i id
+include $(regis)/urlregget.i pw
+include $(regis)/urlregget.i lname
+include $(regis)/urlregget.i fname
+if $empty ($(id))
+   include $(regis)/urlfailed.i 2
+end
+if $empty ($(lname))
+   include $(regis)/urlfailed.i 9
+end
+
+#---Does person already exist?
+if $not_empty ($user_info ($(id) lname))
+   include $(regis)/urlfailed.i 5
+end
+
+#---If a pw was supplied, attempt to create id/pw in authorization db.
+if $not_empty ($(pw))
+   #---Are we allowed to create new userids?
+   if $not ($pw_can_add())
+      include $(regis)/urlfailed.i 4
+   end
+   
+   #---OK!  Attempt to create the userid.  Interpret & translate error codes.
+   set code $pw_add ($(id) $(pw) 1)
+   if   $equal ($(code) 2)
+      include $(regis)/urlfailed.i 5
+   end
+   elif $equal ($(code) 6)
+      include $(regis)/urlfailed.i 6
+   end
+   elif $equal ($(code) 7)
+      include $(regis)/urlfailed.i 7
+   end
+   elif $equal ($(code) 8)
+      include $(regis)/urlfailed.i 8
+   end
+   elif $not_equal ($(code) 0)
+      include $(regis)/urlfailed.i 8
+   end
+end
+
+#---Record the fact that this user was registered via this interface,
+#   by placing them in a specially-named group.
+include $(iface)/main/groupadd.i Caucus4 interface_registered_$(iface) $(id) 10
+include $(iface)/main/group_addnewusers.i $(id)
+
+#---Do any locally-defined "pre-registration" commands
+include $(regis)/local_prereg.i $(id)
+
+#===PHASE III: Set things up so the rest of the user info gets created.
+
+#---For architectural/security reasons, this script cannot directly
+#   create the user's personal info (name, etc.).  Instead
+#   it creates a temporary cml script file, and then runs a standalone
+#   'sweba' process with the script file as input -- which actually
+#   does the creation.
+#
+#   So the rest of this section just builds that file and passes it
+#   to sweba.
+
+set  regfile $cml_path()/TMP/$word (1 $(id) _xxx_).urg
+eval $output ($(regfile) 755)
+
+#---Name: actually creates user.
+"eval \$set_user_info ($(id) lname   $(lname))
+"eval \$set_user_info ($(id) regface $(iface))
+"eval \$set_user_info ($(id) fname $(fname))
+"eval \$logevent (adduser $(iface) 0 0 0 0 0 0 $(id))
+
+#---Brief intro.
+include $(regis)/urlregget.i intro
+if $not_empty ($(intro))
+   "eval \$set_user_info ($(id) intro \$url_decode($(intro)))
+end
+
+#---Email
+include $(regis)/urlregget.i email
+if $not_empty ($(email))
+   "eval \$set_user_info ($(id) email $(email))
+end
+
+#---Home page
+include $(regis)/urlregget.i hp
+if $not_empty ($(hp))
+   "eval \$set_user_info ($(id) homepage $(hp))
+end
+
+#---Picture URL
+include $(regis)/urlregget.i pic
+if $not_empty ($(pic))
+   "eval \$set_user_info ($(id) picture $(pic))
+end
+
+#---Phone
+include $(regis)/urlregget.i phone
+if $not_empty ($(phone))
+   "eval \$set_user_info ($(id) phone $(phone))
+end
+
+#---Registration interface directory, and date/time registered.
+include $(regis)/urlregget.i regdir
+if $not_empty ($(regdir))
+   "eval \$set_user_data ($(id) ur__regdir $(regdir)/reg)
+end
+
+#---Groups (this one is actually done directly -- a bit of a cheat, eh?)
+#include $(regis)/urlregget.i groups
+
+include $(regis)/urlregget.i cdu_personid
+if $not_empty ($(cdu_personid))
+   "eval \$set_user_info ($(id) cdu_personid $(cdu_personid))
+end
+
+include $(regis)/urlregget.i cdu_ssan
+if $not_empty ($(cdu_ssan))
+   "eval \$set_user_info ($(id) cdu_ssan $(cdu_ssan))
+end
+
+include $(regis)/urlregget.i cdu_email
+if $not_empty ($(cdu_email))
+   "eval \$set_user_info ($(id) cdu_email $(cdu_email))
+end
+
+#---User variables: "var1=varname=value", "var2=othervar=othervalue", etc.
+for c in %urcregnums()
+   include $(regis)/urlregget.i var$(c)
+   if $empty ($(var$(c)))
+      continue
+   end
+
+   #---Split into var=val around "=".
+   set equ $str_index (= $(var$(c)))
+   if $greater ($(equ) 0)
+      set var $str_sub (0               $(equ) $(var$(c)))
+      set val $str_sub ($plus($(equ) 1) 5000   $(var$(c)))
+      "eval \$set_user_data ($(id) ur_$(var) $(val))
+   end
+end
+
+#---Any local post-registration features.
+include $(regis)/local_postreg.i $(id)
+
+#---Cleanup the temp file when it is done.
+"eval \$delfile ($(regfile))
+eval $output()
+
+#---Run the temp file!
+eval $xshell (0 0 1 $caucus_path()/SWEB/sweba \
+                    $caucus_path()/SWEB/swebd.conf TMP/$(id).urg)
+
+#===PHASE IV: redirect to success page, and exit.
+if $not_empty($(success))
+   "Location: $(success)
+   "
+end
+else
+   "Content type: text/plain
+   "
+   "Successful.
+end
+
+eval $goodbye()
+
+#---------------------------------------------------------------------

@@ -1,0 +1,26 @@
+#
+#---UNKNOWN.CML
+#
+# called by POPUP.JS
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+"Content-type: text/html
+"
+
+"<HTML>
+"<HEAD>
+"<TITLE>Unknown Window Type</TITLE>
+"</HEAD>
+
+include $(main)/body.i x
+
+"<H2>Unknown Window Type $arg(1)</H2>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

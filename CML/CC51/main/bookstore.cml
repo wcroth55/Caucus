@@ -1,0 +1,299 @@
+#
+#---BOOKSTORE.CML.   A very simple variant on the standard Conference home page.
+#
+#   Argument usage:
+#     $arg(1)       cache-defeater
+#     $arg(2)       page-return index
+#     $arg(3)       this conference number
+#     $arg(8)       x (normal)
+#                   number of variant conference home page to use
+#
+#   State variables:
+#      Confhome has four state variables that are used to control the
+#      display of the buttons above the list of items, exactly which
+#      items are listed, and how they are sorted.
+#
+#      last_conf         Conference number from last time we were at this page.
+#                        Set by confhome.cml, cleared by center.cml and
+#                        dfbuttof.cml.
+#
+#      last_button       Data from last button shown "pushed" in this conf.
+#      defl_button       Data for "default" button for this conf.
+#      last_sort	 Data for item sorting key and direction
+#
+#      deflist           last list of items selected
+#
+#   Notes on variant conference home pages:
+#
+#      If you are creating a variant on the standard conference home
+#      page, such as a "bookstore", you should start with this file 
+#      and modify it.  Take careful note of the two sections marked
+#      "VARIANTS", as they control how the page is entered, and how
+#      to link to other variants.  See also customize, home page,
+#      variants.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 06/08/06 Rewrite for C5.1
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i confhome.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname  %displayed_conf_name ($(cnum))
+
+#---Make sure user has a participation record.
+include $(main)/confpartic.i $(cnum)
+
+#------------------------------------------------------------------
+
+#---VARIANTS: If we invoked a variant home page, go there directly.
+if $greater ($sizeof($(confhome)) 3)
+   set cpage $if ($equal ($arg(8) x) $word (1 $site_data ($arg(3) - defhome) 0) \
+                                     $arg(8))
+   if $not_equal ($(cpage) 1)
+      set cpage $plus ($mult ($(cpage) 3) 3)
+      "%location($word ($(cpage) $(confhome))?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+      quit
+   end
+end
+
+#------------------------------------------------------------------
+
+if $not_empty($site_data($(cnum) - home_page))
+   set home $rest (2 $site_data($(cnum) - home_page))
+end
+else
+   set home Home
+end
+
+
+#---The rest of the page handles display of the conf home page.
+set nxt   $page_save (1 confhome.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(cname) $(home))
+
+set org $co_org($(cnum))
+
+set pagename <span class="pageTitle"><B>$(cname) $(home)</B></span><BR>
+if $empty (%per_lname($(org)))
+   set pagename BookStore:$(pagename)($(org)), Organizer
+end
+else
+   set pagename BookStore:$(pagename)%person($(org)), Organizer
+end
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(cname) $(home)) setsort.js
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i  confhome
+
+#---If we ever call viewitem...
+set vi_markseen 1
+
+set org $co_org($(cnum))
+
+
+"<TABLE width="100%">
+"<TR VALIGN=top>
+
+#-------------------------------------------------------------
+#---Display conference greeting, if any, applying appropriate filtering.
+"<TD>&nbsp;&nbsp;&nbsp;</TD>
+"<TD>
+"<B><span class="bigger">Welcome to the Book Store!</span></B>
+
+"<TD>
+"<TD>&nbsp;&nbsp;</TD>
+
+#----------------------------------------------------------------
+#---VARIANTS: Links to other variant pages.  You may wish to move this code
+#   around in the variant pages.
+
+"<TD ALIGN=right>
+for vnum vname vpage in $(confhome)
+   if $site_data ($arg(3) - defhome1.$(vnum))
+      "<A HREF="$(vpage)?$(nch)+$arg(2)+$arg(3)+x+x+x+x+$(vnum)">$(vname)</A>
+      "<BR>
+   end
+end
+"</TD>
+#----------------------------------------------------------------
+"</TABLE>
+"<P>
+
+set access  %access($(cnum))
+set can_add $or (       $gt_equal($(access) $priv(instructor)) \
+                  $and( $gt_equal($(access) $priv(include)) \
+                        $site_data ($(cnum) - co_add) ) )
+
+#---Pick up current ikey (item list selection key, e.g. "all", "new", etc.)
+#   and idata (data for keys "name", "num", etc.) from (respectively):
+#      1. form submission from immediately previous incarnation of this page
+#      2. previous context (while still somewhere in this conference),
+#         recorded in last_conf, last_key, last_data.
+#      3. saved user variable "ikey"
+#      4. saved conference default
+#
+if $not_empty ($form(ikey))
+   set last_key  $form(ikey)
+   set last_data $form(idata)
+   if $equal ($quote($form(submit)) $quote(Every Time))
+      eval $set_user_data ($userid() ikey.$(cnum) \
+                                          $form(ikey) $form(idata))
+   end
+end
+else
+   if $not_equal (x$(last_conf) x$arg(3))
+      set last_conf $arg(3)
+      set var       $user_data ($userid() ikey.$(cnum))
+      set last_key  $word (1 $(var))
+      set last_data $rest (2 $(var))
+      set last_sort 0
+   end
+end
+set ikey  $(last_key)
+set idata $(last_data)
+
+if $empty ($(ikey))
+  set ikey $word (1 $site_data($(cnum) - default_list))
+  set idata $rest (2 $site_data($(cnum) - default_list))
+end
+
+if $empty ($(ikey))
+   set ikey all
+end
+
+
+#---Resolve the items selected, and list them.
+set iconf $arg(3)
+include $(main)/iresolve.i
+
+set ilist  $plusmod ($(ilist) 1 $(ilistmax) )
+set ilist$(ilist)
+set nlist$(ilist)
+if $not_empty ($(items))
+   set ilist$(ilist)      $(items)  $(nxt)
+end
+if $not_empty ($(nitems))
+   set nlist$(ilist)   $(nitems) $(nxt)
+end
+
+
+#---Tell user what they can do here.
+
+"You may
+   if $(can_add)
+      " <A HREF="additem.cml?$(nch)+$(nxt)+\
+         $arg(3)+x+$arg(5)+$arg(6)+$arg(7)+$arg(8)" %help(h_create)>
+         "<B>create a new item</B></A>
+   end
+
+include $(main)/readlist.i  ilist$(ilist) nlist$(ilist)
+
+"<A NAME="list"><P></A>
+"<FORM METHOD=POST NAME="ikeyf"
+"      ACTION="confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x#list">
+"<CENTER>
+"<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=5 width="95%"
+"   $if($not_empty($site_data($arg(3) - confcont)) \
+       BGCOLOR=$site_data($arg(3) - confcont) $(body_fg))>
+"<TR><TD>
+   "<TABLE CELLSPACING=0 CELLPADDING=0>
+   include $(main)/iselect.i List
+   "<TD><NOBR>
+      "<INPUT TYPE="submit" NAME="submit" VALUE="Now"> or
+      "<INPUT TYPE="submit" NAME="submit" VALUE="Every Time"></NOBR>
+   "</TD>
+   "</TABLE>
+"</TD>
+"</FORM>
+
+"<TR><TD>
+if $not_empty ($(items))
+
+   #---Prepare sorting order of list of items.
+   if $not_empty ($form(code))
+      set last_sort $form(code)
+   end
+   elif $not_equal (x$(last_conf) x$arg(3))
+      set last_conf $arg(3)
+      set last_sort 0
+   end
+   set isort $(last_sort)
+   "<FORM METHOD=POST NAME="isort"
+   "      ACTION="confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x#list">
+
+   #---actually list the items.
+   "<TABLE CELLSPACING=0 CELLPADDING=0 ALIGN=CENTER>
+   include $(main)/columns.i
+   include $(main)/ilist.i  ilist$(ilist) 0 $(isort) $quote($(columns))
+   "</TABLE>
+
+   "</FORM>
+end
+
+#---If not, say so.
+else
+   "<P>
+   "$(label_none)
+end
+
+#---Mark seen/new
+"<HR width="75%">
+"<P>You may
+"mark <B>all</B> the items as
+"     <A HREF="markall.cml?1+$(nxt)+$(cnum)" %help(h_seen)>seen</A> or as
+"     <A HREF="markall.cml?2+$(nxt)+$(cnum)" %help(h_new)>new</A>;&nbsp;
+
+if $and ($or ($(e_notify) $site_data ($arg(3) - en_allow)) \
+        0$site_data($arg(3) - i_notify) 0$site_data ($arg(3) - en_on))
+"     you may manage items
+"     <A HREF="markindi.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x" %help(h_indi)>
+"     individually</A>;&nbsp;
+"     or you may request
+"     <A HREF="per_en.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x">e-mail
+"     notification</A> of new activity.
+end
+else
+"     or you may manage items
+"     <A HREF="markindi.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x" %help(h_indi)>
+"     individually</A>.
+end
+
+
+"</TABLE>
+"</CENTER>
+
+#---Resign
+"<P>You may also
+"<A HREF="resign.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x" %help(h_resign)>
+"resign</A> from this conference.
+
+
+if $not_empty ($(items))
+   include $(main)/trailer.i  confhome
+end
+else
+   "<HR>
+end
+
+"</div>
+"</body>
+"</HTML>
+
+set pagename
+#-----------------------------------------------------------------

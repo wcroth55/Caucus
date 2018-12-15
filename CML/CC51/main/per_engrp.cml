@@ -1,0 +1,263 @@
+#
+#---PER_ENGRP.CML.   Edit personal e-mail notification group
+#
+#  arg(5)  group number to edit
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i per_engrp.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 per_engrp.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(cname): Edit Personal E-mail Notify Group )
+
+
+include $(main)/head.i $arg(3)  $quote($(cname) : Edit Personal E-mail Notify Group)
+
+"<script type="text/javascript" language="javascript">
+   include $(main)/checkall.js
+   include $(main)/envalid.js
+"</SCRIPT>
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i per_engrp \
+          Edit&nbsp;Personal&nbsp;E-mail&nbsp;Notify&nbsp;Group
+
+if $not_empty  ($user_data ($userid() en_items_$arg(3)-$arg(5)))
+   set en_items $user_data ($userid() en_items_$arg(3)-$arg(5))
+   set en_dates $user_data ($userid() en_dates_$arg(3)-$arg(5))
+   set en_hours $user_data ($userid() en_hours_$arg(3)-$arg(5))
+   set based_on $word (5 $(en_items))
+   set group    $arg(5)
+end
+else
+   set en_items $site_data ($arg(3) - en_items-$arg(5))
+   set en_dates $site_data ($arg(3) - en_dates-$arg(5))
+   set en_hours $site_data ($arg(3) - en_hours-$arg(5))
+   set based_on $arg(5)
+   set group    $time()
+end
+
+if $and ($(based_on) $not_equal ($(based_on) $arg(5)))
+   "This is an edited group that was originally defined by the
+   "conference organizer.&nbsp;  You may edit it further, or
+   "you may
+   "<A HREF="per_endel.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+x+x+x"
+   "   >reset</A> it to the organizer's original values.
+   "<P>
+   "Please follow <B>all 5</B> steps below, to define or edit your
+   "e-mail notification group.&nbsp;
+end
+
+elif $not_equal ($(group) $arg(5))
+   "This group was defined by the organizer.&nbsp;  You can
+   "over-ride it by changing the settings.&nbsp; You cannot
+   "delete it, but you can turn it "off" by un-checking all of
+   "the selected "times of day" in <NOBR><A HREF="#three">step 2</A></NOBR>.
+   "<P>
+   "Please follow <B>all 6</B> steps below, to define or edit your
+   "e-mail notification group.&nbsp;
+end
+
+else
+   "Please follow <B>all 6</B> steps below, to define or edit your
+   "e-mail notification group.&nbsp;
+   "Or you may
+   "<A HREF="per_endel.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+x+x+x"
+   "   >delete</A> this group.
+end
+
+"<FORM NAME="enote" METHOD=POST
+"    ACTION="per_engrpf.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+\
+                            $(group)+$(based_on)+x+x"
+"    onSubmit="return is_valid();">
+
+"<OL>
+#"<LI> When sending an e-mail report, should Caucus send a
+#set detail $word (1 $(en_hours))
+#"<TABLE>
+#   "<TR VALIGN=top><TD>&nbsp;&nbsp;</TD>
+#   "<TD><INPUT TYPE=radio NAME=summary VALUE="0"
+#   "     $ifthen ($not($(detail)) CHECKED)>&nbsp;</TD>
+#   "<TD><B>summary</B> e-mail
+#   " (one e-mail message summarizing the new material across the
+#   "  selected items -- <B>recommended</B>)
+##  "<TR><TD>&nbsp;</TD>
+#   "<TR VALIGN=top><TD>&nbsp;&nbsp;</TD>
+#   "<TD><INPUT TYPE=radio NAME=summary VALUE="1"
+#   "     $ifthen ($(detail) CHECKED)>&nbsp;</TD>
+#   "<TD><B>detailed</B> e-mail
+#   " (one message <B>per</B> item that has new material -- use sparingly!)
+#"</TABLE>
+"<INPUT TYPE=HIDDEN NAME=summary VALUE="0">
+
+"<P>
+"<LI> Choose the days to send e-mail, from either the Monthly <B>or</B>
+"     the Weekly calendar (but not both).
+"<P>
+
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR><TD ALIGN=center><B>Monthly</B></TD>
+"    <TD>&nbsp;&nbsp;<I>or</I>&nbsp;&nbsp;</TD>
+"    <TD><B>Weekly</B></TD>
+
+set is_week $word (1 $(en_dates))
+"<TR VALIGN=top><TD BGCOLOR="#FF7777">
+
+ #---Monthly table.
+ set chk $ifthen ($not($(is_week)) $rest (2 $(en_dates)))
+ "<TABLE CELLSPACING=0 CELLPADDING=0>
+ count day 1 9
+    "$ifthen ($tablefind ($(day) 1 8) <TR>)
+    "<TD ALIGN=right>&nbsp;<FONT COLOR="#FF7777">1</FONT>$(day)<INPUT
+    "    TYPE=checkbox NAME=md VALUE="$(day)" %chk($(day))></TD>
+ end
+
+ count day 10 31
+    "$ifthen ($tablefind ($(day) 15 22 29) <TR>)
+    "<TD ALIGN=right>&nbsp;$(day)<INPUT TYPE=checkbox NAME=md VALUE="$(day)"
+    "    %chk($(day))></TD>
+ end
+ "</TABLE>
+"</TD>
+
+"<TD>&nbsp;</TD>
+
+ #---Weekly table.
+ set chk $ifthen ($(is_week) $rest (2 $(en_dates)))
+"<TD BGCOLOR="#7777FF">
+"   <TABLE CELLSPACING=0 CELLPADDING=0>
+"   <TR><TD>Mon</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="1" %chk(1)></TD>
+"   <TR><TD>Tue</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="2" %chk(2)></TD>
+"   <TR><TD>Wed</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="3" %chk(3)></TD>
+"   <TR><TD>Thu</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="4" %chk(4)></TD>
+"   <TR><TD>Fri</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="5" %chk(5)></TD>
+"   <TR><TD>Sat</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="6" %chk(6)></TD>
+"   <TR><TD>Sun</TD> <TD><INPUT TYPE=checkbox NAME=wd VALUE="0" %chk(0)></TD>
+"   </TABLE>
+"</TD>
+"</TABLE>
+
+"<A NAME="three"><P>&nbsp;</A><P>
+"<LI>Then choose the time(s) during the selected day(s) when the e-mail should
+"be sent.
+
+"<P>
+"<TABLE CELLSPACING=0 CELLPADDING=0 BGCOLOR="#FF77FF" BORDER=0>
+"<TR>
+"<TD COLSPAN=2>&nbsp;<B>AM</B></TD> <TD COLSPAN=11>&nbsp;</TD>
+"<TD COLSPAN=2>&nbsp;<B>PM</B></TD> <TD COLSPAN=11>&nbsp;</TD>
+"<TR>
+count hour 1 11
+   "<TD ALIGN=center>$(hour)</TD>
+end
+"<TD ALIGN=center>&nbsp;noon&nbsp;</TD>
+
+"<TD>&nbsp;</TD>
+count hour 1 11
+   "<TD ALIGN=center>$(hour)</TD>
+end
+"<TD ALIGN=center>&nbsp;midnight&nbsp;</TD>
+"<TD>&nbsp;</TD>
+
+set chk $rest (2 $(en_hours))
+"<TR VALIGN=top>
+count hour 1 12
+   "<TD><INPUT TYPE=checkbox NAME=hd VALUE="$(hour)"  %chk($(hour))></TD>
+end
+"<TD>&nbsp;</TD>
+for hour in 13 14 15 16 17 18 19 20 21 22 23 0
+   "<TD><INPUT TYPE=checkbox NAME=hd VALUE="$(hour)"  %chk($(hour))></TD>
+end
+"<TD>&nbsp;</TD>
+"</TABLE>
+
+"<P>&nbsp;<P>
+"<LI>Choose the items to be included in this group.&nbsp;
+"Only those items will be reported on.&nbsp;
+"(You can choose all items by pressing
+"<A HREF="#" onClick="return checkall(document.enote);"
+"   >check all boxes</A>.)&nbsp;
+
+set vi_markseen 1
+
+set qTail FROM  conf_has_items h \
+          WHERE h.cnum=$arg(3) AND h.hidden=0 AND h.retired=0 \
+          ORDER BY h.item0, h.item1, h.item2, h.item3, h.item4, h.item5
+set indilist $sql_query_select (SELECT $arg(3), h.items_id, 0 $(qTail))
+
+"<P>
+#---Prepare list of items to be "checked", i.e. that are already in
+#   this item group.
+set items $rest (6 $(en_items))
+include $(main)/itemParse.i $arg(3) $quote($(items))
+set chk
+for cc ic rc in $(triplet)
+   set chk $(chk) $(ic)
+end
+
+#---Add on newly created items, if appropriate
+if $word (2 $(en_items))
+   set highest $word (4 $(en_items))
+
+   #---Pre 5.1 style: highest item number known.  Convert it to MySQL time.
+   if $less ($str_index(- $(highest)) 0)
+      set highest $quote($sql_query_select (SELECT r.time FROM resps r \
+             WHERE r.items_id=$item_id($arg(3) $(highest)) AND r.rnum=0 AND r.version = \
+                (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+       ))
+   end
+
+   #---Post 5.1 style: find all items created at or after epoch time.
+   set pq SELECT h.items_id FROM conf_has_items h, resps r \
+           WHERE h.cnum=$arg(3) and h.items_id=r.items_id AND r.rnum=0 AND version= \
+                (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+             AND r.time > '$unquote($(highest))'
+   set chk $(chk) $unquote($sql_query_select($(pq)))
+end
+
+set isort $word (1 $form(code) 0)
+"<TABLE >
+include $(main)/columns.i
+include $(main)/ilist.i indilist 1 $(isort) $quote($(columns))
+"</TABLE>
+
+"<INPUT TYPE=HIDDEN NAME=listall   VALUE="$(listall)">
+"<INPUT TYPE=HIDDEN NAME=reallydel VALUE="1">
+"<INPUT TYPE=HIDDEN NAME=button    VALUE="" >
+"<INPUT TYPE=HIDDEN NAME=LAST      VALUE="LAST">
+
+"<P>
+#"<LI><INPUT TYPE=checkbox NAME=new VALUE="1" %chk($(day))></TD>
+"<LI><INPUT TYPE=checkbox NAME=new VALUE="1"
+"   $if ($word (2 $(en_items)) CHECKED)>&nbsp;&nbsp;
+"Automatically include all newly-created items (along with the items
+"checked above?)
+
+"<P>
+"<LI>Press <INPUT TYPE=submit NAME=submit VALUE="Submit">
+" to make your changes, or
+" <INPUT TYPE=button NAME=cancel VALUE="Cancel"
+"  onClick="location.href='per_en.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x';">
+" to discard any changes.
+"</OL>
+"</FORM>
+
+"</div>
+"</body>
+"</HTML>

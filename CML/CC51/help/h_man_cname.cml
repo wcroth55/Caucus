@@ -1,0 +1,46 @@
+#
+#---H_MAN_CNAME.I    Help about "Manage: Rename a Conference" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_cname.cml $quote(Help on Manage: Rename \
+          a Conference)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Rename a Conference page allows authorized managers to change the
+"name of a conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Rename a Conference</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"To rename a conference, choose a conference from the pull-down
+"menu, and then type the new name of the conference in the
+"box to the right.&nbsp;
+"Press <B>Rename It!</B>.
+
+"<P>
+"<B>Notes:</B>
+"<OL>
+"<LI>Choose the new name of the conference carefully.&nbsp;
+"Consult with the primary Caucus manager to decide on a 
+"system for how to name conferences.
+
+"<P>
+"<LI>If you rename a conference that is actively in use, it
+"may be confusing to the participants.&nbsp;
+"In particular, they may need to edit their individual Personal
+"Conference Lists to include the new name.&nbsp;
+"Always warn conference participants ahead of time (at least
+"a few days) before making the change.
+
+"</OL>
+include $(help)/hb.i

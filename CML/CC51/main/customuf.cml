@@ -1,0 +1,156 @@
+#
+#---customuf.cml.  Handle conference customize forms.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/13/03 Add 'markseen' option.
+#: CR 10/13/04 Add bozofilter.
+#: CR 01/28/05 Add autojoin
+#: CR 02/16/05 Add showdeleted.
+#: CR 04/13/05 C5 code merge.
+#: CR 10/05/05 C5 code changes.
+#: CR 11/21/05 Replace group_update() with group_update_rule().
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 07/12/08 Add 'who has seen' control.
+#--------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom.cml
+end
+
+include $(main)/secure.i org $arg(3)
+ 
+set nch $unique()
+
+eval $set_site_data ($arg(3) - co_add $not_empty($form(add)))
+
+set useforms $if ($empty($form(useforms)) 0 1)
+if $not_equal (x$(useforms) x$site_data ($arg(3) - useforms))
+   eval $set_site_data ($arg(3) - useforms $(useforms))
+end
+
+set addQuiz $if ($empty($form(addQuiz)) 0 1)
+if $not_equal (x$(addQuiz) x$site_data ($arg(3) - addQuiz))
+   eval $set_site_data ($arg(3) - addQuiz $(addQuiz))
+end
+
+set addSurvey $if ($empty($form(addSurvey)) 0 1)
+if $not_equal (x$(addSurvey) x$site_data ($arg(3) - addSurvey))
+   eval $set_site_data ($arg(3) - addSurvey $(addSurvey))
+end
+
+set addWiki $if ($empty($form(addWiki)) 0 1)
+if $not_equal (x$(addWiki) x$site_data ($arg(3) - addWiki))
+   eval $set_site_data ($arg(3) - addWiki $(addWiki))
+end
+
+set addFreeBlog $if ($empty($form(addFreeBlog)) 0 1)
+if $not_equal (x$(addFreeBlog) x$site_data ($arg(3) - addFreeBlog))
+   eval $set_site_data ($arg(3) - addFreeBlog $(addFreeBlog))
+end
+
+if $not_equal (x$site_data ($arg(3) - blogTargetDir) x$form(blogTargetDir))
+   eval $set_site_data ($arg(3) - blogTargetDir $form(blogTargetDir))
+end
+
+if $not_equal (x$site_data ($arg(3) - blogBaseUrl)   x$form(blogBaseUrl))
+   eval $set_site_data ($arg(3) - blogBaseUrl $form(blogBaseUrl))
+end
+
+set addModBlog $if ($empty($form(addModBlog)) 0 1)
+if $not_equal (x$(addModBlog) x$site_data ($arg(3) - addModBlog))
+   eval $set_site_data ($arg(3) - addModBlog $(addModBlog))
+end
+
+set icreator $if ($empty($form(icreator)) 0 1)
+if $not_equal (x$(icreator) x$site_data ($arg(3) - icreator))
+   eval $set_site_data ($arg(3) - icreator $(icreator))
+end
+
+set allowcml $if ($empty($form(allowcml)) 0 1)
+if $not_equal (x$(allowcml) x$site_data ($arg(3) - allowcml))
+   eval $set_site_data ($arg(3) - allowcml $(allowcml))
+end
+
+set allowcopy $if ($empty($form(allowcopy)) 0 1)
+if $not_equal (x$(allowcopy) x$site_data ($arg(3) - allowcopy))
+   eval $set_site_data ($arg(3) - allowcopy $(allowcopy))
+end
+
+set allowanon $if ($empty($form(allowanon)) 0 1)
+if $not_equal (x$(allowanon) x$site_data ($arg(3) - allowanon))
+   eval $set_site_data ($arg(3) - allowanon $(allowanon))
+end
+
+set i_notify $if ($empty($form(i_notify)) 0 1)
+if $not_equal (x$(i_notify) x$site_data ($arg(3) - i_notify))
+   eval $set_site_data ($arg(3) - i_notify $(i_notify))
+end
+
+set markseen $if ($empty($form(markseen)) 0 1)
+if $not_equal (x$(markseen) x$site_data ($arg(3) - markseen))
+   eval $set_site_data ($arg(3) - markseen $(markseen))
+end
+
+#set showdeleted $if ($empty($form(showdeleted)) 0 1)
+#if $not_equal (x$(showdeleted) x$site_data ($arg(3) - showdeleted))
+#   eval $set_site_data ($arg(3) - showdeleted $(showdeleted))
+#end
+
+#set breakouts $if ($empty($form(breakouts)) 0 1)
+set breakouts $word (1 $form(breakouts) 1)
+if $not_equal (x$(breakouts) x$site_data ($arg(3) - breakouts))
+   eval $set_site_data ($arg(3) - breakouts $(breakouts))
+end
+
+set enableWhoHasSeen $word (1 $form(enableWhoHasSeen) 0)
+if $not_equal (x$(enableWhoHasSeen) x$site_data ($arg(3) - enableWhoHasSeen))
+   eval $set_site_data ($arg(3) - enableWhoHasSeen $(enableWhoHasSeen))
+end
+
+if $word (1 $(siteBozoFilter) 1)
+   set confBozoFilter $if ($empty($form(confBozoFilter)) 0 1)
+   if $not_equal (x$(confBozoFilter) x$site_data ($arg(3) - confBozoFilter))
+      eval $set_site_data ($arg(3) - confBozoFilter $(confBozoFilter))
+   end
+end
+
+set changelimit $form(changetime)
+if    $equal($(changelimit) -1)
+#  eval $set_co_change     ($arg(3) $not_empty($form(change)))
+   eval $set_site_data ($arg(3) - co_change $not_empty($form(change)))
+end
+elif $not_equal (x$(changelimit) x$site_data ($arg(3) - changelimit))
+   eval $set_site_data ($arg(3) - changelimit $(changelimit))
+   eval $set_site_data ($arg(3) - co_change $not_equal ($(changelimit) 0))
+#  eval $set_co_change ($arg(3) $not_equal ($(changelimit) 0))
+end
+
+set taglist_user
+set taglist_org
+count n 1 $form(tagcount)
+  set users $if ($empty($form(tag$(n)_users)) prohibit allow)
+  set orgs  $if ($empty($form(tag$(n)_orgs))  prohibit allow)
+  set all   $if ($empty($form(tag$(n)_all))   tag      all)
+  set taglist_user $(taglist_user) $form(tag$(n)),$(users),$(all)
+  set taglist_org  $(taglist_org)  $form(tag$(n)),$(orgs),$(all)
+end
+
+eval $set_site_data ($arg(3) - tag_list_user $(taglist_user))
+eval $set_site_data ($arg(3) - tag_list_org  $(taglist_org))
+
+if $not_equal($co_org($arg(3)) $form(primary))
+   if $not_empty($form(primary))
+      set oldprimary $co_org($arg(3))
+      eval %sql(UPDATE grouprules SET userid='$form(primary)' \
+                 WHERE owner='CONF' AND name='$arg(3)' AND access=100)
+      eval $group_update_rule ($(oldprimary)  $quote(CONF $arg(3)))
+      eval $group_update_rule ($form(primary) $quote(CONF $arg(3)))
+   end
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # custom.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------
+

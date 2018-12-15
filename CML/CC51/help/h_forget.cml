@@ -1,0 +1,46 @@
+#
+#---H_FORGET.CML.   Help about Forgetting Items
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_forget.cml $quote(Help on Forgetting Items)
+"<P>
+
+"<B>What Is It?</B><BR>
+"If you find that an item is of no interest to you,
+"you may <B>forget</B> it.&nbsp;
+"Caucus will henceforth ignore the item completely, as far
+"as you are concerned.&nbsp;
+"It will not show up in any lists of new material, or in
+"any lists of items.
+
+"<P>
+"<B>How Do I Forget An Item?</B><BR>
+"There are two ways to forget an item:
+"<OL>
+"<LI>At the bottom of an <A HREF="$(helpurl)/h_viewitem.cml?x+x">
+"    Item Page</A>, there is a check-box labeled "Forget this Item?".&nbsp;
+"Click on it, and press one of the <B>Post</B> buttons.
+"<P>
+"<LI>From the <A HREF="$(helpurl)/h_confhome.cml?x+x">
+"   Conference Home Page</A>, click on "mark each item
+"   <U>individually</U>".&nbsp;
+"This will display a list of all items, with check-boxes you can
+"use to forget specific items.
+"</OL>
+
+"<P>
+"<B>How Do I Get A Forgotten Item Back?</B><BR>
+"To "remember" a forgotten item, follow the instructions
+"for choice <B>2</B> above.&nbsp;
+"The list of items includes a button to <B>remember</B>
+"items that you've forgotten.
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

@@ -1,0 +1,36 @@
+#
+#---quiz_del.   Delete a quiz.
+#
+#   arg(4)  quiz key
+#   arg(9)  0=>save problems, 1=>delete problems
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/20/06 New file.
+#-----------------------------------------------------------------------
+
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+
+set h1 $sql_query_open (UPDATE quiz SET deleted=1 WHERE qkey=$(qkey))
+eval   $sql_query_close($(h1))
+
+if $equal ($arg(9) 1)
+   set query \
+      UPDATE quizproblems SET deleted = 1 WHERE pkey IN \
+         (SELECT pkey FROM quizmap m WHERE m.qkey=$(qkey))
+   set h $sql_query_open  ($(query))
+   eval  $sql_query_close ($(h))
+end
+
+set id $sql_query_select (SELECT id FROM items where qkey=$(qkey))
+if $not_empty ($(id))
+   include $(main)/deleteItem.i $arg(3) $(id)
+#  eval $item_del ($arg(3) $(id))
+#  include $(main)/rlibdel.i $arg(3) $(id) 0
+end
+
+"%location($(mainurl)/confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x)
+
+#--------------------------------------------------------

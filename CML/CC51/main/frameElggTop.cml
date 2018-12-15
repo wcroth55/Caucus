@@ -1,0 +1,53 @@
+#
+#---frameElggTop.cml
+#
+#:CR 09/04/2009 New script for framed Elgg support.
+#--------------------------------------------------------------------
+
+set nxt   $page_save (1 frameElgg.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+               # Elgg )
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<title>$(pagename)</title>
+
+"<script type="text/javascript" language="javascript">
+   include $(main)/popup.js
+   include $(main)/tablepop.js
+   include $(main)/setsort.js
+"</script>
+
+include $(main)/css.i
+"</head>
+
+include $(main)/bodyTag.i x
+
+#"<a NAME="top"><img $(src_clear) width=1 height=1></a>
+include $(main)/headtool.i $inc(1)
+
+
+#---Simplified version of location bar.
+   "<TABLE CELLSPACING=0 CELLPADDING=0 width="100%" border=0>
+   "<TR><TD ALIGN=left>
+   "<TABLE CELLSPACING=0 CELLPADDING=0>
+   "<TR><TD><IMG $(src_compass)>&nbsp;</TD>
+   "<TD>
+   "<nobr>
+      "<A HREF="$(mainurl)/center.cml?$(nch)+$(nxt)+x+x+x+x+x+x" 
+      "   %help(h_location)  target="$(mainWindow)">
+      "$(center_name)</A>
+      "$(compass_arrow)
+      "%nooplink(Elgg)
+   "</nobr>
+  
+   "</TD>
+   "</TABLE></TD>
+   "<TD>&nbsp;</TD>
+   "<TD width="30%" ALIGN=right VALIGN="middle">
+   include $(main)/youare.i
+   "</TD>
+   "</TABLE>
+#---------------------------------------------------------------------

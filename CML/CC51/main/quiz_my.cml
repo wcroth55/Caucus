@@ -1,0 +1,185 @@
+#
+#---quiz_my.cml.   "My Quizzes".
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/14/05 New file.
+#: CR 01/16/06 Lots of changes.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#: CR 10/06/09 Remove $sql_sequence(quiz)
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_my.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 quiz_my.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # My&nbsp;Quizzes )
+set arg8 $if ($empty($word(1 $arg(8))) y $arg(8))
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+include $(main)/head.i $arg(3)  $quote(My&nbsp;Quizzes)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  quiz_my My&nbsp;Quizzes
+
+#---Creating new quizzes.
+if $not_empty ($form(newtitle))
+   set query INSERT INTO quiz (qkey, userid, title, visible0, visible1) VALUES \
+             ($(qkey), '$userid()', '$escsingle($form(newtitle))', \
+             now(), date_add(curdate(), interval 1 year))
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   set qkey $sql_last_insert()
+#  "<p/>h=$(h), query=$(query)
+
+   if $greater ($(h) -1)
+      set query INSERT INTO grouprules (grkey, owner, name, userid, access) \
+                VALUES (NULL, 'Quiz', '$(qkey)', '$userid()', $priv(primary))
+#     eval %sql($(query))
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+      eval $group_update_rule ($userid() $quote(Quiz $(qkey)))
+   end
+end
+
+"<script type="text/javascript" language="javascript">
+"function validateTitle() {
+"   if (document.quiz.newtitle.value != '')  return true;
+"   confirm ("Please enter a name for the new quiz.");
+"   return  false;
+"}
+"</script>
+
+"<p/>
+
+
+"<ul>
+"<form name="quiz" method="post" 
+"    onSubmit="return validateTitle();"
+"    action="quiz_my.cml?$(nch)+$(nxt)+$(arglist)+x+x">
+
+"<table cellspacing=0 cellpadding=0 border=0>
+set hdr_create <tr><td>&nbsp;&nbsp;&nbsp;</td>\
+               <tr><td colspan=2><b>Quizzes I created</b></td>
+
+set query \
+       SELECT count(*) FROM quizproblems p, quizmap m, quiz q \
+        WHERE q.userid='$userid()' AND q.deleted \
+          AND q.qkey = m.qkey  AND  m.pkey = p.pkey  AND  p.deleted=0
+set orphans $sql_query_select($(query))
+if 0$(orphans)
+   "$(hdr_create)
+   set hdr_create
+   "<tr><td></td>
+   "<td><a href="quiz_orphans.cml?$(nch)+$(nxt)+$(arglist)+-1+x"
+   "   ><i>(Orphaned problems)</i></a></td>
+end
+
+set query SELECT qkey, title FROM quiz WHERE userid='$userid()' AND deleted=0 \
+           ORDER BY title
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   "$(hdr_create)
+   set hdr_create
+   "<tr><td><a href="#" 
+"           onClick="confirm('You can link to this quiz as \%quiz($(qkey)).'); \
+                     return false;"
+"      ><img $(src_key) border=0 alt="how to link"></a></td>
+"   <td><a href="quiz.cml?$(nch)+$(nxt)+$(arglist)+$(qkey)+x"
+   "   >$(title)</a></td>
+end
+eval  $sql_query_close($(h))
+
+if %mgr_in_group ($userid() quizCreate)
+   "<tr><td></td>
+   "<td><input type="text" name="newtitle" size=30></td>
+   "<td>&nbsp;&nbsp;</td>
+   "<td colspan=2><input 
+   "   type="submit" name="submit" Value="Create New Quiz"></td>
+end
+
+set hdr_edit <tr><td>&nbsp;&nbsp;</td>\
+             <tr><td colspan=2><b>Quizzes I can edit</b></td>\
+                 <td></td><td><b>Owner</b></td>
+
+set query SELECT q.qkey, q.title, q.userid, i.fname, i.lname \
+            FROM quiz q, groups g, user_info i \
+           WHERE g.owner = 'Quiz' AND g.name = q.qkey  \
+             AND g.userid  = '$userid()'  AND  g.access >= $priv(organizer) \
+             AND q.userid != '$userid()'  AND  q.deleted=0 \
+             AND i.userid = q.userid \
+           ORDER BY q.title
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   "$(hdr_edit)
+   set hdr_edit
+   "<tr><td><a href="#" 
+"           onClick="confirm('You can link to this quiz as \%quiz($(qkey)).'); \
+                     return false;"
+"      ><img $(src_key) border=0 alt="how to link"></a></td>
+   "<td><a href="quiz.cml?$(nch)+$(nxt)+$(arglist)+$(qkey)+x"
+   "   >$(title)</a></td>
+   "<td>&nbsp;&nbsp;</td>
+   "<td><A HREF="javascript: pop_up('person', '$(userid)');" \
+        \%help(h_name)>$(fname) $(lname)</a></td>
+end
+eval  $sql_query_close($(h))
+
+
+set hdr_take <tr><td>&nbsp;&nbsp;</td>\
+             <tr><td colspan=2><b>Quizzes I can Take</b>&nbsp;&nbsp;&nbsp;</td>\
+                 <td>&nbsp;&nbsp;&nbsp;</td><td><b>Owner</b></td>\
+                 <td>&nbsp;&nbsp;&nbsp;</td><td><b>Status</b></td>
+
+set query SELECT q.qkey, q.title, q.userid, q.visible0, q.visible1, \
+                 i.fname, i.lname, MIN(s.status) statmin \
+            FROM (quiz q, groups g, user_info i) \
+            LEFT JOIN quizscore s \
+              ON (s.qkey = q.qkey AND s.userid='$userid()') \
+           WHERE g.owner = 'Quiz' AND g.name = q.qkey  \
+             AND g.userid = '$userid()'  AND  g.access >= $priv(minimum) \
+             AND q.userid = i.userid     AND  q.deleted=0 \
+           GROUP BY q.qkey \
+           ORDER BY q.title
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set outside $or ( \
+      $and ($not_empty ($(visible0)) $not_equal ($(visible0) 0000-00-00) \
+            $less    ($time() %epochOfyyyy($(visible0)))) \
+      $and ($not_empty ($(visible1)) $not_equal ($(visible1) 0000-00-00) \
+            $greater ($time() %epochOfyyyy($(visible1)))) )
+   if $or ($gt_equal ($(statmin) 2)  $not ($(outside)))
+      "$(hdr_take)
+      set hdr_take
+      "<tr valign=top><td></td>
+      "<td><a href="quiz_take.cml?$(nch)+$(nxt)+$(arglist)+$(qkey)+x"
+      "   >$(title)</a></td>
+      "<td>&nbsp;&nbsp;</td>
+      "<td><A HREF="javascript: pop_up('person', '$(userid)');" \
+           \%help(h_name)>$(fname) $(lname)</a></td>
+      "<td></td> <td>$word ($plus (1 $(statmin)) \
+                            &nbsp; In&nbsp;Progress Pending Scored)</td>
+   end
+end
+eval  $sql_query_close($(h))
+
+"</table>
+"</form>
+"</ul>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

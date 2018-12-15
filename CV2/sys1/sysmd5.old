@@ -1,0 +1,60 @@
+
+/*** sysmd5.   Compute MD5 hash of a string.
+/
+/    Usage:
+/       sysmd5 (result, input);
+/
+/    Purpose:
+/       Computes the MD5 hash of a string 'input', and translates the
+/       result into a 32-byte, 0-byte terminated ascii character string.
+/
+/:CR 02/20/05 New file.
+/:CR 11/01/05 Allow do-nothing compile-time option.
+/:CR 12/02/05 Use SYSMD5, ditch #include <openssl/md5.h>.
+/:CR 01/27/06 Add FBS22 (MacOS X)
+/ */
+
+/*** Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+/    This program is published under the terms of the GPL; see
+/    the file license.txt in the same directory.  */
+
+#include "systype.h"
+
+#if SYSMD5
+
+#if LNX12
+  /* include <openssl/md5.h> */
+#endif
+
+#if FBS22
+#include <openssl/md5.h>
+#endif
+
+#if SOL25
+#include <md5.h>
+#endif
+
+#endif
+
+int sysmd5 (char *result, char *input) {
+   char md[16];
+   int  i;
+
+#if SYSMD5
+#if SOL25
+   md5_calc (md, input, strlen(input));
+#elif LNX12 | FBS22
+   MD5 (input, strlen(input), md);
+#else
+   5 = ;
+#endif
+
+   for (i=0;   i<16;   ++i)  sprintf (result+i+i, "%02x", md[i]);
+   result[32] = '\0';
+
+#else
+   result[0] = '\0';
+#endif
+
+   return (1);
+}

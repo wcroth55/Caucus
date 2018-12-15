@@ -1,0 +1,36 @@
+#
+#---MARKSEEN.   Mark an item or response as SEEN or UNSEEN.
+#
+#   Copyright (C) 1995 Camber-Roth.   All rights reserved.
+#
+#   Invoked as:
+#      .../markseen.cml ? seen cn in rn rs ix il
+#
+#   Arguments
+#      arg(1)              1 for seen, 0 for unseen.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i markseen.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch     $unique()
+
+if $equal ($arg(1) 1)
+   eval $set_it_seen( $arg(3) $arg(4) $arg(5) )
+end
+else
+   eval $set_it_seen( $arg(3) $arg(4) $minus($arg(5) 1) )
+   set vi_markseen 0
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#-----------------------------------------------------------------

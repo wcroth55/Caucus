@@ -1,0 +1,57 @@
+#
+#---H_EDIT.CML.  Help about Edit Button
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_edit.cml $quote(Help on Edit Button)
+"<P>
+
+"<B>What Is It?</B><BR>
+"<IMG $(src_edit) ALIGN=right HSPACE=6>
+"The <B>Edit</B> button (shown on the right) appears next to
+"all of the items or responses that you have written in Caucus.&nbsp;
+"Click on this button to edit (or delete) your item or response.
+
+"<P>
+"<B>Why Use It?</B><BR>
+"Mostly you should only use the edit button while you are writing
+"and revising your item or response, or if you want to go back and
+"make a minor change.&nbsp;
+
+"<P>
+"If you have something new to say, it is better to add a new
+"response, rather than edit an old one.&nbsp;
+"People who have already seen your old response will
+"not know if you change it.
+
+"<P>
+"In some conferences, the <A HREF="$(helpurl)/h_organ.cml?x+x">organizer</A> 
+"may have "turned off"
+"your ability to edit your responses.&nbsp;
+"Contact the organizer of the conference if you have
+"questions about this.
+
+"<P>
+"<B>Organizer Usage</B><BR>
+"If you are an <A HREF="$(helpurl)/h_organ.cml?x+x">organizer</A> 
+"in a conference, you can edit anyone's response
+"(you will see the edit button next to all responses).&nbsp;
+"It is best to use this ability sparingly&#151;perhaps to correct
+"spelling, or the details of an incorrect URL.&nbsp;
+"In extreme cases you can delete an entire response.
+
+"<P>
+"<B>Editing an Item</B><BR>
+"If you click on the edit button next to the text of an item, 
+"you'll see many options in addition to changing the text of
+"your item.&nbsp;
+"For more information, see the <A HREF="$(helpurl)/h_imanage.cml?x+x">Manage
+"Item</A> page.
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

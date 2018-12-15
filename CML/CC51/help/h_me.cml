@@ -1,0 +1,269 @@
+#
+#---H_ME.I    Help about the "Me" page (change personal information & settings)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#: MH 10/16/02 Add dates info
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_me.cml $quote(Help on Changing Personal Information)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page displays, and allows you to change,
+"all of the personal information about yourself.&nbsp;
+"This includes the "settings" that control exactly how
+"Caucus works for you.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on your name.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"From this page you may add or change information
+"about yourself.&nbsp;
+"When other conference participants see
+"your name
+"as a "live" link, they can click on it and see the
+"information you've entered here.&nbsp;
+"<P>
+"You may also change your password
+"(which is private, of course; it is <B>not</B> available to others),
+"or change the "settings" that control how Caucus works with your browser.
+
+"<P>
+"<B>What is on the Personal Information Page?</B><P>
+
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+
+"At the right margin below the instructions is the live link
+"<U>See How I Look To Others</U>.&nbsp;
+"Click on it to display your <i>current</i> personal information,
+"as it would appear to anyone else who had clicked on your name.
+
+"<P>
+"The rest of the Personal Information Page is divided into three
+"sections.&nbsp;
+"<B>Important Note:</B> changes in any of
+"the sections <I><B>must</B></I> be saved separately from changes in
+"any other section.&nbsp;
+"For example, if you change information in <B>Section I</B>,
+"you must press the "Change My Information" button in that section.&nbsp;
+"(Don't go on to change your password or settings until
+"after you press "Change My Information".)
+
+"<P>
+"Now let's look at each of the sections in order:<P>
+
+"<P>
+"<FONT SIZE=+2><B>Section I: Your Personal Information</B><BR></FONT>
+"Caucus presents a form with text boxes for you to fill out.&nbsp;
+"Use the tab key to move from one box to another, or click
+"in each box in turn.&nbsp;
+"Inside a box, you can use the arrow keys to move left or right,
+"or the Backspace or Delete keys to erase characters.
+"<P>
+"<DL>
+   "<DT><B>Name:</B>&nbsp;
+   "<DD>This is your real name, not your user ID.&nbsp;
+   "Your name is very important.&nbsp;
+   "When you participate in conference discussions, your name
+   "automatically appears in your responses&#151;that way other conference
+   "participants know who you are.
+
+   "<P><DT><B>E-mail:</B>&nbsp;
+   "<DD>This should be your full email address.&nbsp;
+   "Sometimes issues come up in a conference which call for a response
+   "to you personally via e-mail.&nbsp;
+   "If you've put your e-mail address in this line, then a conference
+   "participant can click on your name, then click on your e-mail
+   "address&#151;Caucus turns it into a live link&#151;and immediately
+   "write you an e-mail message.
+
+   "<P><DT><B>Home Page:</B>&nbsp;
+   "<DD>If you have a personal home page, enter the URL here.&nbsp;  Or
+   "enter your company's URL.
+
+   "<P><DT><B>Picture URL:</B>&nbsp;
+   "<DD>Use this field to put a picture of yourself in Caucus&#151;people
+   "will see it when they click on your name.&nbsp;
+   "You can either:
+   "<UL>
+   "<LI>Click in the box and type the URL of an existing picture of you, or
+   "<P>
+   "<LI>Press the <B>Browse</B> button, and attach a picture of
+   "    yourself from your computer.&nbsp;
+   "    (This will open a dialog box that lets you browse through your
+   "    computer, looking for a particular file.&nbsp;
+   "    When you find it, double-click on the file name.)
+   "</UL>
+
+   "<P><DT><B>Telephone:</B>&nbsp;
+   "<DD>Enter your phone number if you don't mind receiving calls
+   "from other conference participants, especially if you're on a company
+   "intranet.&nbsp;  In that case, it may be enough just to use your extension.
+
+   "<P><DT><B>Brief introduction:</B>&nbsp;
+   "<DD>Use this box to tell the other conference participants
+   "something about who you are and what you are interested in,
+   "and why you are involved in the Caucus conferences here.
+
+   "<P><DT><B>Change My Information:</B>&nbsp;
+   "<DD>If you've made any changes in Section I,
+   "you <FONT COLOR=RED><B>must press this button!</B></FONT>&nbsp;
+   "Your changes will be saved,
+   "and you will return to the previous page.&nbsp;
+"</DL>
+
+"<P>
+"<CENTER><HR WIDTH=60%></CENTER>
+"<P>
+
+"<FONT SIZE=+2><B>Section II: Your Password</B><BR></FONT>
+"Caucus provides a form with three text boxes for you to fill out
+"to change your password.&nbsp;
+"Use the tab key to move from one box to another, or click
+"in each box in turn.&nbsp;
+"<DL>
+   "<DT><B>Old Password:</B>&nbsp;
+   "<DD>Type in the password you used to enter your current
+   "Caucus session.&nbsp;
+   "You will see only asterisks, so type carefully.&nbsp;
+   "Unless you can remember your old password, you cannot change it.
+
+   "<P><DT><B>New Password:</B>&nbsp;
+   "<DD>Carefully type the new password you have chosen.&nbsp;
+   "Do <B>not</B> use your email address,
+   "or anything else that would be easy to guess.&nbsp;
+   "Once again, you will not see your password, just asterisks.
+
+   "<P><DT><B>(again):</B>&nbsp;
+   "<DD>Caucus requires that you confirm your new password,
+   "to make sure you typed it correctly.&nbsp;
+   "Again, carefully type your new password.&nbsp;
+   "(<B>Do not</B> cut and paste from the previous line!)
+
+   "<P><DT><B>Change My Password:</B>&nbsp;
+   "<DD>To actually change your password,
+   "you <FONT COLOR=RED><B>must press this button!</B></FONT>&nbsp;
+
+   "<P>
+   "As soon as you press the button, your browser will complain
+   "<B>Authorization Failed</B>.&nbsp;
+   "This is normal; it is trying to use your old password,
+   "which is no longer correct.&nbsp;
+   "Simply choose <B>retry</B>,
+   "then enter your user ID and your <B>new password</B>
+   "into the authentication dialogue box.&nbsp;
+   "Once you've done this successfully, Caucus will
+   "return you to the previous page.
+"</DL>
+
+"<P>
+"<CENTER><HR WIDTH=60%></CENTER>
+"<P>
+
+"<FONT SIZE=+2><B>Section III: Your Settings</B><BR></FONT>
+"This section controls how certain kinds of Caucus information
+"appear, and how Caucus works with your browser.
+"<P>
+"<DL>
+   "<DT><B>Detail New?</B>&nbsp;
+   "<DD>This controls the display of new information in your
+   "<A HREF="$(helpurl)/h_pers.cml">Personal Conference List</A>
+   "on the $(center_name) page.
+   "Normally Caucus shows you one column (the number of items with
+   "new material).&nbsp;
+   "Click in the check-box to get a detailed, 3 column report on
+   "new responses and new items.&nbsp;
+   "You may wish to try this both ways, and decide which you prefer.
+
+   "<P><DT><B>Sort Conferences?</B>&nbsp;
+   "<DD>Check this box to keep the conferences in your Personal
+   "Conference List sorted alphabetically.
+
+   "<P><DT><B>Sort by Activity?</B>&nbsp;
+   "<DD>Check this box to list the conferences that have new activity
+   "<B>first</B>.&nbsp;
+   "If this box and the previous box are checked, conferences with
+   "new activity are shown first, followed by the rest of the
+   "conferences in alphabetical order.
+
+   "<P><DT><B>Show Dates?</B>&nbsp;
+   "<DD>Check this box to display the date of the most recent posting
+   "in each conference in your Personal Conference List.&nbsp;
+
+   "<P><DT><B>Textbox width:</B>&nbsp;
+   "<DD>This sets the width in characters of the Caucus
+   "text-entry box.&nbsp;  The default is $(default_cols) characters.
+
+   "<P><DT><B>Textbox height:</B>&nbsp;
+   "<DD>This sets the height (in lines of text) of the Caucus
+   "text-entry box.&nbsp;  The default is $(default_rows) lines.
+
+   "<P><DT><B>Responses / Page:</B>&nbsp;
+   "<DD>If you look at a long item in Caucus, it may be broken
+   "up into separate pages, each containing a specific
+   "number of responses.&nbsp;
+   "The <B>Responses / Page</B> box controls how many responses
+   "appear in each page.&nbsp;
+   "The default is $(default_pageresps) responses per page.&nbsp;
+
+   "<P><DT><B>Context:</B>
+   "<DD>Context controls how many responses are loaded (in an Item page)
+   "<B>before</B> the response you select.
+   "<P>
+   "For example, when you click on a link to show you the new
+   "material in an item, Caucus positions the first new response
+   "at the top of your window.&nbsp;
+   "But if you scroll backwards, you will see that there are
+   "several responses <B>before</B> the first new
+   "response.&nbsp;
+   "This is the <B>context</B>&#151;just as in real
+   "conversation a person's remark occurs in the context of what was
+   "said just before it.&nbsp;
+   "<P>
+   "The default value for the context is $(default_context) responses.
+
+   "<P><DT><B>Left Margin:</B>
+   "<DD>This controls the width of the left margin on
+   "the Item page.&nbsp;
+   "Increasing the margin narrows the width of the text,
+   "and shifts it to the right, which may
+   "make it easier to read.&nbsp;
+   "A value of "20" means 20 pixels; a value of "10%" means 10 percent
+   "of the width of the entire window.&nbsp;
+   "The default is $(default_lmargin).
+
+   "<P><DT><B>Right Margin:</B>
+   "<DD>This controls the width of the right margin on
+   "the Item page.&nbsp;
+   "Increasing the margin narrows the width of the text,
+   "and shifts it to the left, which may
+   "make it easier to read.&nbsp;
+   "A value of "20" means 20 pixels; a value of "10%" means 10 percent
+   "of the width of the entire window.&nbsp;
+   "The default is $(default_rmargin).
+
+   "<P><DT><B>CML Errors?</B>
+   "<DD>Report on any Caucus interface CML errors?&nbsp;
+   "This is a debugging tool for Caucus administrators.&nbsp;
+   "The default value is "No".&nbsp;
+   ""Yes" displays any CML errors at the end of the page (in red);
+   ""pop-up" is the same as Yes, but with a pop-up alert if any
+   "errors occurred.
+
+   "<P><DT><B>Change My Settings:</B>&nbsp;
+   "<DD>To actually change your settings,
+   "you <FONT COLOR=RED><B>must press this button!</B></FONT>&nbsp;
+
+"</DL>
+
+include $(help)/hb.i

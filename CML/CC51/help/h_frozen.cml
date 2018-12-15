@@ -1,0 +1,31 @@
+#
+#---H_FROZEN.CML.   Help about Frozen Items
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_frozen.cml $quote(Help on Frozen Items)
+"<P>
+
+"<B>What Is A Frozen Item?</B><BR>
+"An item may be "frozen", so that no one can add any more responses
+"to the discussion.&nbsp;
+"If you are reading a frozen item, you will see a warning that
+"the item is frozen (instead of the usual response text box).
+
+"<P>
+"Typically items are frozen because the discussion has finished,
+"or has moved on to a new item that is more relevant.
+
+"<P>
+"Only the <A HREF="h_organ.cml?x+x">organizer</A> 
+"(or the person who first created the item)
+"can freeze an item.&nbsp;
+"If it becomes relevant again, the item can be "thawed" and
+"discussion can continue.
+
+"<P>
+include $(help)/hb.i

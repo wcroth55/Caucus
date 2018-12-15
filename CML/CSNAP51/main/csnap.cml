@@ -1,0 +1,254 @@
+#
+#---CSNAP.CML  "Caucus SNAPshot" program.  Produce static version of confs.
+#
+#   Invoked as:
+#      sweba csnap.conf csnap.cml gif41 [-d dir] [-t] [-c confs] [-i iface]
+#                                       [-e] [-p]
+#
+#   Arguments:
+#      gif41     full pathname of a directory containing Caucus icons
+#      -d dir    full pathname of target directory
+#      -t        include text-only versions of items
+#      -e        show CML errors at most local level, instead of very end
+#      -p        do not build personal info pages or links
+#      -c confs  file containing list of conference names
+#      -i iface  interface directory (e.g. "CS41", "CC44", etc.)
+#
+#   Purpose:
+#      CSNAP produces a set of static HTML pages that are, in essence,
+#      a "snapshot" of a set of Caucus conferences.  The resulting
+#      pages look, as much as possible, like the original Caucus 
+#      environment.  All of the links work, including conferences,
+#      items, people, uploaded files, "special" Caucus URLs, and
+#      macros such as %conference(), %item(), and %response().  
+#      (But users cannot add new responses or do anything that 
+#      changes the information in the snapshot.)
+#
+#   How it works
+#      CSNAP prompts the user for:
+#         a list of conferences to be included in the snapshot.  
+#         a "target" directory (where to put resulting files)
+#
+#      It writes static HTML pages for the Caucus Center, each
+#      conference home page, and each page of each item (and a
+#      single page for the entire item, for the "all" navigation
+#      button.)
+#
+#      It also copies over all the relevant Caucus icons from the
+#      gif41 directory, and all uploaded files for the named conferences.
+#
+#      It creates static HTML pages for each person in each of the
+#      conferences, plus membership list pages for each conference,
+#      and an "all users" membership list (linked to by the People icon
+#      from the Caucus Center page).
+#
+#   Notes on customization
+#      1. To get as close to the look-and-feel of your customized site,
+#         copy your CML/C41/Local/switch2.i file into this directory.
+#
+#      2. As much as possible, CSNAP inherits any customized settings
+#         that have been set for each conference, and for the current
+#         user.
+#
+#      3. You may wish to set the value of PAGERESPS yourself, as it
+#         defaults to the usual Caucus value of 25 responses per item
+#         page.  For static HTML pages, it is often a good idea to set
+#         this higher.
+#
+#      4. CSNAP does *not* handle the customized personal information fields.
+#
+#: CR 10/28/98 12:06 CSNAP 1.0
+#: CR  5/28/99 17:30 CSNAP 1.1, Caucus 4.1, 8.3 file names
+#: CR  7/28/99 18:55 dir variable references CML/CSNAP so we can use swebd.conf
+#: CR 12/26/99 10:04 add args, plain-text output option
+#: CR 12/16/01 18:38 use m_cnum, m_inum, m_rnum
+#: CR  3/05/02 11:50 Add -i option, 4.4 switches/site variables.
+#: CR 12/04/02 Add -p option, do not build/display personal info.
+#: CR  3/04/04 Define main, for includecml pages that might try to use it.
+#: CR  3/17/05 Include CC44/main macros.i file, and just override it!
+#: CR 11/29/09 Change 'main' to point to CC51/main.
+#==========================================================================
+
+#---Phase 0a: Set initial variables.
+set pageresps  50
+set img   ../GIF50
+set icon  $(img)
+set dir   CSNAP51/main
+set main  CC51/main
+set iface CC51
+set mail_out caumail
+set dotext   0
+set conffile
+set localerrs 0
+set do_people 1
+set tbstyle   $site_data (0 - if_$(iface)_tbstyle)
+
+#---Define parameters that *might* be used by some macros; best guess
+#   for compatibility is IE 4 (yecch).
+set browser_name (Unknown)
+set is_netscape5 0
+set is_netscape4 0
+set is_netscape3 0
+set is_netscape2 0
+set is_explorer5 0
+set is_explorer4 1
+set is_explorer3 0
+set icon_type    gif
+set is_macintosh 0
+set use_javascript 1
+set target_switch  0
+
+#---Load switches from files (including old switch2 if it exists)
+#   Note that macros.i is the same as the CC44/main/macros.i, but
+#   csnapmacros.i has overriding definitions for CSNAP.
+include $(dir)/defaults.i
+include $(dir)/switch2.i
+include CC51/main/macros.i
+include $(dir)/csnapmacros.i
+include $(dir)/localmacros.i
+
+#---Load 4.4+ switches from site variables.
+for x in $list_site_data (0 - SW)
+   set   varname  $str_sub (2 1000 $(x))
+   set $(varname) $site_data (0 - $(x))
+end
+
+
+#---Phase 0b: Test argument(s).
+"
+if $empty ($arg(1))
+   "Usage: sweba csnap.conf csnap.cml gif41_directory
+   "
+   quit
+end
+if $empty ($dirlist(0 $arg(1)))
+   "Cannot find any files in "gif41" directory '$arg(1)'.
+   "
+   quit
+end
+if $empty ($user_info ($userid() lname))
+   "This userid, '$userid()', must be registered as a Caucus user
+   "before running CSNAP.
+   "
+   quit
+end
+
+#---loop over arguments.
+set argn 2
+while $not_empty ($arg($(argn)))
+   if $equal ($arg($(argn)) -t)
+      set dotext 1
+   end
+   elif $equal ($arg($(argn)) -e)
+      set localerrs 1
+   end
+   elif $equal ($arg($(argn)) -d)
+      set argn   $plus ($(argn) 1)
+      set target $arg ($(argn))
+   end
+   elif $equal ($arg($(argn)) -c)
+      set argn     $plus ($(argn) 1)
+      set conffile $arg($(argn))
+   end
+   elif $equal ($arg($(argn)) -i)
+      set argn     $plus ($(argn) 1)
+      set iface    $arg($(argn))
+   end
+   elif $equal ($arg($(argn)) -p)
+      set do_people 0
+   end
+   set argn $plus ($(argn) 1)
+end
+
+
+set center_name Caucus&nbsp;Center
+if $not_empty ($site_data (0 - if_$(iface)_ccenter))
+   set center_name $site_data (0 - if_$(iface)_ccenter)
+end
+
+set css_font  $site_data (0 - if_$(iface)_css_font)
+if $empty ($(css_font))
+   set css_font Arial, Helvetica, sans-serif
+end
+set css_size  $site_data (0 - if_$(iface)_css_size)
+if $empty($(css_size))
+   set css_size 80%
+end
+set css_file  $site_data (0 - if_$(iface)_css_file)
+if $not_empty($(css_file))
+   eval $copyfile ($caucus_path()/public_html/$(css_file) $(target)/$(css_file))
+end
+
+set ucss_font $user_data ($userid() cssfont)
+set ucss_size $user_data ($userid() csssize)
+
+#---LMARGIN: size of left margin (pixels or %) in item & response display
+set lmargin   $word (1 $user_data ($userid() lmargin)   2\%)
+                                                                                
+#---RMARGIN: size of right margin (pixels or %) in item & response display
+set rmargin   $word (1 $user_data ($userid() rmargin)   2\%)
+
+
+#---Phase 0c: Initialize conference name cache.
+"---------------------------------------------
+"Welcome to CSNAP, the Caucus "snapshot" program.
+"
+"(Loading conference tables... please wait.)
+eval $cl_list()
+
+#---Phase 1: select conferences.  Sets 'cnums'.
+if $empty ($(conffile))
+   include $(dir)/phase1.i
+end
+else
+   include $(dir)/conffile.i
+end
+
+#---Phase 2: get "target" directory to put snapshots.  Sets target.
+if $empty ($(target))
+   include $(dir)/phase2.i
+end
+
+#---Phase 2a: prepare GIF50 directory under TARGET.
+for x in $dirlist(0 $arg(1))
+   eval  $copyfile ($arg(1)/$(x) $(target)/GIF50/$(x) 755)
+end
+
+#---Phase 3: build the "Caucus Center" page.  Builds index.html.
+include $(dir)/mkcc.i
+
+#---Phase 4: do conference by conference...
+for cnum in $(cnums)
+   set m_cnum $(cnum)
+   set cname %displayed_conf_name ($(cnum))
+   "
+   "Processing '$(cname)'...
+
+   if $gt_equal ($group_access ($userid() CONF $(cnum)) $priv(minimum))
+      include $(dir)/doconf.i
+   end
+   else
+      "Cannot join conference $(cname).
+   end
+   if $(localerrs)
+      "$errors()
+   end
+
+end
+
+#---Generate page of all users (for people buttons)
+if $(do_people)
+   include $(dir)/allusers.i
+   include $(dir)/noone.i
+end
+
+#---If there's a interface_storage conference, generate ifs_page pages
+#   for it
+eval $cl_list (interface_storage_$(iface))
+set cnum $cl_num (interface_storage_$(iface))
+if $greater ($(cnum) 0)
+   include $(dir)/do_ifs.i $(cnum)
+end
+
+"$errors()
+#==========================================================================

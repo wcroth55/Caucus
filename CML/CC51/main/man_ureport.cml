@@ -1,0 +1,132 @@
+#
+#---MAN_UREPORT.CML.   Manager producing user reports
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 03/19/03 Add groups, everyone checkbox.
+#: CR 01/12/06 Rewrite for C5.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_ureport.cml
+end
+
+include $(main)/secure.i manage userReports
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_ureport.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Produce User Reports )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Produce User Reports)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_org  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Produce&nbsp;User&nbsp;Reports
+
+"<script type="text/javascript" language="javascript">
+"function submitMe() {  document.eg.submit(); }
+
+"function prepareForm() {
+"   var d = document.eg;
+"   var s = document.send;
+"   if (d.everyone.checked && s.name.value != '_') {
+"      confirm ("You may check Everyone, or select a group -- but not both.");
+"      return false;
+"   }
+"   if (! d.everyone.checked  &&  s.name.value == '_') {
+"      confirm ("You must choose either Everyone, or a group.");
+"      return false;
+"   }
+"   s.everyone.value = (d.everyone.checked ? '1' : '0');
+"   return true;
+"}
+"</script>
+
+"<BLOCKQUOTE>
+"Use this page to produce a report on all of the "personal information"
+"for everyone registered in Caucus, or for all of the members of a
+"particular group or conference.&nbsp;
+
+if $empty ($user_info ($userid() email))
+   "<P>
+   "You must supply your e-mail address to Caucus in order to use
+   "this feature.&nbsp;
+   "Click on your name in the upper-right hand corner of the
+   "page to set your address.
+   "<P>
+   "<HR>
+   "</div>
+"</body>
+   "</HTML>
+   quit
+end
+
+"<P>
+"The report will be sent as a tab-separated file, suitable for
+"reading as a spreadsheet, via
+"e-mail to <B>$user_info ($userid() email)</B>.
+
+if $not_empty ($(error))
+   "<p>
+   "$(error)
+   "<p>
+end
+
+"<form METHOD=POST name="eg"
+"      ACTION="man_ureport.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign><td colspan=4><b>Report on:</b></td>
+"<tr>
+"<td>&nbsp;&nbsp;</td>
+"<td>&nbsp;Everyone</td>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td colspan=3>Or choose a group or conference</td>
+
+"<tr>
+"<td></td>
+"<td><input type=checkbox name="everyone" value="1"></td>
+"<td></td>
+
+   include $(main)/groupselector.i eg eg CONF _ _ 1
+"<td></td>
+"</table>
+"</form>
+
+#"egType=$(egType)<br>
+#"egRange=$(egRange)<br>
+#"<P/>
+#"Type=$if ($equal($(egType) USER) $(egRange) $(egType))<br>
+#"Name=$(egName)<br>
+
+"<form METHOD=POST name="send" onSubmit="return prepareForm();"
+"      ACTION="man_urptf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+"<input type="hidden" name="everyone" value="0">
+"<input type="hidden" name="type"  
+"      value="$if ($equal($(egType) USER) $(egRange) $(egType))">
+"<input type="hidden" name="name"     value="$(egName)">
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr><td>&nbsp;</td>
+"<tr><td></td>
+"<td colspan=4><INPUT TYPE=SUBMIT name="submit" VALUE="Send Report"></td>
+"</table>
+"</form>
+
+
+"</BLOCKQUOTE>
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+
+set error
+#------------------------------------------------------------------------

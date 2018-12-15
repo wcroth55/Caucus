@@ -1,0 +1,175 @@
+#
+#---H_FILESAFE.CML.   Help about the FileSafe (whatever it is called!)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/12/04 Update text to match fixed filesafe behaviour!
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_filesafe.cml $quote(Help on the $(filesafe_name))
+"<P>
+
+set lowerfs $lower ($(filesafe_name))
+
+"<B>What Is It?</B><BR>
+"<img $(src_filesafe) align=right hspace=5 vspace=5>
+"The $(filesafe_name) is a central "file library" -- a place where
+"Caucus users can store
+"and retrieve arbitrary files or URLs.&nbsp;
+"The $(filesafe_name) is not part of any conference; it belongs to
+"the entire Caucus site, and is visible throughout Caucus by
+"clicking on the "$(filesafe_name)" button.
+
+"<p>
+"<b>What Can I Put In It?</b><br>
+"Anything.&nbsp; <b>If</b> you're allowed to store files in a 
+"particular $(lowerfs) in the first place.&nbsp;
+"(See <a href="#perm">Permissions</a>, below.)&nbsp;
+"But check with a Caucus manager before storing very large files
+"(many megabytes).
+
+"<p>
+"<b>Structure &amp; Organization</b><br>
+"There are four hierarchical levels of organization to the $(filesafe_name):
+"<ol>
+"<li><b>The $(filesafe_name) proper</b> -- the collection of all the individual
+"$(lowerfs)(s) on the Caucus host.&nbsp;
+"Click on the $(filesafe_name) button to see the entire $(filesafe_name) (or at
+"least as much of it as you have permission to see).
+
+"<p>
+"<li><b>Individual $(lowerfs)(s)</b>.&nbsp;  
+"Each $(lowerfs) has a name, 
+" a description, 
+" and a list of 
+" people who can read (see files or URLs from) or write (upload files 
+" or add URLs to) the $(lowerfs).
+
+"<p>
+"<li><b>Sections</b>.&nbsp;  Each individual 
+"$(lowerfs) can have many sections
+"(aka folders).
+
+"<p>
+"<li><b>Files / URLs</b>.&nbsp;  A section contains any number of 
+"  individual files or URLs.&nbsp;
+"For each file or URL you also see the owner (person who entered it),
+"the date it was entered, a brief description, and a list of related keywords.
+"</ol>
+
+"<p>
+"<b>How do I get to (or reference) a $(filesafe_name)?</b><br>
+"You can always navigate to a particular $(lowerfs), 
+"section, file, or URL
+"just by clicking on the $(filesafe_name) button and following the links
+"from there.
+
+"<p>
+"<a name="macros">That's fine as it goes</a>, 
+"but you may also want to reference a $(lowerfs)
+"from within a conference somewhere.&nbsp;
+"There are several 
+"<A HREF="$(helpurl)/i_resp.cml?x+x#mac">macros</A> that can help:
+"<ul>
+"<li>\%filesafe (fsname)<br>
+" Displays a link to $(lowerfs) 
+"<i>fsname</i> (if the user is allowed in
+" that $(lowerfs).&nbsp;
+"<p>
+"<li>\%filesafe (fsname text)<br>
+" As above, but shows <i>text</i>
+" as the "text" of the link.&nbsp;
+" <i>Text</i> can be anything, including an image.
+"<p>
+"<li>\%filesafes (prefix)<br>
+" Lists links to <b>all</b> $(lowerfs)(s) whose names begin with
+" <i>prefix</i> (but again, only if the user is allowed in each $(lowerfs)).
+
+"<p>
+"<li>\%filesafefile (fsname section filename)<br>
+" Displays a link to <i>filename</i> 
+" in <i>section</i> in <i>fsname</i>.&nbsp;
+" Clicking on the link opens a new window that displays the file or URL.&nbsp;
+
+"<p>
+"<li>\%filesafefileurl (fsname section filename)<br>
+" Displays the URL of <i>filename</i> in 
+" <i>section</i> in <i>fsname</i>.&nbsp;
+" Very helpful if you're writing your own HTML but want to get at files
+" in the $(lowerfs).
+"<p>
+" <b>Notes:</b>&nbsp;
+" Any blanks in <i>fsname</i>, <i>prefix</i> or <i>section</i> must
+" be replaced with underscores when you use these macros.&nbsp;
+" <i>Fsname</i> and <i>section</i> are case-insensitive, meaning it
+"  doesn't matter if you type "AAA" or "aaa".&nbsp;
+"  But <i>filename</i> must always be exactly the name of the file
+"  you want -- file "XYZ.GIF" is different from file "xyz.gif".
+
+"</ul>
+
+
+"<p>
+"<b>How are $(lowerfs)(s) created?</b><br>
+"Only Caucus managers (with "edit switches" privilege) can create
+"new $(lowerfs)(s).&nbsp;  
+"They can also create new sections within a $(lowerfs).&nbsp;
+
+"<a name="perm"><p>
+"<b>Permissions and Privileges</b></a><br>
+"When a new $(lowerfs) is created, a 
+"<A HREF="$(helpurl)/h_man_groups.cml?x+x">group</A> with the
+"same name is automatically created.&nbsp;
+"The group is used to control who can do what with the $(lowerfs).&nbsp;
+"Only Caucus managers can edit these groups.
+
+"<p>
+"The groups that control $(lowerfs)(s) can have three kinds of permissions 
+"in them:
+"<ol>
+"<li><b><tt>userid</tt></b> &nbsp;&nbsp;&nbsp; 
+"    (or <b><tt>userid member</tt></b>)<br>
+"    A userid (or wildcard) by itself (or with the word "member")
+"    means that userid (or the people
+"    that match the wildcard) can read and write files in the $(lowerfs).
+"<p>
+"<li><b><tt>userid  readonly</tt></b><br>
+"    A userid (or wildcard) followed by "readonly" means that user
+"    (users if wildcard) can only read files or URLs in the $(lowerfs), they can't
+"    add new files or URLs.
+"<p>
+"<li><b><tt>userid  file_manager</tt></b><br>
+"    This user (users) can manage the $(lowerfs), which includes reading
+"    and writing files or URLs, and adding or deleting sections.
+"</ol>
+
+"<p>
+"Note that the permissions in the groups are additive,
+"meaning that you get the "highest" permission that matches your userid.
+"For example, given the $(lowerfs) group:
+"<ul>
+"<tt>*  readonly</tt><br>
+"<tt>smith</tt><br>
+"<tt>jones  file_manager</tt>
+"</ul>
+"means that anyone can read files, smith can read or write, and
+"jones can manage the $(lowerfs).&nbsp;
+"The order in which the lines appear in the group is irrelevant.
+
+"<p>
+"There is also a special group, called "file_managers".&nbsp;
+"Anyone in that group can manage all $(lowerfs)(s), regardless of what
+"is in their group(s).
+
+"<p>
+"Finally, a newly created filesafe group has a default list of "*" 
+"(wildcard matching everyone),
+"which means that everyone can see the $(lowerfs) and download files
+"from it.
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

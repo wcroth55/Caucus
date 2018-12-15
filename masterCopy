@@ -1,0 +1,34 @@
+#!/bin/sh
+
+master=/home/c20120517
+
+cd $HOME/SWEB
+
+cp $master/SWEB/swebs swebs.new
+strip                 swebs.new
+chmod 4711            swebs.new
+mv swebs     swebs.0
+mv swebs.new swebs
+
+cp $master/SWEB/sweba sweba.new
+strip                 sweba.new
+chmod 4710            sweba.new
+mv sweba     sweba.0
+mv sweba.new sweba
+
+cp $master/SWEB/swebd swebd.new
+strip                 swebd.new
+chmod 4711            swebd.new
+mv swebd              swebd.0
+mv swebd.new          swebd
+
+cp $master/SWEB/swebsock swebsock.new
+strip                    swebsock.new
+chmod 4711               swebsock.new
+mv swebsock              swebsock.0
+mv swebsock.new          swebsock
+
+cd $HOME/SCRIPTS
+cp $master/SCRIPTS/metasend  .
+cp $master/SCRIPTS/mimencode .
+cp $master/SCRIPTS/splitmail .

@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+#---slowlog  bash front end to slowlogFilter program
+
+
+if test "x$1" = "x"; then
+   echo "Usage: slowlog [file] minimumSeconds"
+   exit
+fi
+
+if test "x$2" = "x"; then
+   secs=$1
+   file=/usr/local/mysql/slow.log
+else
+   secs=$2
+   file=$1
+fi
+
+slowlogFilter <$file $secs

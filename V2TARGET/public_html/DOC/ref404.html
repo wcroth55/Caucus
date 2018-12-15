@@ -1,0 +1,178 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.4: Shell Access</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.4:&nbsp; Shell Access</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref403.html">PREV</A>]
+   [<A HREF="ref405.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+CML provides one comprehensive function 
+(<B>$xshell()</B>) for accessing the Unix 
+(or NT) command interpreter or "shell" 
+(and thereby running commands or scripts from the shell).&nbsp;
+
+<P>
+For historical reasons (and to provide backward compatibility with
+earlier versions CML), several other shell functions are provided
+that implement subcases of $xshell().
+
+
+<P>
+<DL>
+
+<P><DT><A NAME="xshell">$xshell(output synch effective command)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Runs <I>command</I> in a shell.&nbsp;  
+<I>Output</I> controls what happens to the output from the command.&nbsp;
+If it is 0, the output is ignored.&nbsp;
+If greater than 0, 
+the function evaluates to the output from the command.&nbsp;
+Values of 1, 2, and 3 cause default translation, translation from EUC, 
+and translation from SJIS, respectively.
+
+<P>
+<I>Synch</I> controls synchronous operation.&nbsp;
+If 1, the <I>command</I> executes synchronously, i.e.
+$xshell() does not "return" until the <I>command</I> is complete.&nbsp;
+If 0, the <I>command</I> executes asynchronously, and $xshell()
+returns immediately (with no output, regardless of the value
+of <I>output</I>).
+
+<P>
+Finally, on Unix systems, <I>effective</I> controls the permissions with which
+<I>command</I> is run.&nbsp;
+If 1, the <I>command</I> runs with its
+real id as the Caucus id (see the parameter Caucus_ID in
+the swebd.conf configuration file).&nbsp;
+If 0, the <I>command</I> runs as the "real" id, as specified
+by the parameter Real_ID in swebd.conf.&nbsp;
+
+<P>
+<B>Warnings and Notes:</B>&nbsp;
+<P>
+<UL>
+<LI>Unix:
+unless it is specifically necessary to execute shell commands
+that can access the Caucus data files, it is <B>strongly</B>
+recommended that all shell functions run as a "real" id
+that has limited access to Caucus and the rest of the system.&nbsp;
+This can best be accomplished by (a) using a value of 0 
+for <I>effective</I>, <B>and</B> (b) by making sure that
+Caucus is started from "root", with a swebd.conf Real_ID 
+parameter of "nobody", or some similarly unprivileged id.
+
+<P>
+<LI>NT: <I>eff_real</I> has no effect; all xshell() commands
+run as the "caucus" userid and can thus affect the Caucus data files.&nbsp;
+Be careful!
+
+<P>
+<LI>NT: if <I>command</I> references a .EXE or .BAT file, you must
+include the extension as part of the file name.
+
+<P>
+<LI>NT: using stdin ("standard input") inside a batch file may cause
+the batch file (and thus the Caucus process, which is waiting for it)
+to "hang".&nbsp;
+For example, batch commands like "echo Y|deltree xyz" seem
+susceptible to this problem.
+
+</UL>
+
+<P>
+Note also that all of the shell functions are ignored 
+(have no effect) when inside a
+<A HREF="ref402.html#protect">$protect()</A> function.
+
+<P><DT><A NAME="sleep">$sleep(secs)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sleeps for <i>secs</i> seconds.&nbsp;
+Often a good idea after running a shell script or
+<a href="http://caucuscare.com/TLIB/FAQ/sweba.html">sweba</a> program 
+to allow it time to complete.
+</dl>
+
+<p>
+<center><hr width="80%"></center>
+<p>
+
+<dl>
+<DT>The remaining functions are all subcases of $xshell(),
+and are provided for historical compatibility.
+
+<P><DT><A NAME="shell">$shell(command)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Runs <I>command</I> in a shell.&nbsp;  The function evaluates to the
+output from <I>command</I>.&nbsp;  Example:
+
+<P>
+<TT>&quot;It is now: <B>$shell(</B>date<B>)</B></TT>
+
+<P>
+Equivalent to $xshell (1 1 0 command).
+
+<P><DT><A NAME="jshell">$jshell(type command)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Runs <I>command</I> in a shell.&nbsp;  The function evaluates to the
+output from <I>command</I>, expecting that the command produces
+japanese text in EUC coding (<I>type</I>=2) or SJIS coding 
+(<I>type</I>=3).&nbsp;
+(For more information about language
+type codes, see the DISKFORMAT parameter in swebd.conf.)
+<P>
+Equivalent to $xshell (type 1 0 command).
+
+<P>
+<P><DT><A NAME="silent">$silent(command)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Runs <I>command</I> in a shell.&nbsp;  The output is ignored.&nbsp;  The
+function evaluates to nothing, i.e. it effectively disappears.&nbsp;
+The example logs a user's userid to a temporary file.
+
+<P>
+<TT>&quot; <B>$silent(</B>echo $userid() &gt;&gt;/tmp/log<B>)</B></TT>
+<P>
+Equivalent to $xshell (0 1 0 command).
+
+<P><DT><A NAME="asynch">$asynch(command)</A> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Runs <I>command</I> in a shell, immediately, without waiting
+for <I>command</I> to finish.&nbsp;
+Equivalent to $xshell (0 0 0 command).
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

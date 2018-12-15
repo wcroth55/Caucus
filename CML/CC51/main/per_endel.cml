@@ -1,0 +1,20 @@
+#
+#---PER_ENDEL.CML    Delete e-mail notification group $arg(5).
+#
+#  arg(3)   conf  number
+#  arg(5)   group number
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+eval $set_user_data ($userid() en_items_$arg(3)-$arg(5))
+eval $set_user_data ($userid() en_dates_$arg(3)-$arg(5))
+eval $set_user_data ($userid() en_hours_$arg(3)-$arg(5))
+
+"%location($(mainurl)/per_en.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#------------------------------------------------------------------

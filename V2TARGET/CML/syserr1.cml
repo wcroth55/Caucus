@@ -1,0 +1,33 @@
+#
+#---SYSERR1.CML      Attempted spoof.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#---------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+"<HTML>
+"<HEAD>
+"<TITLE>Caucus system error 1</TITLE>
+"</HEAD>
+"
+"<BODY BGCOLOR="#FFFFFF">
+"<H2>Caucus System Error 1</H2>
+
+"<P>
+"Your client machine (the one that you are working at) has apparently
+"changed its IP number.
+
+"<P>
+"Caucus on this server has been configured to require that your
+"client keep the same IP number.  Please contact the system
+"or Caucus administrator for the host server system.
+
+"<P>
+"<HR>
+
+"</BODY>
+"</HTML>

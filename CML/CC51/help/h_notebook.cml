@@ -1,0 +1,108 @@
+#
+#---H_NOTEBOOK.I   Help about "Notebook" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_notebook.cml $quote(Help on Notebook Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Notebook page provides a place for you to collect references
+"to places in Caucus that you want to go back to quickly. You can save
+"links to particular items and responses, personal pages, and any other
+"Caucus location that isn't generated in response to a request (like a 
+"search result page).
+
+"You can group notebook entries into categories to make them easier to keep
+"track of.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>Notebook</B> icon.
+
+"<P>
+"<B>What is on the "Notebook" Page?</B><BR>
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+
+"<P>
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+
+"<P>The first link in the body of the page is the 
+"<A HREF=$(helpurl)/h_note_add.cml?x+x">Add the page I 
+"just came from to my notebook</A> link. You can use this option to add a 
+"new entry to your notebook containing the location of the page you last
+"saw (the page on which you clicked the Notebook icon).<P>
+
+"Below this link is a list of your notebook entries, organized by category.
+"If you haven't created any notebook entries, you'll see a note telling
+"you that instead.<P>
+
+"A typical listing of notebook entries looks like this:
+"<DL>
+"<DT><A HREF=#>
+"<B>Default category</b></A><BR>
+"<DD>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top><TD>
+"<A HREF=#><FONT SIZE=-2>[EDIT]</FONT></A>&nbsp;&nbsp;&nbsp;&nbsp;
+"</TD>
+"<TD>
+"<A HREF=#>Demonstration Home Page</A>
+"</TD>
+"<TR VALIGN=top><TD>
+"<A HREF=#><FONT SIZE=-2>[EDIT]</FONT></A>&nbsp;&nbsp;&nbsp;&nbsp;
+"</TD>
+"<TD>
+"<A HREF=#>John F. Doe personal page</A>
+"</TD>
+"<TR VALIGN=top><TD>
+"<A HREF=#><FONT SIZE=-2>[EDIT]</FONT></A>&nbsp;&nbsp;&nbsp;&nbsp;
+"</TD>
+"<TD>
+"<A HREF=#>Test Conf Item 1, Just Testing..., Response 0</A>
+"<FONT SIZE=-1><NOBR>(no new responses)</NOBR></FONT>
+"</TD>
+"<TR VALIGN=top><TD>
+"<A HREF=#><FONT SIZE=-2>[EDIT]</FONT></A>&nbsp;&nbsp;&nbsp;&nbsp;
+"</TD>
+"<TD>
+"<A HREF=#>Caucus Management</A>
+"</TD>
+"<TR VALIGN=top><TD>
+"<A HREF=#><FONT SIZE=-2>[EDIT]</FONT></A>&nbsp;&nbsp;&nbsp;&nbsp;
+"</TD>
+"<TD>
+"<A HREF=#>Edit Item 2 Response 1</A>
+"</TD>
+"</TABLE>
+"</DL><P>
+
+"Most of the parts of this listing are links that do something when you 
+"click on them.<P>
+
+"The first part of the listing is the category name. You can click on the
+"category name to 
+"<A HREF=$(helpurl)/h_note_cat.cml?x+x">modify or
+"delete the category.</A><P>
+
+"Next come the listings of notebook entries, one per line. To the left of 
+"each entry is a small 
+"<A HREF=$(helpurl)/h_note_edit.cml?x+x">
+"<FONT SIZE=-2>[EDIT]</FONT></A> link which you can select to 
+"<A HREF=$(helpurl)/h_note_edit.cml?x+x"> 
+"modify or delete the entry.</A><P>
+
+"Clicking on an entry name will take you to the location that the entry
+"represents.<P>
+
+"Finally, entries that refer to an item or response may have a notation
+"indicating whether there is new material in that item.<P>
+include $(help)/hb.i
+

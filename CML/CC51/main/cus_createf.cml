@@ -1,0 +1,89 @@
+#
+#---cus_createf.cml.    Handles "simple" conference creation
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/08/06 Rewrite for C5.1
+#-------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_create.cml
+end
+
+include $(main)/secure.i manage conferenceCreate conferenceAllPrivileges
+
+set nch $unique()
+
+set cname $form(cname)
+
+set userlist
+if $not_empty ($form(allowall))
+   set userlist :include$newline()*$newline():readonly$newline()
+end
+
+set cnum $create_conf($replace(32 _ $(cname)) $form(primary) \
+                        $replace(10 32 $form(orgs)) $(userlist))
+
+if $equal($(cnum) 0)
+   set bad_conf_name You are not authorized to create new conferences.
+   "%location($(mainurl)/cus_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -1)
+   set bad_conf_name A conference called <i>$(cname)</i> already exists. \
+       Please choose another name.
+   "%location($(mainurl)/cus_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -2)
+   set bad_conf_name The user $form(primary) could not be added as the \
+         primary organizer.
+   "%location($(mainurl)/cus_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -4)
+   set bad_conf_name A conference name must less than 80 characters long, \
+          must begin with a letter, and may only include letters, numbers, \
+          a dash (-), a period (.) or an underscore (_).
+   "%location($(mainurl)/cus_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $greater ($(cnum) 0)
+
+   #---Set the initial "allow e-notification" status.
+   eval $set_site_data ($(cnum) - en_allow \
+                       $if ($equal ($form(yesnotify) on) 1 0))
+
+#  #--- Add the conference to their personal list, if requested
+#  if $equal($form(list) on)
+#     set myconfs $user_data ($userid() my_confs)
+#     eval  $set_user_data ($userid() my_confs \
+#                    $(myconfs)$newline()$cl_name($(cnum))$newline())
+#  end
+
+   #--- Initially only organizer(s) can start new items.
+   eval $set_site_data ($(cnum) - co_add 0)
+
+   #--- Only organizers can freeze/delete/etc. items
+   eval $set_site_data ($(cnum) - icreator 0)
+
+   set result Conference <B>$(cname)</B> successfully created.
+
+#  "%location($(mainurl)/$page_return ($arg(2) # \
+#                        manage.cml?$(nch)+$arg(2)+x+x+x+x+x+x))
+   "%location($(mainurl)/center.cml?$(nch)+$arg(2)+x+x+x+x+x+x)
+   "
+end
+
+else
+   set bad_conf_name Unknown Error '$(cnum)'.
+   "%location($(mainurl)/cus_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+#------------------------------------------------------

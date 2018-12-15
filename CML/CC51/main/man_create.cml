@@ -1,0 +1,192 @@
+#
+#---MANAGE_CREATE.CML.   Manager creating conferences
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/15/00 14:45 Sort list of archive files.
+#: CR 01/27/03 Add conference aliases.
+#: CR 04/20/04 Add new course-conf related options.
+#: CR 05/11/04 Show "course" conf type only if %supports_class() is true.
+#: CR 01/28/05 Add autojoin.
+#: CR 07/14/09 Add "keep archived dates?"
+#-----------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_create.cml
+end
+
+include $(main)/secure.i manage conferenceCreate conferenceAllPrivileges
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set pagename <span class="pageTitle">Create Conference</span>
+
+set nxt   $page_save (2 man_create.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Create a Conference )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Create a Conference)
+
+include $(main)/body.i x onLoad="document.concr.cname.focus()" \
+                              onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_create  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Create a Conference
+
+"<BLOCKQUOTE>
+"Follow the numbered steps below to create a new conference.&nbsp;
+"You will be listed as the primary organizer of the new conference,
+"unless you change it in step #2 below.
+
+
+"<P>
+"<form NAME=concr METHOD=POST
+"    ACTION="man_createf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+#---If from a previous invocation with a bad conf name, complain.
+if $not_empty ($(bad_conf_name))
+  "<B>$(bad_conf_name)</B><P>
+  set bad_conf_name
+end
+
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top><td>1.&nbsp;&nbsp;</td>
+"<td><table cellspacing=0 cellpadding=0 border=0>
+   "<tr>
+   "<td>Enter the name for your conference:</td>
+   "<td>&nbsp;&nbsp;&nbsp;</td>
+   "<tr>
+   "<td><INPUT TYPE=TEXT NAME=cname SIZE=40></td>
+   "<td></td>
+
+   "<tr valign=top>
+   "<td>A <b>name</b> must
+   "be less than 80 characters long.&nbsp;
+   "It may not contain slashes (/ or \), asterisks (*), 
+   "or single quotes (').&nbsp;
+   "<nobr>A <b>name</b></nobr> is required.</td>
+   "<td></td>
+   "</table>
+"</td>
+
+"<tr><td>&nbsp;</td>
+"<tr valign=top><td>2.</td>
+"<td><table cellspacing=0 cellpadding=0 border=0>
+"    <tr valign=top><td>Enter the userid of the primary 
+"        organizer:&nbsp;&nbsp;</td>
+"        <td><INPUT TYPE=TEXT NAME=primary SIZE=15 VALUE=$userid()></td>
+"    </table>
+"</td>
+
+"<tr><td>&nbsp;</td>
+"<tr valign=top><td>3.</td>
+"<td>Enter the userids of the initial organizers, if any
+"(other than the primary organizer):<BR>
+"<TEXTAREA NAME=orgs ROWS=5 COLS=20></TEXTAREA><P>
+"</td>
+
+#<tr><td>&nbsp;</td>
+#<tr valign=top><td>5.</td>
+#<td>Enter the userids of the initial instructors, if any
+#    (Course conferences only):<br>
+#<TEXTAREA NAME=instructs ROWS=5 COLS=20></TEXTAREA><P>
+#</td>
+
+"<tr><td>&nbsp;</td>
+"<tr valign=top><td>4.</td>
+"<td><table cellspacing=0 cellpadding=0 border=0>
+"    <tr><td><nobr>Restore conference from archive:&nbsp;&nbsp;</nobr></td>
+"    <td><SELECT NAME=archive SIZE=1>
+     "<OPTION VALUE="0">(none)</OPTION>
+     set files $dirlist (0 $caucus_path()/ARCHIVE5)
+     for fi in $gen_sort (1 $(files))
+       set archive $word ($(fi) $(files))
+       set label   $(archive)
+       set tarPos $str_revdex(.tar.gz $(archive))
+       if $greater ($(tarPos) 0)
+          set label $str_sub(0 $(tarPos) $(archive))
+       end
+       "<OPTION VALUE="$(archive)">$(label)</OPTION>
+     end
+     "</SELECT>
+     "</td>
+     "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+     "<td><nobr>Restore members' course status?&nbsp;<input 
+     "   type="checkbox" name="restoregrades" value="1"></nobr></td>
+     "<td></td>
+     "<td></td>
+     "<td><nobr>Keep archived dates? 
+     "   <input type="checkbox" name="keepDates" value="1" checked></nobr></td>
+
+     "<tr valign=top>
+     "<td colspan=2>"None" means you are creating a completely new, 
+     "  empty, conference.</td>
+     "<td></td>
+     "<td colspan=2>(Leave this unchecked unless you are restoring an entire
+     "     course conference, grades and all.)</td>
+     "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+     "<td>Uncheck this to use today's date for all items &amp; responses.</td>
+     "</table>
+"</td>
+#"<tr><td></td><td colspan=2>
+#""None" means you are creating a completely new, empty, conference.
+#"</td>
+
+"<tr><td>&nbsp;</td>
+"<tr valign=top><td>5.</td>
+"<td>Check or clear the boxes below, to determine
+"the initial state of the conference.
+"<P>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top>
+"<td>
+#<INPUT TYPE=CHECKBOX NAME=allowall  $if ($(cc_allowall)  CHECKED)>
+#Conference open to everyone?<P>
+
+"<INPUT TYPE=CHECKBOX NAME=yesnotify $if ($(cc_enotify)  CHECKED)>
+"Allow e-mail notification?<P>
+
+#<input type="checkbox" name="autojoin" value="1">
+#Autojoin people to conference?
+
+"<input type="checkbox" name="coursetools" value="1">
+"Make this a "course"
+
+"<p/>
+"<INPUT TYPE=CHECKBOX NAME=yesthumbnail $if ($(cc_thumbnail)  CHECKED)>
+"Show member's thumbnails?
+
+"<td>
+
+"<td>&nbsp;&nbsp;&nbsp;</td>
+"<td>
+"<INPUT TYPE=CHECKBOX NAME=join $if ($(cc_join) CHECKED)>
+"Make me a member.<P>
+
+"<INPUT TYPE=CHECKBOX NAME=customize $if ($(cc_customize) CHECKED)>
+"Go to customization pages immediately.<P>
+"</td>
+"</table>
+"</td>
+
+"<tr><td>&nbsp;</td>
+"<tr valign=top><td colspan=2
+"   ><INPUT TYPE="submit" VALUE="Create this Conference"></td>
+"</table>
+
+"</FORM>
+
+
+"<P>
+"</BLOCKQUOTE>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

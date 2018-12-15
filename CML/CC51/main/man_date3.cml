@@ -1,0 +1,62 @@
+#
+#---MAN_DATE3.CML.   Actually delete users selected.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/02/2004 Use new deletion script.
+#: CR 09/27/2004 Fix delete_userid.i call.
+#: CR 10/13/04 Rearrange call to delete_userid.i
+#: CR 10/08/05 Major C5 changes.
+#--------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userDelete
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_date3.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Users by Date)
+
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Deleted Users)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i      man_date  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    Deleted Users</A>
+
+"<P>
+"<blockquote>
+
+set dellist $form(ibox)
+set to_delete $sizeof($(dellist))
+include $(main)/userids_delete.i dellist
+
+"$(deleted) users were deleted.&nbsp;
+if $less ($(deleted) $(to_delete))
+   "<B>Note:</B> Some of the selected users may not have been deleted,
+   "to prevent your session from timing-out.
+end
+
+"<P/>
+"You may return to 
+"<A HREF=man_date.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+        $arg(7)+$arg(8)>Manage users by date</A></B>.
+
+"</blockquote>
+"<P/>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,89 @@
+#
+#---H_WHOSEEN.I   Help about "Who Has Seen?" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_whoseen.cml $quote(Help on 'Who Has Seen?')
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The "Who Has Seen" page lets you find out which
+"conference participants have seen the current item, and how much of the item
+"(i.e. how many responses) each person has read.&nbsp; 
+"This is a good way for you to be sure that others in the conference 
+"are up to date.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Click on the title of a particular item.&nbsp;
+"At the bottom of the page, below the response box, is
+"a link called <U>Who has seen this item?</U>.
+
+"<P>
+"<B>What is on the "Who Has Seen?" Page?</B><BR>
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+
+"<P>
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Below the page title is the most important part of this page&#151;the
+"<B>buttons</B> you use to find out who has seen this item.
+"<P>
+"<b>Everyone</b>:&nbsp; Click the button marked "Everyone" to display
+"a two-column list of all
+"conference participants.&nbsp;
+"The first column shows the names of all of the participants, 
+"in alphabetical order by last name.
+"<P>
+"The second column is labeled "Seen?", and shows in
+"parenthesis the total number of responses to the item.&nbsp;
+"In this column, next to each name, appears a record of how
+"much of this item the person has seen:
+"<UL>
+"<LI><FONT COLOR=red>new</FONT> means the item is completely new, 
+"    the person has not seen it at all.
+"    <P>
+"<LI><FONT COLOR=blue>0</FONT> means they have seen the item, but
+"    none of the responses.
+"    <P>
+"<LI><FONT COLOR=blue>5</FONT> (or any other number) means they
+"    have seen that many responses.&nbsp; 
+"    Compare it to the total number listed in the column label.&nbsp;
+"    (You can click on the number to view the last response they've
+"    seen.)
+"    <P>
+"<LI><IMG $(src_check)> means they have seen the entire item (and
+"    all of its responses).
+"</UL>
+
+"<P>
+"<B>People</B>:&nbsp;
+"To determine if a particular person has seen this item,
+"click in the text input box (to the right of the "People" button),
+"type their name, and click on <B>People</B>.&nbsp;
+"<P>
+"(The name doesn't have to be exact; usually just typing the first
+"few letters of the person's name will do.)
+
+"<P>
+"Caucus displays the same two columns of information (as described
+"for the <B>Everyone</B> button), but just for the person you selected.&nbsp;
+
+"<P>
+"<B>No one matched the name '__'.</B>&nbsp; 
+"If you see this message, Caucus could not recognize the name that
+"you typed.&nbsp;
+"Try again with a different spelling, or a shorter part of the person's
+"name.&nbsp;
+"If you still can't find that person, just click on <B>Everyone</B>
+"and scan through the list of people.&nbsp;
+"(Perhaps the person you are looking for is not yet a member of the
+"conference.)
+include $(help)/hb.i

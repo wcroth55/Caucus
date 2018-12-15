@@ -1,0 +1,63 @@
+#
+#---H_MARKINDI.I.  Help about "Mark Individual Items" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_markindi.cml $quote(Help on Mark Individual Items)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The 'Mark Individual Items' page lets you "mark" items, or control 
+"your use of the items, in several different ways.&nbsp;
+"It always lists <B>all</B> of the items, regardless of the settings for
+"the $(cname) home page, or whether you've explicitly 'forgotten'
+"any items.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Underneath the list of items, there's a link for
+""you may manage items <U>individually</U>".
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"Select a particular set of items by checking the boxes to
+"the left of each item.&nbsp; 
+"(Or you can select <B>all</B> of the items by click on the
+"<FONT COLOR=BLUE><U>check all boxes</U></FONT> link.)&nbsp;
+"Then click on one of the buttons at the bottom of the page to
+"mark or control the item:
+"<UL>
+"<LI><B>Mark New.</B>&nbsp; Make the entire item appear new (unread) to you.
+"<P>
+"<LI><B>Mark Seen.</B>&nbsp; Make the entire item (as it exists right now)
+"appear seen (read) to you, whether or not you've actually read it.
+"<P>
+"<LI><B>Forget.</B>&nbsp; Forget the item entirely, as though it had
+"been deleted.&nbsp;
+"(You'll never see it listed again, except on this page.)
+"<P>
+"<LI><B>Remember.</B>&nbsp; Remember a forgotten item.&nbsp;
+"It reappears as "new".&nbsp;
+"(Note that any forgotten items are listed on this page in <I>italics</I>,
+"in case you need to remember them again.)
+
+"<P>
+"<LI><B>Freeze.</B>&nbsp; If you are an organizer or the item creator,
+"you can freeze the item, so that no more responses may be added.
+"<P>
+"<LI><B>Thaw.</B>&nbsp; If you are an organizer or the item creator, 
+"you can thaw a frozen item so that responses may be added again.
+"<P>
+"<LI><B>Delete.</B>&nbsp; If you are an organizer, you may delete
+"items.&nbsp; Once an item is deleted, it is gone forever!
+
+
+
+"</UL>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

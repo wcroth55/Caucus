@@ -1,0 +1,132 @@
+#
+#---h_grades.cml  Help about the "Course Status" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/03/04 New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_grades.cml $quote(Help on Course Status)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page displays the "course status" sheet, 
+"which records the conference members's scores on 
+"the Entries (quizzes, tests, surveys, etc.) created by
+"the instructor(s).
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"<img $(src_grades) align=right>
+"From any page "inside" a course conference, click on
+"the "Status" button on the Caucus toolbar.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"You can view the Course Status sheet in two ways: 
+"by <b>Class List</b> or by <b>Entries</b>.
+"<p/>
+"<ul>
+"<li><b>Class List</b> is the default view.&nbsp;
+"Here you will see your scores on all of the Entries
+"created by the instructor(s).
+"<p/>
+"The percentage <b>So&nbsp;Far</b> 
+"means your percentage score for all of the entries
+"that you have been completed (i.e. that have a score).&nbsp;
+"Percentage <b>All</b> means your score across all of
+"the entries, assuming a score of 0 where there is no score.
+
+"<p/>
+"<li><b>Entries</b> shows more detail about each Entry,
+"such as the type, the due date, the class average,
+"etc.&nbsp;
+"</ul>
+
+"<p/>
+"<B>Instructors</B><BR>
+"If you are an organizer or instructor, you may also edit
+"the scores and the entries, or create new entries.&nbsp;
+"(Note that there is currently no association in Caucus between
+"a Course Status Entry and a course Assignment.&nbsp;
+"This may change in the future; thoughtful feedback would 
+"be welcomed.)
+
+"<p/>
+"Click in a cell to begin editing it, and just type.&nbsp;
+"You can use the Del and Backspace keys to edit.&nbsp;
+"You can skip from one cell to the next by pressing the
+"&lt;tab&gt; key.&nbsp;
+"When you have finished your changes, press the Enter key,
+"or click on "Save Changes".&nbsp;
+
+"<p/>
+"<ul>
+"<li><b>Editing Scores</b> (Class List view)<br>
+"Note that when you save changes, Caucus immediately
+"recalculates the percentages.&nbsp;
+"<p/>
+"<li><b>Editing Entries</b><br>
+"(Note that there is currently no association in Caucus between
+"a Course Status Entry and a course Assignment.&nbsp;
+"This may change in the future; thoughtful feedback would 
+"be welcomed.)
+"<ol>
+"<p/>
+"<li>You may edit the title, type, due date, points, and weight
+"of an entry.&nbsp; 
+"The high, low, and averages are automatically recalculated 
+"when you save your changes.
+"<p/>
+"<li>Note that you can control which columns are visible to
+"the regular members, by using the checkboxes.
+"<p/>
+"<li>The "type" field is for your convenience.&nbsp;
+"Currently it has no special meaning.
+"<p/>
+"<li>The "weight" column can be confusing.&nbsp;
+"It allows you to weigh different entries differently
+"in calculating a member's final percentages.&nbsp;
+"Each part of a member's percentage score is the entry
+"score divided by the possible points, times the weight.&nbsp;
+"If s = score, p = points, and w =weight, then:
+"<ul>
+"<table border=0>
+"<tr><td>percentage score =&nbsp;&nbsp;</td>
+"<td>
+" %sym(sum) (s%sub(i) %sym(divide) p%sub(i)) %sym(times) w%sub(i)<br>
+" ------------------<br>
+" %sym(sum) w%sub(i)</td>
+"</table>
+"</ul>
+
+"Here's an easier way to think of it:
+"<p/>
+"<ul>
+"<li>If all <b>points</b> have the same weight (i.e. if a 20 point project is
+"worth twice as much as a 10 point quiz), then make the weight
+"for an entry be <b>the same number</b> as the points for that entry.
+"<p/>
+"<li>If all <b>entries</b> have the same weight, then make all
+"the weights be 1.
+"</ul>
+
+"<p/>
+"<li>Click on the trashcan icon to delete an entry.&nbsp;
+"(It will ask you for confirmation.)
+"</ol>
+"</ul>
+
+"<p/>
+"<B>Creating a new Entry</B><BR>
+"Click in the blank title field at the bottom of the list.&nbsp;
+"Enter a title, then press &lt;tab&gt; and enter the remaining
+"fields one by one.&nbsp;
+"<p/>
+"When you've entered everything you want, press Enter.
+
+
+include $(help)/hb.i

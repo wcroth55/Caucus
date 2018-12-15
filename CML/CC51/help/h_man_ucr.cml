@@ -1,0 +1,73 @@
+#
+#---H_MAN_CRUSER.I    Help about "Manage: User Creation" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_cruser.cml $quote(Help on Manage: User Creation)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The User Creation page allows authorized managers to create a new Caucus 
+"userid,
+"and to optionally register other information about a new user.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Create individual user accounts</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<DL>
+"<DT><B>Create a new userid</B>
+"<DD>Use the top part of this page to create a new userid.&nbsp;
+"This allows a person to actually "log in" to Caucus and begin
+"using the conferences.&nbsp;
+"A userid must be one word (no spaces, but you can use underscores),
+"and less than 20 characters long.
+"<P>
+"Enter an initial password for this person (they can change it later),
+"and then enter it again in the Verification field to make sure it
+"was typed correctly.&nbsp; (The password is "masked" as you type it,
+"so that no-one looking over your shoulder can read it.)
+
+"<P>
+"<DT><B>Register the user <I>(Optional)</I></B>
+"<DD>You may also, if you wish, "register" the user by filling in some
+"of the other information about this person.&nbsp;
+"This is <B>optional</B>; if you just select the userid and password,
+"the user will be asked for their personal information the first time
+"they log on.&nbsp;
+"Some organizations prefer to have the Caucus manager enter this 
+"information, to be more consistent.&nbsp;
+"The user can always change or add to the information, later.
+
+"<P>
+"If you do choose to register the user, you must always enter the
+"user's <B>Full Name</B>.&nbsp;
+"This is the full form of their name, with as many words or spaces
+"as you like.&nbsp;
+"All of the other fields are optional.
+
+"<P>
+"The <B>conferences</B> box lets you "pre-join" the user to one or
+"more conferences.&nbsp;
+"This means the selected conferences will immediately appear on the user's
+""Personal Conference List" on the $(center_name) page.&nbsp;
+"To select more than one conference, you may need to use shift-click
+"or control-click -- it varies for different computers and browsers.
+
+"<P>
+"If you need to register <B>many</B> users, and don't want to do 
+"each user 'by hand', there is a tool that can help you.&nbsp;
+"See the Caucus Technical Library, in the "Support" section, under 
+"<A HREF="http://www.caucuscare.com" TARGET="caucus">www.caucuscare.com</A>
+"for information about user pre-registration.
+
+
+"</DL>
+include $(help)/hb.i

@@ -1,0 +1,329 @@
+This is the old (make that "ancient"!) README file for building
+Caucus 4.x kits by hand.  It may occasionally be useful for mining
+little bits of configuration info for different flavors of Unix.
+Otherwise it should be ignored.
+
+
+                      Caucus 4.4 Port Kit Guide
+
+                     by Charles Roth, CaucusCare
+                         (roth@caucuscare.com)
+                      Revised:  31 October 2003
+
+I. INTRODUCTION
+
+This file contains brief instructions for producing a Caucus 4.x kit,
+including the Caucus 2.7 text interface program(s), for most Unix
+platforms and for Windows/NT.  (NT has been dropped as of summer 2001,
+but the NT information is left here in case someone else ever picks
+up NT support.)
+
+This is not meant as detailed step-by-step description; it is meant
+as a summary guide for people who are already somewhat familiar with
+the process of building Caucus.
+
+This guide, and all of the files in the port kit itself, are copyright
+(C) 1985-2003 by CaucusCare.  All rights are reserved.  These 
+files may only be distributed with the explicit permission of CaucusCare.
+
+
+II. SETUP
+
+I like to create a userid dedicated to producing a port kit for a
+particular Unix platform.  In that userid, I create a directory to
+contain all of the source files, and do all the work in there.
+(Sometimes I then test the new kit by installing it in the home
+directory of the userid.)
+
+For Caucus 4.0, I usually call this directory "4.0".  Whatever its
+name, define a symbol in the .profile (or equivalent) file called
+CHOME to be the full pathname of that directory.  Put $CHOME/UNIX
+(or $CHOME/NT) in your search PATH.
+
+I often add shell functions to .profile to make it easier to
+navigate in the Caucus source directories.  A typical fragment
+from the .profile for my own port kit id is:
+
+     CHOME=$HOME/4.0;          export CHOME
+     PATH=$PATH:$CHOME/UNIX;   export PATH
+     PS1='$PWD $ '
+     cv()    { cd $CHOME/CV2/$@;   }
+     c()     { cd $CHOME/$@;       }
+     vt100() { TERM=vt100; export TERM; }
+
+If you must use the C-shell ('csh'), here are the equivalents:
+
+  In .login
+     setenv CHOME $HOME/4.0
+
+  In .cshrc
+     alias cd 'cd \!* ; set prompt = "$cwd> " '
+     alias c  'cd $CHOME/\!*'
+     alias cv 'cd $CHOME/CV2/\!*'
+     set path = ($CHOME/UNIX $path)
+
+
+III. COMPILATION MACROS, FLAGS, & OPTIONS
+
+This section details the macros and compilation options that must
+be used to compile & link Caucus on different platforms.  Unless
+stated otherwise, all directory references are relative to CHOME.
+
+III.1 "systype.h"
+
+The file CV2/include/systype.h defines a five letter/digit macro
+for each system type that Caucus has been compiled on.
+
+Pick the appropriate code for your system.  (There is a table below of
+all the required options for systems known to work with Caucus 4.0).
+
+Only ONE code should be defined as "1"; the rest must be "0"!
+
+If you intend to compile the "carves" utilities (mostly not used
+these days), you must also edit CV2/carves/typesys.h appropriately.
+
+III.2 Additional libraries
+With the addition of the LDAP and SQL/ODBC features, additional
+libraries usually need to be linked in.  These are also typically
+defined in the .profile file.
+
+The full list of libraries for LDAP is shown below.  But for many
+systems, only a subset of these files exist and are needed.
+Experiment as necessary on a particular system.
+
+export LDAPLIBS="$CHOME/libs/lib/libldap.a \
+   /usr/lib/libsasl.a \
+   /usr/lib/libcrypt.a \
+   $CHOME/libs/lib/liblber.a \
+   /usr/lib/libssl.a \
+   /usr/lib/libcrypto.a  \
+   /usr/lib/libdl.a"
+
+If LDAP is built with Kerberos, you may also need:
+   /usr/kerberos/lib/libkrb5.a \
+   /usr/kerberos/lib/libk5crypto.a \
+   /usr/lib/libresolv.a \
+   /usr/kerberos/lib/libcom_err.a"
+
+
+The SQL/ODBC libraries usually depend on where the iODBC package is
+installed:
+
+export SQLLIBS="$CHOME/libs/lib/libiodbc.a \
+                $CHOME/libs/lib/libiodbcinst.a -ldl -Wl"
+
+III.3 Table of specific system information.
+
+This sub-section details the system type codes and other
+compilation options for specific systems.  Note that the "CCFLAGS"
+variable must be defined in .profile (and exported).  Experimentation
+with the "-O" (oh, not zero) optimization options is encouraged!
+
+Solaris 2.x (Sparc)
+  Use type "SOL24" or "SOL25"
+  Compile with /opt/SUNWspro/bin/cc (gcc may also work, test it)
+  MANPATH=$MANPATH:/opt/SUNWspro/man
+  export RANLIB="echo"
+  export OPTS="-lsocket -lnsl"
+  export MAKE="make"
+  export PATH=$PATH:/usr/ccs/bin  (or location of 'ar')
+  export LDAPLIBS="$CHOME/libs/lib/libldap.a \
+     /usr/lib/libcrypt.a \
+     $CHOME/libs/lib/liblber.a"
+  export SQLLIBS="$CHOME/libs/lib/libiodbc.a \
+                  $CHOME/libs/lib/libiodbcinst.a -ldl -Wl"
+
+Solaris 2.6 x86
+  Use type SOL25
+  Compile with gcc
+  CCFLAGS="-O3"
+  RANLIB="ranlib"
+  OPTS="-lsocket -lnsl"
+
+OSF/1 (DEC Unix)  4.0 or 4.0
+  Use type "DEC32"
+  CCFLAGS="-non_shared -O3"
+  LDFLAGS="-non_shared"
+  RANLIB="echo"
+  MAKE="make"
+
+HP-UX  A.9.x or higher
+  Use type "HPXA9"
+  Use gcc
+  CCFLAGS="-O3"
+  RANLIB="echo"
+  MAKE="make"
+
+Linux
+  Use type "LNX12"
+  CCFLAGS="-O3"
+  LDFLAGS="-static"
+  RANLIB="ranlib"
+  MAKE="make"
+Some Linux systems (e.g. Debian kernel 2.0.35) may need
+  OPTS="-lcrypt"
+to load the "crypt" function library.
+
+Some (newer, e.g. ES3) systems may need "-ldl" in the link.
+
+AIX 4.1
+  Use type "AIX41"
+  RANLIB="echo"
+  MAKE="make"
+  Change sys1/sysavail.c:
+       *kbytes = lastbytes = buffer.f_bavail;
+  to   *kbytes = lastbytes = buffer.f_bavail * 4;
+
+  CV2/zunzip may require 
+    #define near
+    #define far
+  in some include files in order to compile 'unzip' properly.
+
+  Note: The default linking mechanism seems to provide maximum
+    portability (of an executable) to other AIX platforms.  If
+    a problem occurs, examine the "-bnso -bl" options of 'ld'
+    for further information.
+
+SunOS 4.1 (Doesn't work?)
+  Use type "SUN41"
+  CCFLAGS="-ansi"
+  RANLIB="echo"
+  MAKE="make"
+
+IRIX 5.3
+  Use type "IRX53"
+  RANLIB="echo"
+  MAKE="make"
+
+BSDI 3.0
+  Use type "BSD21"
+  Use gcc (not cc)
+  CCFLAGS="-O3"
+  RANLIB="ranlib"
+  MAKE="make"
+
+System: FreeBSD 2.2
+  Use type "FBS22"
+  CCFLAGS="-O2"
+  LDFLAGS="-lcrypt"
+  RANLIB="echo"
+  MAKE="make"
+
+System: Windows/NT 4 (native)
+  Use type "WIN32"
+  RANLIB="echo"
+  OPTS="-lsocket -lwsock32"
+  OPTS="-ladvapi32 -lwsock32 -lnetapi32"
+  NTLIB=
+  MAKE="make"
+Notes: 
+  1. Build pager and unpager (from carves) manually, move them
+     to $CHOME/NT.
+
+  2. Using pager and unpager, global edit all makefiles, replacing 
+     ".o" with ".obj".
+
+  3. Similarly, edit the makefiles to use ".lib" instead of ".a".
+
+  4. It may be necessary to run makeall several times, as some builds
+     depend on each other in unpleasantly recursive ways.  Worst case,
+     some .obj files in SWEB may need to be made manually.
+
+
+III.3 chx vs. chxold
+
+The directory CV2/chxold contains the original "chix" (multi-byte
+character handling) functions.  CV2/chx contains a rewritten
+set of the same functions, that provide an approximately 30%
+decrease in overall CPU usage by Caucus.
+
+If you encounter strange behaviour that appears to be related
+to the chix functions, rename chx to chxnew, and chxold to
+chx, and rebuild Caucus.
+
+III.4 "chixdef.h"
+
+To compile Caucus for english-only applications (one-byte language)
+codes, define USE_THIN_CHIX in CV2/include/chixdef.h to be "1"
+and USE_WIDE_CHIX to be "0".  (This is the default.)
+
+To compile Caucus for Japanese (two-byte languages), reverse these
+codes: USE_THIN_CHIX is "0", and USE_WIDE_CHIX is "1".
+
+III.5 cpw2.c
+
+The program 'cpw2.c' is compiled independently of the options in 
+systype.h (see III.1), and we also distribute the source code for
+it with Caucus (so that sites can modify how they handle Caucus
+passwords.)
+
+Note that the complete source includes (from CV2/sweb) cpw2.c, 
+pwactions.c, xorstr.c, and (from CV2/gen) getent.c.
+
+
+IV. COMPILING and LINKING
+
+IV.1 Make Openldap
+
+Download the openldap source distribution into $CHOME/openldap.
+In that directory, run:
+   ./configure --prefix=$CHOME/libs --enable-slapd=no --enable-shared=no
+   make depend
+   make
+   make install
+
+IV.2 Make libiodbc (for ODBC)
+Download the libiodbc source distribution into $CHOME/libiodbc
+In that directory, run:
+   ./configure --prefix=$CHOME/libs --disable-gui
+   make
+   make install
+
+IV.3 Make Caucus
+
+Run the script 'makeall'.  This may take a while.  
+
+In some cases, you may need to wipe the object files and
+recompile from scratch.  The script 'wipeall' will wipe
+all the object files for you.
+
+
+V. PUT FILES IN THEIR PLACES
+
+Once everything compiles and links, move the files into the appropriate
+kit-making directories.  Run "moverun" to do this automatically.
+
+You should also "strip" (remove unneeded symbol tables) from all
+of the object files.  Use the unix 'strip' command on all of the
+programs in:
+
+     V2DISK0
+     V2DISK/BIN2
+     SWEB
+
+
+VI. TESTING
+
+Run "c44kit kit.tar" to create a test kit in "kit.tar".  Install
+it in the home directory of a userid, according to the Caucus 
+installation instructions.
+
+Test the Caucus 2.7 text interface from both that id, and another
+userid (to test file permission access).  Try out:
+
+    SHOW ITEM
+    ADD RESPONSE
+    Word-wrapped text
+    Sending mail out to an internet address
+    Importing mail from a Unix mailbox
+
+Make the 'holdlock' program in CV2/zutil, and run it with an argument
+of the home directory where Caucus is installed.  When it has been
+granted a write lock, try to enter the Caucus text interface -- the
+latter should block until holdlock is exited.
+
+Test the Caucus 4.0 web interface.  Create a new user, join a conference,
+read the DEMONSTRATION conference, and add a response and an item.  Test
+uploading a file into a response.  Test the Caucus 4.0 manager features. 
+
+===========================================================================

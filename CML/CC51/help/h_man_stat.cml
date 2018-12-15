@@ -1,0 +1,92 @@
+#
+#---H_MAN_STAT.I    Help about "Manager user statistics" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_stat.cml $quote(Help on User Statistics)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"A tool for computing and displaying a wide variety of 
+"statistics about Caucus usage.&nbsp;
+"Results can be displayed in a web page, or loaded 
+"into a spreadsheet for further analysis.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on "manage" (underneath your name),
+"then "users", and scroll down to the "User Statistics" link.
+
+"<P>
+"<B>What Can I Do From Here?</b><br>
+"You can display particular statistics by (1) clicking on a "query" on the
+"left, and then (2) clicking "as web page" or "as spreadsheet" to see
+"the results of the query.&nbsp;
+"You can also write <b>new</b> queries of your own, and save them.
+
+"<p>
+"<B>How does it work?</b><br>
+"Caucus uses a very powerful "event" model, coupled with a true
+""relational" database (such as 
+"<a href="http://www.mysql.com" target="_blank">MySQL</a> or
+"<a href="http://www.oracle.com" target="_blank">Oracle</a>)
+"to query the events and create reports.
+
+"<p>
+"Specifically, every time a Caucus user performs a particular
+""event", Caucus writes a row of information to a table called <b>Events</b>
+"in the database.&nbsp;
+"Events include things like logging in, logging out (pressing Quit),
+"reading an item, writing a response, leaving a conference, and so on.
+
+"<p>
+"To extract information from this database, you write what are called
+""queries", in a psuedo-english like language called SQL or 
+""Structured Query Language".&nbsp;
+"The combination of the wide range of events recorded by Caucus,
+"along with the flexibility of SQL, makes for a very powerful
+"tool for extracting almost any kind of statistic.&nbsp;
+
+"<p>
+"Unfortunately, this very powerful combination can be almost as
+"confusing as it is powerful.&nbsp;
+"That's why the Caucus statistics page comes with a predefined
+""library" of standard queries.&nbsp;
+"You can also write your own queries by taking a standard query
+"and modifying it slightly to meet your particular needs.&nbsp;
+"Or you can contact
+"<a href="mailto:info@caucuscare.com">CaucusCare</a> directly,
+"and we can help you write a query -- if it's a good one, we'll
+"share it with everyone.
+
+"<p>
+"<B>How Do I Do That?</b><br>
+"Let's work through a particular example of modifying a query.
+"<p>
+"<center><i>(...to be continued...)</i></center>
+
+"<p>
+
+"<!--
+"Caucus records a wide variety of "user events" in an SQL database.&nbsp;
+"These events include logons, logoffs, reading items, entering conferences,
+"leaving conferences, etc.&nbsp;
+"<p>
+"You can query this database to calculate many different kinds of
+"usage statistics, such as "how long were users' sessions", 
+""which items did they read the most", "how long did they spend reading",
+""how long did they spend writing", and so on.
+"-->
+
+"<p>
+include $(help)/hb.i
+
+#http://www.databasejournal.com/sqletc/article.php/1469521
+#http://www.school-resources.co.uk/Content_for_Relational_Database_Frames.htm
+#http://www.thebusinessmac.com/features/sql.shtml
+#http://www.computerbits.com/archive/2003/0400/introdatabases.html
+
+

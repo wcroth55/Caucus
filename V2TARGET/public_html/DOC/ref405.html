@@ -1,0 +1,127 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.5: Comparisons &amp; Logic</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.5:&nbsp; Comparisons &amp; Logic</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref404.html">PREV</A>]
+   [<A HREF="ref406.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+<DL>
+
+<P><DT><A NAME="and">$and(a b ...)</A>
+<DD>
+Evaluates to the logical &quot;and&quot; of <I>a</I> and <I>b</I>
+and ...&nbsp;  May have any number of arguments.
+
+<P><DT><A NAME="or">$or(a b ...)</A>
+<DD>
+
+Evaluates to the logical &quot;or&quot; of <I>a</I> and <I>b</I>
+and ...&nbsp;  May have any number of arguments.
+
+<P><DT><A NAME="not">$not(a)</A>
+<DD>
+Evaluates to the logical negation of <I>a</I>.
+
+<P><DT><A NAME="equal">$equal(x y)</A>
+<DD>
+
+If <I>x</I> and <I>y</I> are identical (they may be numbers or
+strings), evaluates to &quot;1&quot;.&nbsp;  Otherwise it is 
+&quot;0&quot;.&nbsp;
+<B>Note</B>: $equal() expects that <I>x</I> and <I>y</I> do <B>not</B>
+contain blanks; if they do, the results are unpredictable.&nbsp;  If
+you must compare multi-word strings, see
+<A HREF="ref407.html#quote">$quote()</A>.
+
+<P><DT><A NAME="not_equal">$not_equal(x y)</A>
+<DD>
+Reverse of $equal().
+
+<P><DT><A NAME="empty">$empty(str)</A>
+<DD>
+Evaluates to &quot;1&quot; if <I>str</I> is completely empty,
+and &quot;0&quot; otherwise.
+
+<P><DT><A NAME="not_empty">$not_empty(str)</A>
+<DD>
+Evalutates to &quot;1&quot; if <I>str</I> is not empty, and &quot;0&quot;
+if it is completely empty.
+
+<P><DT><A NAME="if">$if(a b c)</A>
+<DD>
+If <I>a</I> is true, evaluates to <I>b</I>.&nbsp;  Otherwise, evaluates
+to <I>c</I>.&nbsp;  
+The classic triadic &quot;if then else&quot; operator.&nbsp;
+Arguments <I>a</I> and <I>b</I> must be only one word;
+<I>c</I> may be any length.
+
+<P><DT><A NAME="ifthen">$ifthen(a b)</A>
+<DD>
+If <I>a</I> is a number != 0, evaluates to <I>b</I>; otherwise nothing.&nbsp;
+<I>B</I> may be of any length.&nbsp;
+(For some cases, this function may be more convenient than
+<A HREF="#if">$if()</A>.)&nbsp;
+Note that an <I>a</I> of "Junk" or "0" is considered false, 
+whereas "17" or "5words" are both "true".
+
+<P><DT><A NAME="gen_sort">$gen_sort(direction words...)</A>
+<DD>
+Sorts the list of <I>words</I> in ascending (<I>direction</I> &gt; 0)
+alphabetical order, or descending (<I>direction</I> &lt; 0) alphabetical
+order.&nbsp;
+Evaluates to a list of indices to the original list, in sorted order.&nbsp;
+I.e., $gen_sort (1 a c b) evaluates to "1 3 2".
+
+<P><DT><A NAME="num_sort">$num_sort(direction numbers...)</A>
+<DD>
+If <I>direction</I> is &gt; 0, evaluates to the list of numbers, sorted
+in ascending numerical order.&nbsp;  If direction is &lt; 0, descending
+numerical order is used.
+
+<P><DT><A NAME="triplet_sort">$triplet_sort(direction triplet_list...)</A>
+<DD>
+If <I>direction</I> is &gt; 0, evaluates to the list of item triplets,
+sorted in ascending numerical order.&nbsp;  If direction is &lt; 0,
+descending numerical order is used.&nbsp;  In this case, numerical order
+means the conference number is considered first, then the item
+number, and finally the response number.
+
+<P><DT><A NAME="item_sort">$item_sort(direction code triplet_list...)</A>
+<DD>
+Evaluates to a sorted triplet list of items.&nbsp;  
+If <I>direction</I> is &gt; 0, sorting is done in ascending order;
+if &lt; 0, descending order.
+
+<P>
+<I>Code</I> selects the property used to sort the items.&nbsp;
+A value of 1 sorts the items alphabetically by title.&nbsp
+A value of 2 sorts alphabetically by the author's full name.&nbsp;
+A value of 3 sorts by the date of the last (undeleted) response
+to the item.&nbsp;
+(For <I>code</I> 1 and 2, the items must all be in the same
+conference, or the results will be unpredictable.)
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

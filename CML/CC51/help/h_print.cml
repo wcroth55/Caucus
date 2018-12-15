@@ -1,0 +1,30 @@
+#
+#---H_PRINT.CML.   Help about printing an item
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_print.cml $quote(Help on Printing an Item)
+"<P>
+
+"You can easily print a single Caucus item from your web browser.&nbsp;
+"Go to that item, and look for the
+"<A HREF="$(helpurl)/h_nav.cml">Navigation Buttons</A>.&nbsp;
+"Press the <B>All</B> button to display the <I>entire</I> item
+"in your browser window.
+
+"<P>
+"(If you don't see the <IMG $(src_expand)> button,
+"then the entire item
+"is already in your browser window.)
+
+"<P>
+"Now pull down the <B>File</B> menu from your browser's menu bar,
+"and choose <B>Print</B>.
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

@@ -1,0 +1,43 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>name_cascade&nbsp;&nbsp;&nbsp;</span>Name Cascade  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Used to break up long lists of user's names (first name, last name, etc.)  into the "chunks" that appear in group assignments.&nbsp;  Automatically recalculated every so often.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>type</td>
+<td>varchar(10) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> 'name', 'userid', 'fname', 'lname'  <br></td>
+<tr valign=top class='row1'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Actual breakpoint in chunks of names.  <br></td>
+<tr valign=top class='row0'>
+<td>active</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> 1  <br></td>
+</table>
+</body>
+</html>

@@ -1,0 +1,31 @@
+#
+#---editorf.cml   Form processor for editorchoice.cml.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $equal (x$arg(2) x1)
+   eval $set_user_data ($userid() ebox Richtext)
+   set ebox Richtext
+end
+elif $equal (x$arg(2) x2)
+   eval $set_user_data ($userid() ebox Applet)
+   set ebox Applet
+end
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<script type="text/javascript" language="javascript">
+"   window.opener.location.reload();
+"   window.close();
+"</script>
+
+"<body bgcolor="#FFFFFF">
+"</div>
+"</body>
+
+"</html>

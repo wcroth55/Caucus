@@ -1,0 +1,47 @@
+#
+#---uploadpop5.cml  Process attaching unzipped archive files.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/21/04 New file, based loosely on old upzipf.cml.
+#------------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<html>
+"<body bgcolor="#FFFFFF">
+"<script type="text/javascript" language="javascript">
+
+count num 1 $form(num)
+   if $not_empty($form(FILE$(num)))
+
+      if $equal ($form(utype) url)
+         set addtext '\n\%liblink2($userid() $(isresp) $form(FILE$(num))) '
+      end
+ 
+      elif $equal ($form(utype) link)
+         set linkname $form(linkname$(num))
+         if $empty($(linkname))
+            set linkname $form(FILE$(num)) 
+         end
+         set addtext '\n\%libname2($userid() $(isresp) $form(FILE$(num)) \
+                        $(linkname)) '
+      end
+
+      elif $equal ($form(utype) img)
+         set addtext '\n\%libimg2($userid() $(isresp) $form(FILE$(num))) '
+      end
+"     window.opener.ebox_addtext($(addtext));
+   end
+end
+
+"   self.close();
+"</script>
+
+"</div>
+"</body>
+"</html>
+
+#-----------------------------------------------------------------------

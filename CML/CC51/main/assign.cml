@@ -1,0 +1,279 @@
+#
+#---assign.cml    Conference assignments page.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   4  x
+#   5  asnkey (key of selected assignment, if any)
+#   6  t=>sort by title   d=>sort by date  x=>sort by key (creation order)
+#      i=>sort by instructor's **userid** (should become last name someday)
+#   
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/01/04 New page.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 04/20/04 Add new sorting types.
+#: CR 06/07/04 Extra tests on "emptiness" of assignment text.
+#: CR 06/11/04 Call %plainOfHTML() on assignment text.
+#: CR 07/12/04 escape double and single quotes in titles.
+#: CR 07/27/04 Replace %plainOfHTML() with $unhtml().
+#: CR 10/13/04 Make sure SQL is working.
+#: CR 07/17/07 asnkey field is now auto-increment.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i assign.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch    $unique()
+set cnum   $arg(3)
+set cname  %displayed_conf_name ($(cnum))
+
+#---Make sure user has a participation record.
+include $(main)/confpartic.i $(cnum)
+
+#------------------------------------------------------------------
+set nxt   $page_save (1 assign.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(cname) Assignments)
+
+set pagename <span class="pageTitle"><B>$(cname) Assignments</B></span><BR>
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(cname) Assignments)
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/leftconf.i $arg(3)
+include $(main)/header.i  assign </a><a href="#top">Assignments
+
+#---If we ever call viewitem...
+set vi_markseen 1
+
+#---Javascript service functions for gradebook editing.
+"<script type="text/javascript" language="javascript">
+
+#---Record gradebook cell changes (and do validity checking on numbers)
+"function assignchange (element, key) {
+"   var pad = " " + key + " ";
+"   if (document.assign.changelist.value.indexOf(pad) >= 0)  return;
+"   document.assign.changelist.value += pad;
+"   return;
+"}
+
+#---Confirm row deletion.
+"function deletetask (ak) {
+"   if (confirm ("Delete this assignment?")) {
+"      document.assign.deleteak.value = ak;
+"      document.assign.submit();
+"   }
+"   return false;
+"}
+"</script>
+
+#-------------------------------------------------------------
+
+set arglist $(nch)+$(nxt)+$arg(3)+$arg(4)
+
+set is_instructor $gt_equal (%access($(cnum)) $priv(instructor))
+
+#---%assigncell (class key valuevarname [nobr])
+#   Detailed layout of a grade cell, editable if instructor, not if student.
+if $(is_instructor)
+   eval $mac_define (assigncell \
+            <td class="@1"><input type="text" name="@3@2" \
+                value="\$escquote(\$(@3))" \
+                onChange="assignchange(document.assign.@3@2, @2);" \
+                \$mac_expand (%tab()) \
+               ></td>)
+end
+else
+   eval $mac_define (assigncell <td class="@1">\
+                     \$ifthen(0@4 <nobr>)\$(@3)\$ifthen(0@4 </nobr>)</td>)
+end
+
+#--------------------------------------------------------------
+"<form name="assign" method="post"  
+"    action="assign.cml?$(arglist)+$arg(5)+$arg(6)">
+
+"<input type="hidden" name="is_submit" value="1">
+
+if $and ($(is_instructor) 0$form(is_submit))
+
+   #---Form submission from delete (trashcan icon) button.
+   #   deletetk contains taskkey's of assignments to be deleted.
+   if $not_empty ($form(deleteak))
+      set query DELETE FROM assignments WHERE  asnkey = $form(deleteak)
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+   end
+   
+   #---Form submission from Enter press or "Save Changes" click.
+   #   If this was a form submission (and not a reload) and we had any changes, 
+   #   UPDATE every row with a asnkey in 'changelist'.  INSERT new rows
+   #   that have a asnkey of 0.  Data is stored in fields with names
+   #   made of column name (e.g. title, due, etc.) combined with asnkey,
+   #   e.g. title234 is the title column for assignment 234.
+   for ak in $ifthen ($not ($reloaded()) $form(changelist))
+      if $equal ($(ak) 0)
+         set query INSERT INTO assignments \
+             (asnkey, cnum, title, instructor, due, start, end) VALUES \
+             ( NULL, $arg(3), \
+              '$escsingle($form(title$(ak)))',  \
+              '$form(instructor$(ak))', \
+              '%yyyymmddOf($form(due$(ak)))',    \
+              '%yyyymmddOf($form(start$(ak)))',  \
+              '%yyyymmddOf($form(end$(ak)))') 
+      end
+      else
+         set query UPDATE assignments \
+               SET title='$escsingle($form(title$(ak)))', \
+                   due='%yyyymmddOf($form(due$(ak)))', \
+                   end='%yyyymmddOf($form(end$(ak)))', \
+                   start='%yyyymmddOf($form(start$(ak)))', \
+                   instructor='$form(instructor$(ak))' \
+             WHERE asnkey=$(ak)
+      end
+      set h $sql_query_open ($(query))
+#     "h=$(h), query=' $(query) '<p>
+      eval  $sql_query_close($(h))
+   end
+end
+#--------------------------------------------------------------
+
+"<input type="hidden" name="changelist" value="">
+"<input type="hidden" name="deleteak"   value="">
+
+if $(is_instructor)
+   "Click in a cell to change its value.&nbsp;
+   "Press Tab to skip between cells.&nbsp;<br>
+
+   "<img $(src_clear) height=4><br>
+   "To save your changes, press Enter or click on:
+   "   <input type="submit" value="Save Changes">
+end
+
+#---Table column headers
+"<table class="gradetable" border=0>
+"<tr class="graderowh" valign=top>
+"<td class="gradetext"><a href="assign.cml?$(arglist)+$arg(5)+t+x+x">Title</a></td>
+"<td class="gradetext"><a href="assign.cml?$(arglist)+$arg(5)+i+x+x">Instructor</a></td>
+"<td class="gradedate"><a href="assign.cml?$(arglist)+$arg(5)+d+x+x">Due Date</a></td>
+if $(is_instructor)
+   "<td class="gradedate">Start Date</a></td>
+   "<td class="gradedate">End Date</a></td>
+end
+#"<td class="gradetext">Text</td>
+"<td class="gradetext">Click to $if ($(is_instructor) edit view) text</td>
+
+if $(is_instructor)
+   set query SELECT asnkey ak, title, instructor, due, start, end, text \
+               FROM assignments WHERE cnum=$(cnum)
+end
+else
+   set query SELECT asnkey ak, title, instructor, due, start, end, text \
+               FROM assignments WHERE cnum=$(cnum) \
+               AND  (start = '0000-00-00'  OR  start <= curdate()) \
+               AND  (end   = '0000-00-00'  OR  end   >= curdate())
+end
+if   $equal (x$arg(6) xt)
+   set query $(query) ORDER BY title
+end
+elif $equal (x$arg(6) xd)
+   set query $(query) ORDER BY due
+end
+elif $equal (x$arg(6) xi)
+   set query $(query) ORDER BY instructor
+end
+else
+   set query $(query) ORDER BY asnkey
+end
+
+set h $sql_query_open ($(query))
+#"<tr><td colspan=5>h=$(h), query=' $(query) '</td>
+set parity 1
+while $sql_query_row  ($(h))
+   set parity $minus (1 $(parity))
+   "<tr class="graderow$(parity)" valign=top>
+#  "<td class="gradetext">$(title)</td>
+#  "%assigncell (gradetext $(ak) title)
+
+   "<td><table cellspacing=0 cellpadding=0 width="100%" border=0>
+      "<tr class="graderow$(parity)">
+      "%assigncell (gradetext $(ak) title)
+      if $(is_instructor)
+         "<td align=right><a href="#" 
+         "    onClick="alert('The key for this assignment is $(ak).\n\
+              You can link to it in an item as \\%assign($(ak) text).');"
+         "  ><img $(src_key) border=0></a></td>
+         "<td align=right><a href="#" 
+         "    onClick="return deletetask('$(ak)');"
+         "  ><img $(src_trash) border=0></a></td>
+      end
+   "</table></td>
+
+
+   if $(is_instructor)
+      "%assigncell (gradetype $(ak) instructor)
+   end
+   else
+      "<td class="gradetext"><nobr>%person($(instructor))</nobr></td>
+   end
+   set due %monthDayYear($(due))
+   "%assigncell (gradedate $(ak) due 1)
+   if $(is_instructor)
+      set start %monthDayYear($(start))
+      "%assigncell (gradedate $(ak) start)
+      set end %monthDayYear($(end))
+      "%assigncell (gradedate $(ak) end)
+   end
+   
+#  "%assigncell (gradetext $(ak) text)
+   set showtext $replace (40 32 $(text))
+   set showtext $replace (41 32 $(showtext))
+   set showtext $unhtml(, $(showtext))
+   set showtext $if ($empty($word(1 $(showtext))) <i>(empty)</i> \
+                                    $str_sub (0 25 $(showtext))...)
+   "<td class="gradetext"><nobr
+   "   ><a href="$(mainurl)/assignedit.cml?$(nch)+$(nxt)+$arg(3)+x+$(ak)+x+x+x"
+   "   >$(showtext)</a></nobr></td>
+end
+eval $sql_query_close ($(h))
+
+if $(is_instructor)
+   set title
+   set due
+   set start
+   set end
+   set text
+   set parity $minus (1 $(parity))
+   set ak 0
+   "<tr class="graderow$(parity)">
+   "%assigncell (gradetext $(ak) title)
+   set instructor $userid()
+   "%assigncell (gradetype $(ak) instructor)
+#  "<td class="gradetext">$userid()</td>
+   "%assigncell (gradedate $(ak) due)
+   "%assigncell (gradedate $(ak) start)
+   "%assigncell (gradedate $(ak) end)
+   "<td class="gradetext"></td>
+end
+
+
+"</table>
+"</form>
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+
+set pagename
+#-----------------------------------------------------------------
+

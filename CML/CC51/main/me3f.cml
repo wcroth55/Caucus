@@ -1,0 +1,155 @@
+#
+#---ME3F.CML.  Process form from section 3 of ME.CML  (settings)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: MH 10/16/02 Add 'dates' field.
+#: CR 01/12/03 Add ebox stuff.
+#: CR 04/20/04 Only update form fields in me3options.
+#: CR 10/13/04 Add user control of fonts, sizes; add bozofilter.
+#: CR 11/09/04 Add trailerbar option.
+#: CR 09/21/05 Take out most conf list options for now.
+#: CR 02/28/06 Add show/don't show thumbnails option.
+#: CR 07/11/08 Add "keep my reading private" option.
+#---------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i me.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+if $not_equal (   $user_data($userid() icons)    $form(icons))
+   set ignore $set_user_data($userid() icons     $form(icons))
+   set icon   $if ($empty ($form(icons))  $(img)  file://$form(icons) )
+end
+
+#if $tablefind (detail $(me3options))
+#   set ignore $set_user_data ($userid() item_detail $form(detail))
+#end
+
+if $tablefind (dates $(me3options))
+   set ignore $set_user_data ($userid() conf_dates $form(dates))
+end
+
+if $tablefind (whativeread $(me3options))
+   eval $set_user_data ($userid() whatIveRead $form(whatIveRead))
+end
+
+#if $tablefind (sort_new $(me3options))
+#   set ignore $set_user_data ($userid() sort_new $form(sort_new))
+#end
+
+#if $tablefind (sort_all $(me3options))
+#   set ignore $set_user_data ($userid() sort_all $form(sort_all))
+#   if $form(sort_all)
+#      include $(main)/sortconfs.i
+#   end
+#end
+
+if $tablefind (boxwide $(me3options))
+   if $greater ($form(boxwide) 0)
+      set ignore $set_user_data ($userid() boxwide $form(boxwide))
+      set cols                                    $form(boxwide)
+   end
+end
+
+if $tablefind (boxhigh $(me3options))
+   if $greater ($form(boxhigh) 0)
+      set ignore $set_user_data ($userid() boxhigh $form(boxhigh))
+      set rows                                    $form(boxhigh)
+   end
+end
+
+if $tablefind (wordwide $(me3options))
+   if $and($greater($form(wordwide) 0) $not_equal ($form(wordwide) $(wordwide)))
+      eval $set_user_data ($userid() wordwide $form(wordwide))
+      set   wordwide $form(wordwide)
+   end
+end
+
+if $tablefind (wordhigh $(me3options))
+   if $and($greater($form(wordhigh) 0) $not_equal ($form(wordhigh) $(wordhigh)))
+      eval $set_user_data ($userid() wordhigh $form(wordhigh))
+      set   wordhigh $form(wordhigh)
+   end
+end
+
+if $tablefind (pageresps $(me3options))
+   if $greater ($form(pageresps) 0)
+      set ignore $set_user_data ($userid() pageresps $form(pageresps))
+      set pageresps                                 $form(pageresps)
+   end
+end
+
+if $tablefind (context $(me3options))
+   if $or ($greater ($form(context) 0) $equal ($form(context) 0))
+      set ignore $set_user_data ($userid() context $form(context))
+      set context                                 $form(context)
+   end
+end
+
+if $tablefind (lmargin $(me3options))
+   if $not_equal (x$form(lmargin) x$user_data($userid() lmargin))
+      set ignore $set_user_data ($userid() lmargin $form(lmargin))
+      set lmargin                                  $form(lmargin)
+   end
+end
+
+if $tablefind (rmargin $(me3options))
+   if $not_equal (x$form(rmargin) x$user_data($userid() rmargin))
+      set ignore $set_user_data ($userid() rmargin $form(rmargin))
+      set rmargin                                  $form(rmargin)
+   end
+end
+
+if $tablefind (ebox $(me3options))
+   if $not_equal (x$form(ebox) x$(ebox))
+      eval $set_user_data ($userid() ebox $form(ebox))
+      set ebox $form(ebox)
+   end
+end
+
+if $tablefind (cssfont $(me3options))
+   eval $set_user_data ($userid() cssfont $form(cssfont))
+   set ucss_font $form(cssfont)
+end
+
+if $tablefind (csssize $(me3options))
+   eval $set_user_data ($userid() csssize $form(csssize))
+   set ucss_size $form(csssize)
+end
+
+if $tablefind (thumbnails $(me3options))
+   eval $set_user_data ($userid() showThumbNails 0$form(showThumbNails))
+end
+
+if $tablefind (trailerbar $(me3options))
+   eval $set_user_data ($userid() trailerbar $form(trailerbar))
+   set trailerbar 0$form(trailerbar)
+end
+
+if $word (1 $(siteBozoFilter) 1)
+   if $tablefind (bozofilter $(me3options))
+      eval $set_user_data ($userid() bozos $form(bozos))
+      set  bozos $form(bozos)
+   end
+end
+
+#---Set CML error reporting, if the user changed it.
+if $tablefind (cmlerr $(me3options))
+   if $and ($empty ($user_data ($userid() cmlerr)) \
+            $not_equal ($form(cmlerr) $(cmlerr_def)))
+      eval      $set_user_data($userid() cmlerr  $form(cmlerr))
+   end
+   elif $not_equal ($user_data($userid() cmlerr) $form(cmlerr))
+      eval      $set_user_data($userid() cmlerr  $form(cmlerr))
+   end
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#-------------------------------------------------------------------

@@ -1,0 +1,28 @@
+#
+#---CUS_ENNEW.CML.   Create a new, empty, e-mail notification group
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#---------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_ennew.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+#---Create a new, empty group.
+set  group $time()
+eval $set_site_data ($arg(3) - en_items-$(group) \
+                    1 0 0 $it_last($arg(3)) 0 (none))
+eval $set_site_data ($arg(3) - en_hours-$(group) 0)
+"%location($(mainurl)/cus_engrp.cml?$(nch)+$arg(2)+$arg(3)+\
+                                 $arg(4)+$(group)+x+x+x)
+
+#------------------------------------------------------------------

@@ -1,0 +1,20 @@
+#
+#---man_removef.cml.    Handles manager conference deletion
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/20/04 Delete SQL assignments table entries.
+#: CR 03/29/05 Delete any conference alias.
+#: CR 04/13/05 C5 code merge.
+#-------------------------------------------------------------
+
+include $(main)/secure.i manage conferenceDelete conferenceAllPrivileges
+
+set nch $unique()
+
+include $(main)/conf_delete.i $form(cnum)
+
+"%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------

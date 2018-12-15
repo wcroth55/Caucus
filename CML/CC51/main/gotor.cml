@@ -1,0 +1,27 @@
+#
+#---GOTOR.CML.   Save goto window resize information, then
+#                  reload page we just came from.
+#
+#  arg(1)  
+#  arg(2)  
+#  arg(3)
+#  arg(4)  new x window size value
+#  arg(5)  new y window size value
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+
+#---If arg(3) and arg(4) are non-empty, and are numbers, save
+#   the resized value as persistent variables.
+if $and ($not_empty ($arg(4))   $equal ($is_num($arg(4)) $strlen($arg(4))) \
+         $not_empty ($arg(5))   $equal ($is_num($arg(5)) $strlen($arg(5))) )
+   eval $set_user_data ($userid() xs_goto $arg(4))
+   eval $set_user_data ($userid() ys_goto $arg(5))
+end
+
+"%location(goto.cml?$arg(1)+$arg(2)+$arg(3))
+

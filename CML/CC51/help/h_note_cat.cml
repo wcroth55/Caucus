@@ -1,0 +1,49 @@
+#
+#---H_NOTE_CAT.I   Help about "Edit a Notebook Category" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_note_cat.cml $quote(Help on Edit a Notebook Category)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The "Edit a Notebook Category" page provides the controls for you modify or delete a 
+"category in your Caucus <A HREF="$(helpurl)/h_notebook.cml?x+x+Notebook">
+"Notebook.</A>
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>Notebook</B> icon.&nbsp;
+"Then click on the desired notebook category.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<DL>
+"<DT><B>Category Name:</B>
+"<DD>You can change the name of this category by changing the text in the 
+"field that contains the category name.<P>
+
+"<DT><B>Show this category:</B>
+"<DD>The checkbox labeled "Show this category and its contents in the 
+"$(center_name)" allows you to have the notebook entries in this category
+"appear on the $(center_name) page for quick access.<P>
+
+"<DT><B>Change</B>
+"<DD>To save any changes you make to this category, press the
+"<B>Change this category</B> button.<P>
+
+"<DT><B>Delete</B>
+"<DD>If you no longer want this category or the entries it contains, press the
+"<B>Delete this entire category</B> button. You can't undo this option, so 
+"always be sure that you want to delete everything in the category before
+"pressing this button.<P>
+
+"<DT><B>No changes</B>
+"<DD>If you decide not to do anything to this category, press the 
+"<B>No changes</B> button to return to your notebook listing.<P> 
+
+"</DL>
+include $(help)/hb.i

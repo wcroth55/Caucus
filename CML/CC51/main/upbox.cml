@@ -1,0 +1,36 @@
+#
+#---UPBOX.CML
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#-----------------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Attaching File</TITLE>
+
+"<BODY $(body_bg)>
+
+"<CENTER>
+"<H2>Attaching File...</H2>
+
+"<P>
+"Your file is being uploaded and attached to your
+"item or response.&nbsp;
+"Please wait.
+
+"<P>
+"<FORM NAME="helpform">
+"<INPUT TYPE="button" VALUE="Close" onClick="top.upstate=0; window.close();">
+"</FORM>
+"</CENTER>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

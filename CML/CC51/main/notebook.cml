@@ -1,0 +1,57 @@
+#
+#---NOTEBOOK.CML.   Display items a person has marked
+#
+#===========================================================
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+set nch   $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i notebook.cml
+end
+
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+include $(main)/requiredinfo.i
+
+set nxt   $page_save (1 notebook.cml \
+              $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+              # Notebook)
+
+set can_save $(can_save_page)
+
+set pagename <span class="pageTitle">My Notebook</span>
+
+include $(main)/head.i $arg(3)  $quote(Notebook for %my_name())
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     notebook  Personal Notebook
+
+"This is your personal notebook for saving references to particular 
+"postings and places in Caucus.<P>
+
+"<A HREF=note_add.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(2)>Add the page I just came from to my notebook.</A><P>
+
+set pad &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+set category_num 0
+for category center in $user_data($userid() mark_categories)
+   set category_num $plus($(category_num) 1)
+   include $(main)/notebook.i $(category) 1 $(category_num)
+   "<P>
+end
+if $equal(x x$user_data($userid() mark_categories))
+   "<I>You have not added any entries to your notebook yet.</i><P>
+end
+
+set pagename
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

@@ -1,0 +1,36 @@
+#0 abramson 0 06-MAR-95 23:39 Mark Abramson (abramson)
++3 32 877
++4 2
+ WWWCOOP discussion: Browsers and HTML Language
+ <TABLE>
+ <TR>
+ <TD WIDTH=10%>&nbsp;</TD>
+ <TD>
+    <TABLE BORDER>
+    <TR>
+    <TD>
+    Here is the first "sample" discussion from a real Caucus
+ conference in the early days of the Web,
+    called <B>WWWCOOP</B>.
+    <P>
+    The WWWCOOP conference is a knowledge "cooperative" at the
+    <A HREF="http://www.tmn.com" TARGET="_blank">MetaNet</A>, where people share
+    their knowledge about the World Wide Web, including (as
+    you'll see below) "howto"
+    information about HTML and browsers.
+ 
+    </TD>
+    </TABLE>
+ </TD>
+ <TD WIDTH=10%>&nbsp;</TD>
+ </TABLE>
+ <P>
+ I had an interesting experience in posting my home page.&nbsp;    It
+ seems to look
+ differently on Air Mosaic, Netscape, and Prodigy.&nbsp;    Am I correct
+ in
+ thinking that different browsers read HTML language slightly
+ differently.&nbsp;
+ My text looks different from one browser to another.&nbsp;    Anybody
+ have any
+ insights as to how this might happen.

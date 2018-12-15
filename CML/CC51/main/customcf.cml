@@ -1,0 +1,57 @@
+#
+#---customcf.cml.  Handle conference color form.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  6/06/03 Add 'confitem', item header color
+#-------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_color.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+
+set nch $unique()
+
+#---Save the organizer-selected conference colors.
+
+eval $set_site_data    ($arg(3) - confback $form(confback))
+eval $set_site_data    ($arg(3) - conftext $form(conftext))
+eval $set_site_data    ($arg(3) - conflink $form(conflink))
+eval $set_site_data    ($arg(3) - confvlink $form(confvlink))
+eval $set_site_data    ($arg(3) - confbgim $form(confbgim))
+eval $set_site_data    ($arg(3) - confcont $form(confcont))
+eval $set_site_data    ($arg(3) - confitem $form(confitem))
+
+#---Build the string to add to the BODY tag.
+
+set conf_colors
+
+if $not_empty ($form(confback))
+   set conf_colors $(conf_colors) BGCOLOR="$form(confback)"
+end
+
+if $not_empty ($form(conftext))
+   set conf_colors $(conf_colors) TEXT="$form(conftext)"
+end
+
+if $not_empty ($form(conflink))
+   set conf_colors $(conf_colors) LINK="$form(conflink)"
+end
+
+if $not_empty ($form(confvlink))
+   set conf_colors $(conf_colors) VLINK="$form(confvlink)"
+end
+
+if $not_empty ($form(confbgim))
+   set conf_colors $(conf_colors) BACKGROUND="$form(confbgim)"
+end
+
+eval $set_site_data    ($arg(3) - conf_colors $(conf_colors))
+
+set caller $page_caller (1 $arg(2))
+"%location($(mainurl)/$page_return ($(caller) # custom.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------

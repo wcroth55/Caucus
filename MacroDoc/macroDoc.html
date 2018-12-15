@@ -1,0 +1,1429 @@
+<html>
+<head>
+<title>Caucus Macros</title>
+<style type='text/css'>
+   body, td { font-family: arial;  font-size: 80%; }
+   LI { margin-top: .4em; }
+   pre { font-size: 120%; }
+   .arg { font-style: italic; }
+</style>
+</head>
+<body>
+<h2>Caucus Macros</h2>
+ Last revised 08/16/09 
+ <p/> 
+ The Caucus "macro" capability is a simple "macro expansion" language that 
+ is embedded into CML, the "Caucus Markup Language".  See the 
+ $mac_define() function in the Caucus Reference Manual for general information 
+ on defining Macros. 
+ <p/> 
+ There is a large set of pre-defined macros included with Caucus. 
+ They fall into three major categories: 
+ <ol type="I"> 
+ <li>Simple macros that ordinary users can enter into their 
+ own items and responses. 
+ <li>More complex macros intended for power users, organizers, 
+ or managers, to define or extend aspects of the user interface. 
+ <li>Internal macros used in the CML pages to implement the user 
+ interface.  These are really being used as extensions to the 
+ CML language itself, and should not be seen or used by 
+ ordinary <b>or</b> power users. 
+ </ol> 
+ <p/> 
+ The macros in each major category are also divided by 
+ overall purpose into sub-categories, although the 
+ division is not always obvious. 
+ <p/> 
+ Any arguments inside []'s are optional and may be left out.&nbsp; 
+ Don't actually type the []'s. 
+ <p/> 
+ Some definitions of macro arguments follow: 
+ <ul> 
+ <li>groupType 
+ <ol> 
+ <li>Caucus4 -- for "system" groups. 
+ <li>Conf -- for conferences. 
+ <li>Filesafe -- for filesafes. 
+ <li>Item -- for individually permissioned item groups. 
+ <li>Mgr -- for manager groups. 
+ <li>Quiz -- for quiz groups. 
+ <li><i>userid</i> -- for groups for a specific user. 
+ </ol> 
+ </ul> 
+ <p/> 
+ <hr> 
+<p/> 
+<ol type="I"> 
+<li><b>Ordinary User Macros</b> 
+<ol> 
+ <li><b>Text Manipulation Macros</b><br> 
+ Most of these were meant for the "plain text" editor, 
+ and are not needed for the "rich text" editor (aka RTE). 
+<p/><dl>
+<dt><a name='bold '> %bold (text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='b'> %b(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='tt '> %tt (text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='blockquote '> %blockquote (text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='italic'> %italic(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='i'> %i(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='big'> %big(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='small'> %small(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='sub'> %sub(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='sup'> %sup(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='strike'> %strike(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='under'> %under(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mono'> %mono(text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='color '> %color (colorname text) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='bullet'> %bullet(text) </a></dt>
+<dd>
+  Indented "bulleted" paragraph.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='ol'> %ol(n text) </a></dt>
+<dd>
+     Indented numbered (N) paragraph.&nbsp; 
+</dd>
+</dl>
+<p/> 
+<li><b>"Go to" macros</b> 
+<p/> 
+<p/><dl>
+<dt><a name='response '> %response (rnum) </a></dt>
+<dd>
+ Link to response <span class="arg">rnum</span> in the current item.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='item '> %item (inum [rnum]) </a></dt>
+<dd>
+ Link to item <span class="arg">inum</span>, optionally to specific response <span class="arg">rnum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='itemtitle'> %itemtitle(inum) </a></dt>
+<dd>
+ Link to item <span class="arg">inum</span>, but show the title of the item as the link text.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conference '> %conference (conf_name [inum [rnum [hover text]]]) </a></dt>
+<dd>
+  Link to conference <span class="arg">conf_name</span>, optionally specifying 
+  item <span class="arg">inum</span>, response <span class="arg">rnum</span>.&nbsp; 
+   If 'hover text' is supplied, mousing-over the link will show 
+   <span class="arg">hover_text</span> as a DHTML pop-over.&nbsp;  In that case, inum=0 means 
+   just the conference, no item.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='createItem'> %createItem(linktext) </a></dt>
+<dd>
+ If user can create an item in the current conference, 
+ display link to "create an item" page with <span class="arg">linktext</span>.&nbsp; 
+</dd>
+</dl>
+ <li><b>People</b> 
+<p/><dl>
+<dt><a name='person'> %person(userid [opt link text]) </a></dt>
+<dd>
+ Link pops-up window with info about <span class="arg">userid</span>.&nbsp; 
+</dd>
+</dl>
+</ol> 
+<p/> 
+<li><b>Power Users &amp; Managers</b><br> 
+<ol> 
+<li><b>"Go to" location - advanced</b><br> 
+ Use these in responses or other text to provide links to 
+ other conferences or locations. 
+<p/><dl>
+<dt><a name='url '> %url (actual_url, text of link) </a></dt>
+<dd>
+ Pop-up link to an external URL <span class="arg">actual_url</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='protocolOf'> %protocolOf(url) </a></dt>
+<dd>
+ Extract just the protocol name (http or https) from <span class="arg">url</span>, even 
+ if <span class="arg">url</span> has already been expanded into a clickable link by 
+ the richtext editor.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='urlparams '> %urlparams (actual_url, windowparams, text of link) </a></dt>
+<dd>
+ Like %url, but you may specify the javascript-style window opening 
+ parameters in <span class="arg">windowparams</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='last'> %last(conf_name inum optional_text) </a></dt>
+<dd>
+  Link to last response in conference <span class="arg">conf_num</span> item <span class="arg">inum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_is_allowed '> %conf_is_allowed (conf_name text) </a></dt>
+<dd>
+ Evaluates to <span class="arg">text</span> if current user is allowed in <span class="arg">conf_name</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_has_new '> %conf_has_new (conf_name text) </a></dt>
+<dd>
+ Evaluates to <span class="arg">text</span> if there is new material in <span class="arg">conf_name</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_link '> %conf_link (conf_name text) </a></dt>
+<dd>
+    Evaluates to a link with <span class="arg">text</span>, that goes to <span class="arg">conf_name</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_url '> %conf_url (conf_name) </a></dt>
+<dd>
+    Evaluates to full URL for conference <span class="arg">conf_name</span>.&nbsp;  Use 
+    "/caucus/conf_name" instead unless contraindicated.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_item_url '> %conf_item_url (conf_name item) </a></dt>
+<dd>
+    Evaluates to full URL for conference <span class="arg">conf_name</span>, <span class="arg">item</span>.&nbsp;  Use 
+    "/caucus/conf_name/item instead unless contraindicated.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_item_link '> %conf_item_link (confname item linktext) </a></dt>
+<dd>
+ Evaluates to a link with <span class="arg">linktext</span>, that goes to 
+ conference <span class="arg">confname</span>, item <span class="arg">item</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_name_with_new '> %conf_name_with_new (conf_name text) </a></dt>
+<dd>
+    "Convenience macro", combines other macros to show <span class="arg">text</span> link to 
+    conference <span class="arg">conf_name</span> (if allowed), with a new icon (if anything is new).&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='TMN_CONF_with_new '> %TMN_CONF_with_new (conf_name text) </a></dt>
+<dd>
+ Same as %conf_name_with_new().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conference_with_new '> %conference_with_new (conf_name [optional text]) </a></dt>
+<dd>
+    Link to conference <span class="arg">conf_name</span>, but with the new icon if anything is new.&nbsp; 
+    If 'optional text' is supplied, shows that as link text instead of conference name 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_file_url '> %conf_file_url (conf_name user item resp filename) </a></dt>
+<dd>
+    Full URL for file <span class="arg">filename</span> uploaded by <span class="arg">user</span> into <span class="arg">conf_name</span>, <span class="arg">item</span>, <span class="arg">resp</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_has_new_br '> %conf_has_new_br (conf_name text) </a></dt>
+<dd>
+  Evaluates to <span class="arg">text</span> (with a line break at the end) 
+  if <span class="arg">conf_name</span> has new material.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_link_br '> %conf_link_br (conf_name_br text) </a></dt>
+<dd>
+  Evaluates to a link (with a line break at the end) <span class="arg">text</span> to <span class="arg">conf_name</span> 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_name_with_new_br '> %conf_name_with_new_br (conf_name text) </a></dt>
+<dd>
+    "Convenience macro", combines other macros to show link with <span class="arg">text</span> to 
+    conference <span class="arg">conf_name</span> (if allowed), with a new icon (if anything is new) along 
+    with a line break at the end of each line.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='anyConfHasNew'> %anyConfHasNew(conf1 conf2 ...) </a></dt>
+<dd>
+  Evaluate to the new icon 
+    if any of the confs 'conf1', 'conf2', etc.&nbsp; have new material.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='countNewInCnum'> %countNewInCnum(cnum) </a></dt>
+<dd>
+ Evaluates to the number of items with new material in conference <span class="arg">cnum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='center'> %center(text) </a></dt>
+<dd>
+   Link (with <span class="arg">text</span>) to Caucus Center 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='readrange '> %readrange (startitem enditem link_text) </a></dt>
+<dd>
+    Link to read items <span class="arg">startitem</span> thru <span class="arg">enditem</span> in current 
+    conference.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='conf_has_no_new '> %conf_has_no_new (conf_name text) </a></dt>
+<dd>
+ Evaluates to <span class="arg">text</span> if there is <b>no</b> new material for this user 
+ in <span class="arg">conf_name</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='purchaseGroupMembership'> %purchaseGroupMembership(groupType groupName paypalAccount price link-text) </a></dt>
+<dd>
+ Pops open a window that allows the current user to purchase, through PayPal, 
+ membership in the specified Caucus group on this site.&nbsp; 
+ For example, %purchaseGroupMembership(Caucus4 myGroup roth@caucuscare.com 1.00 Buy Access) 
+ will display a link with text "Buy Access".&nbsp;  The price is $1.00, and completing the 
+ purchase will automatically add the current user to the "System" group "myGroup".&nbsp; 
+ If the user already has membership in that group, the link will NOT appear.&nbsp; 
+</dd>
+</dl>
+<p/> 
+<li><b>Interface Storage Conference</b><br> 
+ Every Caucus "interface" has a special conference that is used 
+ to help define the look and feel of the interface. 
+ (E.g. for interface CC51, the conference is called interface_storage_cc51.) 
+ This conference only appears to Caucus managers, it is otherwise 
+ invisible to regular users. 
+ The macros below reference items in this conference. 
+<p/><dl>
+<dt><a name='ifs_page_link '> %ifs_page_link (item resp text) </a></dt>
+<dd>
+    ("InterFace Storage PAGE LINK").&nbsp; 
+   Evaluates to a link with <span class="arg">text</span>, that goes to 
+   ifspage.cml (shows a response as a single 
+    "resource" page), <span class="arg">item</span>:<span class="arg">resp</span> from the current "Interface Storage" conference.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='ifs_popup '> %ifs_popup (item resp [width=nnn] [height=nnn] text) </a></dt>
+<dd>
+  Evaluates to a link with <span class="arg">text</span>, that 
+    pops-up a new page, with contents of IFS (<span class="arg">item</span>, <span class="arg">resp</span>) -- and nothing else! 
+    If the optional width= and height= parameters appear (in that order!), they 
+    control the size of the pop-up window.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='ifs_resp '> %ifs_resp (item [resp]) </a></dt>
+<dd>
+   ("InterFace Storage RESPonse") 
+    Evaluates to text of current Interface Storage conference <span class="arg">item</span>:<span class="arg">resp</span>, interpreted 
+    as CML.&nbsp; 
+</dd>
+</dl>
+<li><b>People - Advanced</b><br> 
+<p/><dl>
+<dt><a name='personpop'> %personpop(userid) </a></dt>
+<dd>
+   Like %person(), but always the pop-up, never the edit-my-own-page.&nbsp; 
+   No (uid) after the name, either.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='person_noclick '> %person_noclick (userid [text]) </a></dt>
+<dd>
+ Evaluates to a "do-nothing" link with either the person's name, 
+ or else <span class="arg">text</span>, as text.&nbsp; Clicking on the link does nothing.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mailto '> %mailto (email_address Name) </a></dt>
+<dd>
+ Evaluates to a "mailto:" link using <span class="arg">email_address</span>, 
+ and <span class="arg">Name</span> as the link text.&nbsp; Clicking on this 
+ link will automatically open most user's email client, 
+ preparing to send email to <span class="arg">email_address</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='aim'> %aim(handle) </a></dt>
+<dd>
+    hot link to AIM instant messenger for <span class="arg">handle</span> 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='onnow_check'>    %onnow_check() </a></dt>
+<dd>
+       Calculate list of users "on now".&nbsp; Use this immediately 
+ before calling %onnow_link().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='onnow_link'>    %onnow_link() </a></dt>
+<dd>
+      link to page showing table of current users 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='onnow_user'>    %onnow_user(uid) </a></dt>
+<dd>
+     shows "(now)" if uid is on now.&nbsp; 
+    (Must call %onnow_check() once beforehand in page) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='peoplelist'> %peoplelist(grouptype groupname $quote(fieldList) title) </a></dt>
+<dd>
+ Display a list of all the people in <span class="arg">grouptype</span>, <span class="arg">groupname</span>.&nbsp; 
+ <span class="arg">fieldlist</span> is a space-separated list of the fields to be displayed, 
+ including: lname, fname, userid, laston, email.&nbsp; 
+ To turn off display of a field, prefix with "-", i.e.&nbsp; "-email" 
+ prevents displaying the email column.&nbsp; 
+ <span class="arg">title</span> is the title displayed at the top of the list.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='peoplelistURL'> %peoplelistURL(grouptype groupname $quote(fieldList)) </a></dt>
+<dd>
+ Same as %peoplelist(), except it evaluates to a URL to a page 
+ that just lists the people.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='peoplegallery'> %peoplegallery(grouptype groupname all width title) </a></dt>
+<dd>
+ Display a rectangular "gallery" of the people in <span class="arg">grouptype</span>, <span class="arg">groupname</span>.&nbsp; 
+ If <span class="arg">all</span> is 1, display everyone in the group.&nbsp;  If 0, display only those 
+ people who have pictures.&nbsp; <span class="arg">width</span> is the numeric value of the width 
+ of the page, e.g.&nbsp; 5 means show 5 people "across".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='groupMap '> %groupMap (groupType groupName text) </a></dt>
+<dd>
+ Evaluates to a link (with <span class="arg">text</span>) that pops-up a Google Maps page, 
+ showing the location of everyone in <span class="arg">groupType</span>, <span class="arg">groupName</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='itemMap '> %itemMap (itemLabels zoom text) </a></dt>
+<dd>
+ Evaluates to a link (with <span class="arg">text</span>) that pops-up a Google Maps page, 
+ showing the location from which the items in itemLabels were written.&nbsp; 
+ ItemLabels is a comma-separated list or range of item labels.&nbsp; 
+ Zoom is the Google-maps zoom factor, typically 3-18.&nbsp; 
+ 0 defaults to a reasonable value.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='itemMapEmbed '> %itemMapEmbed (itemLabels zoom width height) </a></dt>
+<dd>
+ Embeds a Google Maps page (in the current page), 
+ showing the location from which the items in itemLabels were written.&nbsp; 
+ ItemLabels is a comma-separated list or range of item labels.&nbsp; 
+ Zoom is the Google-maps zoom factor, typically 3-18.&nbsp; 
+ 0 defaults to a reasonable value.&nbsp; 
+ Width is the width of the map in pixels.&nbsp; 
+ Height is the height of the map in pixels.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='itemMapFrame '> %itemMapFrame (itemLabels zoom width height) </a></dt>
+<dd>
+ Embeds a Google Maps page (in the current page), 
+ showing the location from which the items in itemLabels were written.&nbsp; 
+ ItemLabels is a comma-separated list or range of item labels.&nbsp; 
+ Zoom is the Google-maps zoom factor, typically 3-18.&nbsp; 
+ 0 defaults to a reasonable value.&nbsp; 
+ Width is the width of the map in pixels.&nbsp; 
+ Height is the height of the map in pixels.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='addUser2GroupOnClick '> %addUser2GroupOnClick (groupType groupName ifsItem text) </a></dt>
+<dd>
+   Evaluates to a link with <span class="arg">text</span> to IFS page <span class="arg">ifsItem</span>.&nbsp; When user clicks 
+   through to the page, Caucus adds their userids to group 
+   <span class="arg">groupType</span> <span class="arg">groupName</span>.&nbsp; 
+</dd>
+</dl>
+<li><b>Images and Videos</b><br> 
+<p/><dl>
+<dt><a name='imagelink '> %imagelink (imageURL targetURL [width [height]]) </a></dt>
+<dd>
+ Evaluates to an image-link: it shows the image at <span class="arg">imageURL</span>, 
+ clicking on the image pops-up a window showing the page at 
+ <span class="arg">targetURL</span>.&nbsp;  The new window may be set to open with 
+ <span class="arg">width</span> and <span class="arg">height</span> (in pixels).&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='image'> %image(URL [width height [alt_text]]) </a></dt>
+<dd>
+ Simply displays the image at <span class="arg">URL</span>, scaled to <span class="arg">width</span> and <span class="arg">height</span>, 
+ and with optional <span class="arg">alt_text</span> (what you see if image display is turned 
+ off, or if you hover over the image).&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='icon_new'> %icon_new() </a></dt>
+<dd>
+ Displays the "new" icon.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='photo '> %photo (userid [options]) </a></dt>
+<dd>
+ Evaluates to a clickable image link of user <span class="arg">userid</span>, 
+ clicking pops-up the person page for <span class="arg">userid</span>.&nbsp; 
+ <span class="arg">Options</span> are HTML image options, such as "height=xx", etc.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='picture'> %picture(userid/filename) </a></dt>
+<dd>
+ Displays image in Caucus site's public_html/LIB/PICTURES/<span class="arg">userid</span>/<span class="arg">filename</span>.&nbsp; 
+ Convenience macro for statically-supplied images.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='swfVideo '> %swfVideo (source width height) </a></dt>
+<dd>
+    Show an SWF ("flash") video embedded in the current window.&nbsp; 
+    <span class="arg">source</span> is the URL of the video 
+    width and height are specified in # of pixels.&nbsp; 
+</dd>
+</dl>
+<li><b>My Conferences</b><br> 
+<p/><dl>
+<dt><a name='myGroupConfs '>  %myGroupConfs (groupType groupName showHeader text...) </a></dt>
+<dd>
+  Display a "My Conferences"-like list of conferences (with columns 
+  for new material) that belong to group (<span class="arg">groupType</span>, <span class="arg">groupName</span>).&nbsp; 
+  If <span class="arg">showHeader</span>=1, display the column headers.&nbsp; 
+  <span class="arg">Text</span> is the optional "lead-in text" that appears at the head 
+  of the list of conferences.&nbsp; 
+</dd>
+</dl>
+<li><b>Integration With External Tools</b><br> 
+<p/><dl>
+<dt><a name='watchitoo'>   %watchitoo(meetingId [width height]) </a></dt>
+<dd>
+   Shows a box <span class="arg">width</span> by <span class="arg">height</span> pixels that connects to the 
+   Watchitoo.com video/chat/meeting server.&nbsp;  The Caucus configuration 
+   file (swebd.conf) must have defined the <span class="arg">config</span> parameters 
+   watchitooVendorId and watchitooAccessToken, as supplied by 
+   Watchitoo.&nbsp; 
+</dd>
+</dl>
+</ol> 
+<p/> 
+<li><b>Internal Macros</b><br> 
+<ol> 
+<li><b>Windows</b><br> 
+<p/><dl>
+<dt><a name='js_open_win '> %js_open_win (name [opener]) </a></dt>
+<dd>
+ Javascript to open a new window.&nbsp; 
+       if <span class="arg">opener</span> is not empty, use opener of current window to 
+       determine proper size of new window.&nbsp; 
+<pre> 
+   Property          Values           Means 
+     toolbar           1, 0 (on, off)   (back,forward buttons, etc) 
+     location          1, 0             (current URL field) 
+     directories       1, 0             (directory buttons - ugh) 
+     status            1, 0             (status line at bottom) 
+     menubar           1, 0             (menu bar - file, edit, view etc.) 
+     scrollbars        1, 0             (enables scroll bars when needed) 
+     resizable         1, 0             (resize windows? note spelling!) 
+     width             pixels           (initial width of window) 
+     height            pixels           (initial height of window) 
+</pre> 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='js_open_ann'> %js_open_ann() </a></dt>
+<dd>
+ Open announcements window.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='userxs'>   %userxs(popup defaultx) </a></dt>
+<dd>
+ X Size of pop-up window.&nbsp;  (User vars are xs_@1, ys_@1.) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='userys'>   %userys(popup defaulty) </a></dt>
+<dd>
+ Y Size of pop-up window.&nbsp;  (User vars are xs_@1, ys_@1.) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='to_parent '> %to_parent (url) </a></dt>
+<dd>
+ ilist.i  Redirect links to parent window if 
+   $(target_switch) is true.&nbsp; 
+   Usage: &lt;A HREF=%to_parent(url)&gt; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='_new_target_window'> %_new_target_window(newx, newy) </a></dt>
+<dd>
+  (nee "%target" in 4.0).&nbsp; 
+  Opens a new window to be used as a target for some URL.&nbsp; 
+  If possible, makes new window 40 pixels less in x and y than 
+  the current window.&nbsp;  For old browsers, the new window size is 
+  newx x newy pixels.&nbsp; 
+ 
+  Typically used in an &gt;A HREF&gt; tag to put the target URL in 
+  a new window, as in: 
+     &lt;A HREF="some_url" %_new_target_window(x, y)&gt; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='_target_fromcau'> %_target_fromcau(newx, newy) </a></dt>
+<dd>
+  Opens a window <span class="arg">fromcau</span> to be used as a target for some URL.&nbsp; 
+  If possible, makes new window 40 pixels less in x and y than 
+  the current window.&nbsp;  For old browsers, the new window size is 
+  newx x newy pixels.&nbsp;  Typically used with richtext editor URLs, as in: 
+    &lt;a href="someurl" target="fromcau" onClick="%_target_fromcau(newx,newy);"&gt; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='iframe '> %iframe (url pure [optwidth [optheight [options]]]) </a></dt>
+<dd>
+    Display URL in an Iframe.&nbsp;  optWidth is optional width, 
+    optHeight is optional height (pixels assumed unless other 
+    units given).&nbsp;  Pure is always 1 (reserved for expansion).&nbsp; 
+    Other options may be specified, see 
+    http://www.w3schools.com/TAGS/tag_iframe.asp 
+</dd>
+</dl>
+<p/><li> 
+ <b>Miscellaneous I</b><br> 
+<p/><dl>
+<dt><a name='leave'> %leave(URL) </a></dt>
+<dd>
+   Dummy macro, just expands to argument(s).&nbsp; 
+   Provided so that display of new user registration "layout" page 
+   appears to work like the real thing but doesn't terminate 
+   Caucus process.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='location'> %location(url) </a></dt>
+<dd>
+ Replaces all uses of "Location:" directive 
+       to go to another CML file.&nbsp;  Acts as an effective work-around for the 
+       IE 4 bug (see http://gamgee.acad.emich.edu/~roth/ie_location.html).&nbsp; 
+       If the URL has no #fragment, or is not IE 4, %location just spits 
+       out the appropriate "Location:" directive.&nbsp;  Otherwise, it produces 
+       a tiny HTML page that sets location.href to the proper url.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='chk'> %chk(X) </a></dt>
+<dd>
+  Macro for cus_en*.cml.&nbsp;  If X is in table CHK, 
+   output a "CHECKED" tag (for &lt;INPUT TYPE=checkbox...&gt; stuff).&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='en_var'> %en_var(user conf var) </a></dt>
+<dd>
+  Get value of e-mail notification variable.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='set_en_var'> %set_en_var(user conf var values...) </a></dt>
+<dd>
+   Set value of e-mail notification variable.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='bad_email_address '> %bad_email_address (x) </a></dt>
+<dd>
+   Bad if not empty and (no @, no ., has any of ";|&amp;,&lt;&gt;()", or &gt; 1 words).&nbsp; 
+   Could be made smarter...&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='nooplink'> %nooplink(text) </a></dt>
+<dd>
+   Make a link with <span class="arg">text</span> that does nothing.&nbsp; 
+   Used for the last entry in the location (compass) bar.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='backlink'> %backlink(text) </a></dt>
+<dd>
+   Make a link with <span class="arg">text</span> that does a "BACK".&nbsp; 
+</dd>
+</dl>
+<p/><li> 
+<b>MSET, MPUSH, MPOP.</b><br> 
+  Handle "m" values (m_cnum, m_inum, m_rnum) <br> 
+  that are used in all of the %liburl2() derived macros for uploaded files. 
+<p/><dl>
+<dt><a name='mset '> %mset (c i r)      Set values of m_cnum, m_inum, m_rnum that are </a></dt>
+<dd>
+   used in %liburl2 macros (when they are outside of their proper item) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='clear'> %clear(stackName) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='push '> %push (stackName value) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='pop '> %pop (stackName) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='top '> %top (stackName) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mpush '> %mpush (c i r)     Save current m values on a stack, then set new ones. </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mpop'> %mpop()            Pop m values off of stack. </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='_caucus_url'> %_caucus_url(cnum inum rnum) </a></dt>
+<dd>
+  (nee "%special" in 4.0).&nbsp; 
+  Translate 'http:/caucus/...' so-called "special" URLs into 
+  URLs that reference the appropriate CML pages.&nbsp; 
+  Note! inum is the item <b>label</b>, not the item_id.&nbsp; 
+ <p/> 
+  http:/caucus              -> (goes to) the Caucus Center<br> 
+        http:/caucus/conf         -> conference home page of <span class="arg">conf</span><br> 
+        http:/caucus/conf/item    -> conference <span class="arg">conf</span>, item # <span class="arg">item</span><br> 
+        http:/caucus/conf/item:r  -> <span class="arg">conf</span> item <span class="arg">item</span>, response <span class="arg">r</span>.<br> 
+</dd>
+</dl>
+<p/><li> 
+ <b>File upload macros.</b><br> 
+  These are internal macros that Caucus automatically 
+ generates when files are uploaded. The user is not supposed to use them, 
+ but they will see them briefly in the text of their response as they 
+ are writing the response. 
+  The "2" versions (liburl2, libimg2, etc.) are for 4.1+ and 
+  assume an "rdir" (item/response sub directory) that is keyed to the 
+  particular item and response numbers where the file was uploaded. 
+<p/><dl>
+<dt><a name='liburl2 '> %liburl2 (userid rdir file)   URL of file in library </a></dt>
+<dd>
+ Build link to uploaded file in Caucus LIB directory.&nbsp; 
+ File is referenced by <span class="arg">userid</span>, filename <span class="arg">file</span>, 
+ and "magic" code <span class="arg">rdir</span>: 1=response, 0=body of item, 
+ qp=attached to quiz, ap=attached to assignment.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='liburl_at '> %liburl_at (conf item resp file) </a></dt>
+<dd>
+   URL of <span class="arg">file</span> in library in another conference <span class="arg">conf</span>, item <span class="arg">item</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libimg'> %libimg(userid file) </a></dt>
+<dd>
+   IMG file in library (deprecated) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libimg2'> %libimg2(userid rdir file [options]) </a></dt>
+<dd>
+   IMG file in library 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libimg2r'> %libimg2r(userid rdir file [options]) </a></dt>
+<dd>
+  IMG file in library, right-aligned.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libimg_at '> %libimg_at (conf item resp file [options]) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libgallery'> %libgallery(userid rdir file) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='liblink'> %liblink(userid file) </a></dt>
+<dd>
+   link to file in library (deprecated) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='liblink2'> %liblink2(userid rdir file) </a></dt>
+<dd>
+   Link to file in library 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libname'> %libname(userid file name) </a></dt>
+<dd>
+   Named link to file in library (deprecated) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='libname2'> %libname2(userid rdir file name) </a></dt>
+<dd>
+   Named link to file in library 
+</dd>
+</dl>
+ <p/><li> 
+ <p/><b>MISC</b> 
+<p/><dl>
+<dt><a name='telnet '> %telnet (host_address Name) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='re_text '> %re_text (cnum id rnum) </a></dt>
+<dd>
+ Evaluates to raw text of item <span class="arg">id</span> (internal item id), response <span class="arg">rnum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><li> 
+<b> Files and Filesafes</b> 
+<p/><dl>
+<dt><a name='files '> %files (name text) </a></dt>
+<dd>
+ Not sure what this is.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafe '> %filesafe (name [text]) </a></dt>
+<dd>
+  Evaluates to link to filesafe file <span class="arg">name</span>.&nbsp; 
+  Use <span class="arg">text</span> for link text if supplied.&nbsp; 
+  (What the heck should <span class="arg">name</span> be?) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafes '> %filesafes (prefix) </a></dt>
+<dd>
+   List all viewable filesafes beginning with 
+   <span class="arg">prefix</span>; if no <span class="arg">prefix</span>, list all filesafes.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafesec '> %filesafesec (name section [text]) </a></dt>
+<dd>
+ Evaluates to a link (with optional <span class="arg">text</span>) to a file safe section, 
+ for filesafe <span class="arg">name</span>, section <span class="arg">section</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafesecurl '> %filesafesecurl (name section) </a></dt>
+<dd>
+ Evaluates to full URL to filesafe <span class="arg">name</span>, <span class="arg">section</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafefile '> %filesafefile (name section file) </a></dt>
+<dd>
+ Evaluates to a link to <span class="arg">file</span> in filesafe <span class="arg">name</span>, <span class="arg">section</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafefileurl '> %filesafefileurl (name section file) </a></dt>
+<dd>
+ Evaluates to full URL to <span class="arg">file</span> in filesafe <span class="arg">name</span>, <span class="arg">section</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='filesafethumb '> %filesafethumb (name section filesmall filebig [width height]) </a></dt>
+<dd>
+ Evaluates to a clickable link that is (presumably) a small image 
+ file <span class="arg">filesmall</span> in filesafe <span class="arg">name</span>, <span class="arg">section</span>.&nbsp; 
+ Clicking on the link pops up a new window containing <span class="arg">filebig</span> 
+ from the same filesafe section.&nbsp;  <span class="arg">Width</span> and <span class="arg">height</span> are 
+ optional arguments to specify the new window size.&nbsp; 
+</dd>
+</dl>
+<p/><li> 
+ <b>MISC II</b> 
+<p/><dl>
+<dt><a name='login_gme '> %login_gme (url text) </a></dt>
+<dd>
+   Example macro for how to integrate login with another web 
+   application (in this case GroupMind Express).&nbsp;  See login_gme.cml 
+   for more info.&nbsp;  Caller must supply login form submission 
+   page as <span class="arg">url</span>, <span class="arg">text</span> as text of link.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='preinc'> %preinc(x) </a></dt>
+<dd>
+   Pre-increment x.&nbsp;  Like C "++x" 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='displayed_conf_name'> %displayed_conf_name(cnum) </a></dt>
+<dd>
+ Evaluates to displayed form of conference name for conference <span class="arg">cnum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='interface '> %interface (dir [text])    Link to start using interface 'dir'. </a></dt>
+<dd>
+ Evaluates to a clickable link (with optional <span class="arg">text</span>) that goes 
+ to (??), switching the user to interface <span class="arg">dir</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mainwindow '> %mainwindow (url text) </a></dt>
+<dd>
+ Used in a pop-up window, displays a link with <span class="arg">text</span> 
+ that redirects the main (opening) window to <span class="arg">url</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='flashchat'> %flashchat(text) </a></dt>
+<dd>
+ Pop-up link to a Flashcoms chat room (that is implicitly tied to the 
+ current conference), with linktext <span class="arg">text</span>.&nbsp; 
+ Automatically signs user in, with current Caucus userid.&nbsp; 
+</dd>
+</dl>
+ <p/><li> 
+ <b>Gradebook etc.</b><br> 
+   Macros added to support "gradebook", "assignments", and "symbols button" 
+   and related features. 
+<p/><dl>
+<dt><a name='is_class'> %is_class(cnum) </a></dt>
+<dd>
+   Is <span class="arg">cnum</span> a "class" conference? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='supports_class'> %supports_class() </a></dt>
+<dd>
+  Evaluates to 1 if this install support "class" (course) conferences, 
+  else 0.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='tab'> %tab([x]) </a></dt>
+<dd>
+   Evaluates to auto-incremented 'tabindex="n"', for use in 
+   defining tabbing order for &lt;input&gt; objects.&nbsp;  %tab(x) 
+   starts sequence over again at <span class="arg">x</span>.&nbsp;  %tab() increments 
+   current value of variable tabindex.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='fName '> %fName (uid) </a></dt>
+<dd>
+   "Firstname" of userid <span class="arg">uid</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='lName '> %lName (uid) </a></dt>
+<dd>
+   "Lastname" of userid <span class="arg">uid</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='per_lname'> %per_lname(uid) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='per_name'> %per_name(uid) </a></dt>
+<dd>
+ Full name of user <span class="arg">uid</span>, replaces old $per_name().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='my_name'> %my_name() </a></dt>
+<dd>
+ Full name of this user, replaces old $my_name().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='my_phone'> %my_phone() </a></dt>
+<dd>
+ Phone number of current user, replaces old $my_phone().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='my_intro'> %my_intro() </a></dt>
+<dd>
+ Introductory text of current user, replaces old $my_intro().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='per_phone'> %per_phone(uid) </a></dt>
+<dd>
+ Phone number of user <span class="arg">uid</span>, replaces old $per_phone().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='per_laston'> %per_laston(uid) </a></dt>
+<dd>
+ Date/time user <span class="arg">uid</span> was last on Caucus, 
+ replaces old $per_laston().&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='assign'> %assign(key text) </a></dt>
+<dd>
+ Evaluates to a link with <span class="arg">text</span>, to assignment <span class="arg">key</span>.&nbsp; 
+</dd>
+</dl>
+<p/><li> 
+<b>Math symbol utility macros</b><br> 
+ For some reason, class="x" where x has text-decoration: none doesn't 
+  work in IE6. 
+<p/><dl>
+<dt><a name='mathsym '>  %mathsym (symbolname [expand]) </a></dt>
+<dd>
+  ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='sym'> %sym() </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mathimg '> %mathimg (imgblue [imgblack]) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='courselist'> %courselist(options) </a></dt>
+<dd>
+   Display list of courses.&nbsp;  See courselist.i for <span class="arg">options</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='no_such_conf '> %no_such_conf (cnum) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='is_instructor'> %is_instructor() </a></dt>
+<dd>
+  Evaluates to 1 
+   if current user is a manager, or an organizer or instructor of any conf? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='listpeople '> %listpeople (separator userid [userid2...]) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='people'> %people(center linktext) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='instructors '> %instructors (cnum) </a></dt>
+<dd>
+   List of userids of "instructors" of course conference <span class="arg">cnum</span>, in the order they appear 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='emImgSep '> %emImgSep (prop) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='emFileSep '> %emFileSep (prop) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='urcregnums'> %urcregnums() </a></dt>
+<dd>
+   Sorted list of field numbers of REG urc field variables, e.g.&nbsp; 
+   REG_CC44/reg_1 is "1", etc.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='onnow_options'> %onnow_options() </a></dt>
+<dd>
+   Static list of default options allowed for %onnow() 
+   (Makes it easy to expand by putting definition in local_macros.) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='intro'> %intro(text) </a></dt>
+<dd>
+ Evaluates to "useful" expansion of <span class="arg">text</span>, frequently 
+ used to format the "intro" text of a user.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='taskPriority'> %taskPriority(n) </a></dt>
+<dd>
+   Translates raw priority number <span class="arg">n</span> to text (Low, medium, etc.) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='mgr_in_group '> %mgr_in_group (userid mgrgroups...) </a></dt>
+<dd>
+   Same as $mgr_in_group, but automatically includes systemAllPrivileges 
+   (just to save us typing!) 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='hasUpper '> %hasUpper (string) </a></dt>
+<dd>
+  Evaluates to 1 if <span class="arg">string</span> contains any upper-case chars, else 0.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='access'> %access(cnum [userid]) </a></dt>
+<dd>
+   Returns access level granted to <span class="arg">userid</span> in conference <span class="arg">cnum</span>.&nbsp;  Replaces 
+   old calls to $cl_access().&nbsp;  "Optional" access values are returned as 0! 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='lowname'> %lowname(cnum) </a></dt>
+<dd>
+  Evaluates to lower-case version of conference name of <span class="arg">cnum</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='homepage'> %homepage() </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='briefintro'> %briefintro() </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='item_lastresp'> %item_lastresp(item_id) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='itemsUnder '> %itemsUnder (cnum itemId) </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='item_title'> %item_title(item_id) </a></dt>
+<dd>
+ Evaluates to title of item <span class="arg">item_id</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='acceptTerms'> %acceptTerms(item) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><li> 
+ <b>Quizzes</b><br> 
+<p/><dl>
+<dt><a name='quiz_summary'> %quiz_summary(itemlabel) </a></dt>
+<dd>
+   Link to a quiz summary, item number (label) <span class="arg">itemlabel</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='quiz_problem_summary'> %quiz_problem_summary(itemlabel) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<li><b>Filters and general text manipulation</b><br> 
+<p/><dl>
+<dt><a name='digit4'> %digit4(number) </a></dt>
+<dd>
+ Pad <span class="arg">number</span> with leading zeroes, to make a 4 digit number.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='digit8'> %digit8(number) </a></dt>
+<dd>
+ Pad <span class="arg">number</span> with leading zeroes, to make an 8 digit number.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='word_remove '> %word_remove (n list) </a></dt>
+<dd>
+ Evaluates to a <span class="arg">list</span> of words, but with word number <span class="arg">n</span> removed.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='word_insert '> %word_insert (n word list) </a></dt>
+<dd>
+ Evaluates to a <span class="arg">list</span> of words, but with <span class="arg">word</span> inserted at position <span class="arg">n</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='reducedChars'> %reducedChars(text) </a></dt>
+<dd>
+ Evaluates to <span class="arg">text</span>, with 
+ everything translated to lower case, and blanks and non-printable 
+ chars removed.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='makeLegal '> %makeLegal (str) </a></dt>
+<dd>
+ Evaluates to <span class="arg">str</span>, translated to a legal CDATA form 
+ that HTML form name= fields will accept.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='safename'> %safename(text) </a></dt>
+<dd>
+ Evaluates to <span class="arg">text</span>, but with non-printing chars (including blanks) replaced with "_".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='striplink'> %striplink(string)   "Strip" the &lt;A HREF=...&gt;url&lt;/a&gt; away from the </a></dt>
+<dd>
+   start of <span class="arg">string</span>, leaving just the "url" part, and anything 
+   following after the &lt;A HREF&gt;...&lt;/A&gt;.&nbsp;  Frequently used in 
+   other macros that take a URL as an argument, but may (due to 
+   the quirky nature of the richtext editor) find that they are 
+   getting a full &lt;A HREF&gt; tag set instead.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='stripquotes'>  %stripquotes(text) </a></dt>
+<dd>
+ Strips leading and trailing double quotes from <span class="arg">text</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='nbsp'> %nbsp(text)  translate all blanks in 'text' into &nbsp;'s. </a></dt>
+<dd>
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='trimtext '> %trimtext (chars text) </a></dt>
+<dd>
+   Display 1st <span class="arg">chars</span> of <span class="arg">text</span>.&nbsp;  If not all of <span class="arg">text</span> is displayed, 
+   add a "..." on the end to indicate text was trimmed.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='rtrim '> %rtrim (text) </a></dt>
+<dd>
+   "Right trim" <span class="arg">text</span>, i.e.&nbsp; remove all trailing blanks.&nbsp; 
+   Note: we need to remove trailing newline generated by $includecml()! 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='tripletOf'> %tripletOf(cnum word) </a></dt>
+<dd>
+ Evaluate to the conf/itemId/response triplet of "word", which 
+ can be an item:response label, or the keyword "last", or anything 
+ that $item_parse() can handle.&nbsp; 
+</dd>
+</dl>
+<li><b>SQL</b><br> 
+<p/><dl>
+<dt><a name='sql'> %sql(query) </a></dt>
+<dd>
+   Simple execution of SQL <span class="arg">query</span>.&nbsp;  For non-SELECTs only.&nbsp;  We keep _q, _h in case 
+   we ever need to debug this.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='sql1row'> %sql1row(query) </a></dt>
+<dd>
+   Simple execution of SQL <span class="arg">query</span>.&nbsp;  For one-rows SELECTs only.&nbsp;  We keep _q, _h 
+   in case we ever need to debug this.&nbsp; 
+</dd>
+</dl>
+<li><b>Date &amp; Time</b><br> 
+<p/><dl>
+<dt><a name='epoch_of '> %epoch_of (x) </a></dt>
+<dd>
+   Returns epoch time.&nbsp;  X can either be an epoch time number, or 
+   a date string (such as produced by $dateof()).&nbsp;  Used when forcing 
+   a possibly unknown format into epoch time.&nbsp;  Returns 0 if X is empty.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='datetz '> %datetz ( date | time) </a></dt>
+<dd>
+   Translate a 2-word date (e.g.&nbsp; the output from $dateof()) or a 1-word 
+   time (e.g.&nbsp; the output from $time()) into the $dateof() format 
+   for the current timezone, as defined by $(timezonehrs).&nbsp; 
+   E.g.&nbsp; if the server local time is EST, and $(timezonehrs) is set to -3, 
+   then %datetz (23-MAY-2003 11:00) becomes "23-MAY-2003 8:00".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='yyyymmddOf '> %yyyymmddOf (date) </a></dt>
+<dd>
+   Convert common <span class="arg">date</span> formats to yyyy-mm-dd.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='epochOfyyyy '> %epochOfyyyy (date) </a></dt>
+<dd>
+   Converts yyyy-mm-dd <span class="arg">date</span> to epoch times.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='dateOfyyyy '> %dateOfyyyy (date) </a></dt>
+<dd>
+ Convert yyyy-mm-dd <span class="arg">date</span> to...&nbsp; ? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='monthDayYear '> %monthDayYear (date) </a></dt>
+<dd>
+   Convert yyyy-mm-dd <span class="arg">date</span> to "Mon dd, yyyy".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='monthDayYearHour'> %monthDayYearHour(date) </a></dt>
+<dd>
+   Convert yyyy-mm-dd hh:mm:ss <span class="arg">date</span> to "Mon dd, yyyy hh:mm".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='monthDayYearHourTZ'> %monthDayYearHourTZ(date) </a></dt>
+<dd>
+   Adjust a "yyyy-mm-dd hh:mm" <span class="arg">date</span> by the number of hours in $(timezonehrs), 
+   and then display it as "Mon dd, yyyy hh:mm".&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='monthDay'> %monthDay(date) </a></dt>
+<dd>
+ Evaluate to day of month(?) of <span class="arg">date</span>.&nbsp; 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='monthDayHour'> %monthDayHour(datetime) </a></dt>
+<dd>
+ ?? 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='openElgg '> %openElgg (elggUrl link-text) </a></dt>
+<dd>
+ Experimental!&nbsp; 
+ Displays a link.&nbsp;  Clicking on the link opens a new 
+ window, and automatically (SSO) logs in to Elgg, with 
+ the Caucus userid -- but it only works if the Caucus userid 
+ is an OpenId(!!).&nbsp; 
+ <span class="arg">elggUrl</span> is the URL of Elgg installation, minus the leading http:// 
+</dd>
+</dl>
+<p/><dl>
+<dt><a name='frameElgg '> %frameElgg (elggUrl topSizeInPixels link-text) </a></dt>
+<dd>
+ Experimental!&nbsp; 
+ Displays a link.&nbsp; 
+ Clicking on the link goes to a page with the usual Caucus toolbar 
+ in a top frame, and Elgg in the lower frame.&nbsp; 
+ <span class="arg">elggUrl</span> is the URL of Elgg installation, minus the leading http://.&nbsp; 
+ <span class="arg">topSizeInPixels</span> is the size of the top frame.&nbsp; 
+</dd>
+</dl>
+</ol> 
+</body>
+</html>

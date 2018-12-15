@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.22: Debugging Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.22:&nbsp; Debugging Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref421.html">PREV</A>]
+   [<A HREF="ref423.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus version 4.1 adds run-time CML syntax and execution error
+checking and reporting.&nbsp;
+Several new functions can assist you in debugging your
+custom CML pages.
+
+<P>
+<DL>
+
+<P><DT><A NAME="errors">$errors()</A> 
+<DD>Evaluates to the text of all error messages accumulated since
+the last call to $errors().&nbsp;
+(In other words, the error text is cleared by each call to $errors().)
+
+<P>
+A good way to use this function is to display the errors at the
+bottom of a page, just before the closing &lt;/BODY&gt; tag, as
+in:
+
+<P>
+<PRE>
+   set errtext $errors()
+   if $not_empty ($(errtext))
+      "&lt;HR&gt;
+      "&lt;FONT COLOR=RED&gt;
+      "$t2hbr($(errtext))
+      "&lt;/FONT&gt;
+      "&lt;HR&gt;
+   end
+   "&lt;/BODY&gt;
+</PRE>
+
+<P>
+<DT><A NAME="variables">$variables(list)</A> 
+<DD>Displays the names and values of all variables in <I>list</I>.&nbsp;
+If empty, displays <B>all</B> variables, sorted alphabetically.
+
+<P>
+Again, a good place to use this is at the end of a CML page, 
+perhaps in the same <B>if</B> block as $errors().&nbsp;
+If this function is used inside an HTML page, it is
+(like $errors()) a good idea to wrap it inside 
+<A HREF="ref416.html#t2hbr">$t2hbr()</A>.
+
+</DL>
+</BLOCKQUOTE>
+<P>
+<HR>
+</BODY>
+</HTML>

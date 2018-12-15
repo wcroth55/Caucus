@@ -1,0 +1,38 @@
+#
+#---resetLatLong.cml   Reset user's latitude and longitude if desired.
+#
+#   If swebd.conf has the right keys configured, AND this interface
+#   has the latitude_longitude user field enabled, 
+#   THEN get the user's IP address,
+#   and ask maxmind.com for the equivalent latitude & longitude...
+#   which is often good, but can be quite wrong.  Save the result
+#   or "(none)" in case of error.
+#
+# CR 07/17/08 New file.
+#---------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<html>
+"<body>
+
+   "<center>
+   "<i>...working...</i>
+   "</center>
+
+   #---Is swebd.conf configured with a maxmind.com web services key?
+   if $and ($not_empty ($config(MaxMindKey)) $not_empty($config(curl)))
+   
+      include $(main)/getLatLong.i
+      "<script language="javascript">
+      "   var usersLatLng = opener.document.forms[0].latitude_longitude;
+      "   usersLatLng.value = '$(latlong)';
+      "</script>
+   end
+
+   "<script language="javascript">
+   "   self.close();
+   "</script>
+
+"</body>
+"</html>

@@ -1,0 +1,19 @@
+#
+#---MAN_ENONF.CML     Handle form in man_en.cml to turn e-notification
+#                     on or off.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/23/04 New file.
+#---------------------------------------------------------------------------
+
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges \
+                                systemEditSwitches
+
+eval $set_site_data ($arg(3) - en_on $if ($equal (x$form(submit) xOn) 1 0))
+
+"%location($(mainurl)/cus_en.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#---------------------------------------------------------------------------

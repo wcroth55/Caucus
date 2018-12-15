@@ -1,0 +1,263 @@
+#
+#---H_TOC.CML      Table of Contents of Help
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#: CR  5/19/03 Add %announce() macro page.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_toc.cml $quote(Table of Contents)
+
+set help_not_found 0
+
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_acton.cml?x+x">Act on Checked Responses</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_anon.cml?x+x">Anonymous Responses</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_announce.cml?x+x">\%announce() macro</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_archive.cml?x+x">Archive a Conference (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_assign.cml?x+x">Assignments</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_upload.cml?x+x">Attach A File</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_upzip.cml?x+x">Attach a Zip File</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_specurl.cml?x+x">Caucus URLs</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_center.cml?x+x">Caucus Center</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_cc.cml?x+x">Caucus Center Layout (Manager)</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_myconfs.cml?x+x">Change Personal Conference List</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_me.cml?x+x">Change Personal Information</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_users.cml?x+x">Change user passwords (Manager)</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_confhome.cml?x+x">Conference Home Page</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_org.cml?x+x">Conference Settings (Manager)</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_comp.cml?x+x">Compass Bar</
+"  A>&nbsp;&nbsp;<A HREF="$(helpurl)/h_comp.cml?x+x"><IMG 
+   "        SRC="$(img)/icompass.gif"  WIDTH=27 HEIGHT=27 ALT="*"
+   "      ALIGN=absmiddle BORDER=0></A>
+   "<FONT SIZE=-1><A HREF="$(helpurl)/h_comp.cml?x+x">$(center_name)</A> 
+   "<B>=&gt;</B> 
+   "<A HREF="$(helpurl)/h_comp.cml?x+x">Demonstration</A>
+   "</FONT><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_create.cml?x+x">Create a Conference (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_additem.cml?x+x">Create Item</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_ucr.cml?x+x">Create Users (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_custom.cml?x+x">Customize a conference</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_customc.cml?x+x">Customize ... (Colors)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_custome.cml?x+x">Customize ... (E-mail)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_customh.cml?x+x">Customize ... (Home Page)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_customi.cml?x+x">Customize ... (conference Info)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_customu.cml?x+x">Customize ... (Users)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_groups.cml?x+x">Customize ... (User Groups)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_remove.cml?x+x">Delete a Conference (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_users.cml?x+x">Delete Users (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_date.cml?x+x">Delete Users by date (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_edit.cml?x+x">Edit button</a>&nbsp;&nbsp;
+"<IMG $(src_edit) ALIGN=absmiddle><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_cus_en.cml?x+x">E-mail Notification (Organizer)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_per_en.cml?x+x">E-mail Notification (Personal)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_cus_engrp.cml?x+x">E-mail Notification: Edit group 
+" (Organizer)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_per_engrp.cml?x+x">E-mail Notification: Edit group 
+" (Personal)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x">$(filesafe_name)</a> (file library)<BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_forget.cml?x+x">Forgetting Items</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_frozen.cml?x+x">Frozen Items</a><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_tool.cml#goto">Go to Conference or Item</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/i_item.cml?x+x">Item Box</A></BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_itemcont.cml?x+x">Item Content</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_imanage.cml?x+x">Item Management</A></BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_imenu.cml?x+x">Item Menu</A></BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_viewitem.cml?x+x">Item Page</A></BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/i_resp.cml?x+x#mac">Macros</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_list.cml?x+x">Manager List (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_manage.cml?x+x">Manager Page</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_markindi.cml?x+x">Marking Items (new, seen, etc.)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_nav.cml?x+x">Navigation Buttons</A>&nbsp;&nbsp;
+"<IMG $(src_nextpg)   ALIGN=absmiddle>&nbsp;&nbsp;
+"<IMG $(src_prevpg)   ALIGN=absmiddle><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_notebook.cml?x+x">Notebook</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_note_add.cml?x+x">Notebook: add entry</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_note_cat.cml?x+x">Notebook: edit category</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_note_edit.cml?x+x">Notebook: edit entry</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_organ.cml?x+x">Organizer (of a Conference)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_tool.cml#people">People Button</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_people.cml?x+x">People page</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_pers.cml?x+x">Personal Conference List</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_popular.cml?x+x">'Popular' Conferences</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_print.cml?x+x">Printing an Item</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_quiz_answers.cml?x+x">Quizzes -- editing a problem</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_markindi.cml?x+x">Remembering Items</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_cname.cml?x+x">Rename a Conference (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_resign.cml?x+x">Resign from a Conference</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/i_resp.cml?x+x">Response Box</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_itemcont.cml?x+x">Response Content</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_tool.cml#search">Search Button</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_search.cml?x+x">Search Page</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_searchf.cml?x+x">Search Results</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_seenvs.cml?x+x">"Seen" vs. "New"</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_shut.cml?x+x">Shutdown Caucus (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_grades.cml?x+x">Status (in a course conference)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_switch.cml?x+x">Switches (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_tool.cml?x+x">Toolbar</A
+"  >&nbsp;&nbsp;&nbsp;<A HREF="$(helpurl)/h_tool.cml?x+x"
+"  ><IMG $(src_toolbar2) ALIGN=absmiddle BORDER=0></A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_stat.cml?x+x">Usage Statistics</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_groups.cml?x+x">User Groups (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_man_reg.cml?x+x">User Registration Page Layout
+" (Manager)</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_whoseen.cml?x+x">'Who Has Seen' an Item</A><BR>
+
+"&nbsp;&nbsp;&nbsp;&nbsp;
+"<A HREF="$(helpurl)/h_youare.cml?x+x">"You are $my_name()"</A><BR>
+
+include $(help)/hb.i

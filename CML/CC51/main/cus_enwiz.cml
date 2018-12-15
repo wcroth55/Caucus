@@ -1,0 +1,32 @@
+#
+#---CUS_ENWIZ.CML.   "Wizard": create a new e-mail notification group,
+#                    with defaults (all items, once a week on Monday).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_enwiz.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+#---Create a new group with the defaults
+#   (incl new items & newly created items, all items, mondays
+#   at 6 am.)
+set  group $time()
+eval $set_site_data ($arg(3) - en_items-$(group) \
+                     1 1 1 $it_last($arg(3)) 0 All)
+eval $set_site_data ($arg(3) - en_dates-$(group) 1 1)
+eval $set_site_data ($arg(3) - en_hours-$(group) 0 6)
+"%location($(mainurl)/cus_en.cml?$(nch)+$arg(2)+$arg(3)+\
+                                     $arg(4)+$arg(5)+x+x+x#edit)
+
+#------------------------------------------------------------------

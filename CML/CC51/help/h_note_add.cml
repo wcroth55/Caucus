@@ -1,0 +1,54 @@
+#
+#---H_NOTE_ADD.I   Help about "Add a Notebook Entry" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_note_add.cml $quote(Help on Add a Notebook Entry)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The "Add a Notebook Entry" page provides the controls for you to add an
+"item to your Caucus <A HREF="$(helpurl)/h_notebook.cml?x+x+">
+"Notebook.</A> The location that you add to your notebook from this
+"page is typically the one you were reading when you clicked the 
+"Notebook Icon.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>Notebook</B> icon.&nbsp;
+"Then click on <U>Add the page I just came from to my notebook</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<DL>
+"<DT><B>Category:</B>
+"<DD>The first item on the body of the page is a menu that lists your notebook
+"categories plus the option "---New category called--&gt;". Next to the menu
+"is a text entry box.<P>
+
+"<DD>If you want to add the new notebook entry to an existing category, select
+"the category from the menu. If you want to create a new category for the
+"new entry, choose the "---New category called--&gt;" option and type in
+"a new category name in the text entry box next to the menu.<P>
+
+"<DT><B>Entry name:</B>
+"<DD>Once you've chosen a category, type a name for your entry in the text box
+"labeled "Call it:" <P>
+
+"<DT><B>Monitor this item:</B>
+"<DD>If the location you're adding to your notebook is an item or response, 
+"you'll see an additional checkbox labeled "Monitor this item for future 
+"activity." If you check this option, a note will be added in your list
+"of notebook entries indicating when new activity occurs in this item.<P> 
+
+"<DT><B>Buttons:</B>
+"<DD>To save the location in your notebook, press the 
+"<B>Mark and return...</B> button. 
+"If you decide not to create a new entry, press the <B>Just return...</B>
+"button to return to your starting point.<P>
+
+"</DL>
+include $(help)/hb.i

@@ -1,0 +1,180 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.12: Groups</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.12:&nbsp; Groups of People</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref411.html">PREV</A>]
+   [<A HREF="ref413.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<p/>
+People (users) are often collected in "groups", which are then
+in turn used (primarily) to control access to different objects,
+such as conferences, filesafes, etc.&nbsp;
+In Caucus 4, groups were simple text files, containing one userid
+per line.&nbsp;
+In Caucus 5, groups are sets of rules that define which users
+have which access permissions to the relevant object.&nbsp;
+See <a href="c5groups.html">Caucus Groups in C5</a> for
+a more general description.
+
+
+<dl>
+<dt>$group_access (userid gtype gname)
+<dd>Evaluates to the (numeric) access level granted to user
+<i>userid</i> in group <i>gtype gname</i>.&nbsp;
+If the user has no access, or the group does not exist, the
+access level is 0.&nbsp;
+Group_access() is very fast due to an internal cache, but
+its information may be out of date by a maximum of 100 seconds.
+<p/>
+Groups are defined by a type (e.g. "MGR", "CONF", "Filesafe", "Caucus4",
+or a specific userid) and by a name.&nbsp;
+Thus, for example, group "MGR systemShutdown" defines the list of 
+users who are allowed to shutdown Caucus, and "CONF 12" defines the
+list of users with access to conference number 12.
+<p/>
+The access levels are:
+<ul>
+<table cellspacing=0 cellpadding=0>
+<tr><td>Primary organizer:&nbsp;&nbsp;</td> <td align=right>100</td>
+<tr><td>Organizer</td>                <td align=right>40</td>
+<tr><td>Instructor</td>               <td align=right>30</td>
+<tr><td>Member ("include")</td>       <td align=right>20</td>
+<tr><td>Readonly</td>                 <td align=right>10</td>
+<tr><td>Exclude</td>                  <td align=right>0</td>
+</table>
+</ul>
+
+<p/>
+<dt>$group_update ($quote(grouptype groupname))
+<dd>Updates all of the 'groups' table entries for
+"<i>grouptype groupname</i>".&nbsp;
+Either $group_update() or $group_update_rule() <b>must</b> be called 
+after any changes to the rules
+for a particular group (in the grouprules table).&nbsp;
+Group_update() is slow but thorough, 
+since it completely rebuilds the groups table
+entries for a particular group.
+
+<p/>
+<dt>$group_update_rule (changeentry $quote(grouptype groupname))
+<dd>Updates the 'groups' table entries for group
+"<i>grouptype groupname</i>", 
+but only updates rows for users that match <i>changeentry</i>.&nbsp;
+Changeentry can be a userid, a wildcard, or a $quote()'d group
+name.
+<p/>
+This function is much faster (and thus preferable) if we know
+(which we almost always do) which entries have been changed.&nbsp;
+E.g. if we add a grouprules row for a specific userid, then call
+$group_update_rule() with that userid, etc. etc.
+
+<P><DT><A NAME="peo_members">$peo_members(cnum)</A>
+<DD>
+Evaluates to a list of userids that are members of conference
+<I>cnum</I>.&nbsp;  The userids are sorted by &quot;last name&quot;
+of the actual users.
+
+<p/>
+   <dt><a name="userids_byid">$userids_byid(match)</a>
+   <dd>Evaluates to a list of all of the userids registered with Caucus 
+       that begin with the initial substring <i>match</i>.&nbsp;
+       If <i>match</i> is empty, evaluates to list of all 
+       of the Caucus userids.&nbsp;
+       (Even on a site with thousands of users, this function evaluates 
+       quickly.)
+
+<P><DT><A NAME="peo_names">$peo_names(cnum word1 [word2])</A>
+<DD>
+Evaluates to a list of userids of people who match <i>word1</i>
+(<b>and</b> <i>word2</i>, if specified).&nbsp;
+A person matches if the word(s) are an initial
+substring of their first or last name.&nbsp;  If <I>cnum</I> is non-zero,
+matching people must also be a member of conference <I>cnum</I>.
+
+   <p/>
+   <dt><a name="userids_byname">$userids_byname(x names...)</a>
+   <dd>Evaluates to a list of userids of people who match <i>names</i>.&nbsp;
+       A person matches if every word in <i>names</i> is an initial substring 
+       of some part of their name (including their userid as if it
+       were part of their name).&nbsp;
+       The <i>x</i> argument is ignored (for now).
+   <p/>
+   <b>Note:</b>&nbsp;
+       Caucus 5 implements this function with a brute-force
+       LIKE match and a set of JOINs of user_info against itself.&nbsp;
+       On a large site, this may be slow; if so, it can be reimplemented
+       as a separate table, with one row per word in the users' names.
+   <p/>
+
+</dl>
+<table width="100%" bgcolor="#D0D0FF">
+<tr><td align=center><b>Caucus 4.x functions</b></td>
+</table>
+
+<dl>
+
+<P><DT><A NAME="in_group">$in_group(userid gfile)</A>
+<DD>
+The In_group function, in combination with the Caucus "groups" files,
+acts as a simple kind of ACL (access control list) mechanism.&nbsp;
+It evaluates to a number (the "match value") >= 1 
+if <I>userid</I> is found or matched 
+in group file <I>gfile</I>,
+or any group file that <I>gfile</I> in turn includes.&nbsp;
+Otherwise "0".
+
+<p>
+If <i>userid</i> is found by itself on a line, the match value is 1.&nbsp;
+If <i>userid</i> is followed on the same line by a number or numbers, 
+the match value is the bitwise "OR" of those numbers.&nbsp;
+If <i>userid</i> is followed on the same line by one or more words,
+those words are translated into numbers (from the GroupPermNames
+parameter in swebd.conf), and then likewise "OR"ed together.
+
+<p>
+If the swebd.conf parameter GroupSearch is "ALL", $in_group() searches 
+for <b>all</b> possible matches for <i>userid</i>, and similarly 
+"OR"s them all together.&nbsp;
+Otherwise, $in_group() just returns the <b>first</b> match.&nbsp;
+
+<p>
+If you are using $in_group() simply to check if a user is in a group, 
+then GroupSearch does not need to be set to "ALL", and in fact Caucus
+will run somewhat faster that way.&nbsp;
+If, however, you use $in_group() for ACLs, and there's any chance at
+all that a userid will be listed more than once, you should definitely
+make sure that GroupSearch is set to "ALL".
+
+<P><DT><A NAME="groupperm">$groupperm(permname...)</A>
+<DD>
+Translates group permission names (as in the groups files used by
+<a href="#in_group">$in_group()</a>, above) into their numerical
+equivalents.&nbsp;
+Evaluates to the bitwise "OR" of the numeric values
+(from the swebd.conf parameter GroupPermNames) of the word(s)
+in <i>permname</i>.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

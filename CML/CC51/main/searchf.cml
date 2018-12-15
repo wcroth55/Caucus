@@ -1,0 +1,359 @@
+#
+#---Searchf.CML.   Handle forms data from search.cml
+#
+#      arg(9)      triplet list of items to search
+#                  (if no list, built list out of forms data)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/30/02 Remove $t2hbr() from inside $t2url().
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 12/20/03 Add timezonehrs, timezonename interface variables.
+#: CR  7/07/04 Use $unhtml() to strip HTML tags from search results.
+#: CR 10/13/04 New layout, use CSS, apply bozofilter.
+#: CR 12/23/05 Search retired items (argument to iresolve.i)
+#: CR 02/28/06 Add favicons.
+#: CR 10/27/07 Fix bug in setting sr_next for triplets not being searched.
+#: CR 03/15/12 Skip deleted responses.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i search.cml
+end
+
+include $(main)/secure.i open
+
+set nch  $unique()
+set cnum $if($equal($arg(3) x) $form(conference) $arg(3))
+
+set nxt  $page_save (1 searchf.cml \
+           $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+           # Search Results )
+
+"Content-type: text/html
+"
+
+"<HTML>
+"<HEAD>
+"<TITLE>Search Results</TITLE>
+include $(main)/popup.i
+include $(main)/css.i
+"</HEAD>
+"<link rel="icon"          href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+"<link rel="shortcut icon" href="$(http)://$host()/~$caucus_id()/favicon.ico" 
+"     type="image/x-icon" >
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  searchf  Search Results
+set can_save_page 0
+
+#---On first entry to a search, interpret the forms, and build the
+#   triplet list SR_SCAN of items to be searched.
+set arg9 $arg(9)
+set sr_error
+if $empty ($(arg9))
+   set sr_any    $equal ($form(and_or) or)
+   set sr_what   $form(what)
+   set sr_hits   $form(hits)
+   set sr_inword $if ($(japanese_search) 1 $form(inword))
+   set sr_author $word(1 $form(author))
+   set sr_id     $equal ($form(name_type) userid)
+   set sr_text   $equal ($form(show_text) 1)
+
+   set ikey  $form(ikey)
+   set idata $form(idata)
+   set ilist $plusmod ($(ilist) 1 $(ilistmax))
+
+   set forgotten $equal ($(ikey) forgot)
+   for iconf in $form(conference)
+      include $(main)/itemListOf.i $(iconf) $userid() $(ikey) $(forgotten) \
+                                   0 1 $quote($(idata))
+      set ilist$(ilist) $(ilist$(ilist)) $(itemList)
+   end
+
+   if $empty($form(conference))
+      set sr_error  You need to choose a conference or set of conferences \
+         that you would like to search.
+   end
+
+   if $and($empty($form(what)) $empty($form(author)))
+      set sr_error  You need to enter a keyword or an author name to \
+         start a search.
+   end
+
+   set arg9           ilist$(ilist)
+end
+eval $page_flush()
+
+
+#---Now actually search the triplet SR_SCAN until we find SR_HITS hits.  Put
+#   the resulting hits in SR_RESULTS.  Put the remaining (unsearched)
+#   triplets in SR_NEXT.
+set sr_results
+set sr_next
+set count    1
+set search   1
+set time0    $time()
+set phalf    $divide ($pagetime() 2)
+set filter_bozos $and ($word (1 $(siteBozoFilter) 1) \
+                       $word (1 $site_data ($(vi_cnum) - confBozoFilter) 1))
+
+for cn inum rn in $($(arg9))
+
+   #---If author search is requested, scan through the responses
+   #   for either the exact userid, or name match, as chosen by the user.
+   if $and($not_empty($(sr_author)) $(search))
+      if $(sr_id)
+         set sq SELECT r.rnum FROM resps r WHERE r.items_id=$(inum) \
+                   AND r.rnum>=$(rn) AND r.deleted=0 AND r.version= \
+                     (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+                   AND r.userid='$(sr_author)'  ORDER BY r.rnum
+      end
+      else
+         set sq SELECT r.rnum FROM resps r, user_info u \
+                 WHERE r.items_id=$(inum) AND r.userid=u.userid \
+                   AND r.rnum>=$(rn) AND r.deleted=0 AND r.version= \
+                     (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+                   AND (u.fname LIKE '$(sr_author)%' OR \
+                        u.lname LIKE '$(sr_author)%')   \
+                 ORDER BY r.rnum
+      end
+      set sh $sql_query_open ($(sq))
+      while  $sql_query_row  ($(sh))
+         set sr_results $(sr_results) $(cn) $(inum) $(rnum)
+         set count $plus ($(count) 1)
+
+         #---If we're coming close to a timeout, write *something*
+         #   and flush it.
+         if $greater ($minus ($time() $(time0)) $(phalf))
+            "
+            eval $page_flush()
+            set  time0 $time()
+         end
+   
+         if $greater ($(count) $(sr_hits))
+            set search  0
+            set sr_next $(cn) $(inum) $plus ($(rnum) 1)
+            break
+         end
+      end
+      eval   $sql_query_close($(sh))
+   end
+
+   #---Otherwise, search this triplet.
+   elif $(search)
+
+      #---Determine how to make a match against the supplied text.
+      set match
+      for token in $(sr_what)
+         if $not_empty ($(match))
+            set match $(match) $if ($(sr_any) OR AND)
+         end
+         if $(sr_inword)
+            set match $(match) r.text LIKE '%$(token)%'
+         end
+         else
+            set match $(match) r.text RLIKE '[[:<:]]$(token)'
+         end
+      end
+
+      set sq SELECT r.rnum FROM resps r WHERE r.items_id=$(inum) \
+                AND r.rnum>=$(rn) AND r.deleted=0 AND r.version= \
+                  (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+                AND ($(match)) ORDER BY r.rnum
+      set hq $sql_query_open($(sq))
+      while  $sql_query_row ($(hq))
+         set sr_results $(sr_results) $(cn) $(inum) $(rnum)
+         set count $plus ($(count) 1)
+         if $greater ($(count) $(sr_hits))
+            set search 0
+            set sr_next $(cn) $(inum) $plus ($(rnum) 1)
+            break
+         end
+
+         #---If we're coming close to a timeout, write *something*
+         #   and flush it.
+         if $greater ($minus ($time() $(time0)) $(phalf))
+            "
+            eval $page_flush()
+            set  time0 $time()
+         end
+      end
+      eval $sql_query_close($(hq))
+   end
+
+   #---Triplets not being searched are appended to SR_NEXT.
+   else
+#     set sr_next $(sr_next) $(cn) $(inum) $(rnum)
+      set sr_next $(sr_next) $(cn) $(inum) $(rn)
+   end
+end
+
+
+#---Prepare to display actual hits.
+set vi_markseen 1
+set no_hits     <p/>No matches were found.<BR>
+set last_inum   x
+set last_cn     x
+
+"<p/>
+
+set show_between 0
+
+if $(sr_text)
+   for cn inum rnum in $(sr_results)
+      set q SELECT userid owner, time, text  \
+              FROM resps r WHERE r.items_id=$(inum) AND r.rnum=$(rnum) AND r.version= \
+                 (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum)
+      set h $sql_query_open ($(q))
+      eval  $sql_query_row  ($(h))
+      eval  $sql_query_close($(h))
+      set filtered $and ($(filter_bozos) $tablefind ($(owner) $(bozos)))
+      set ilabel $item_label ($(cn) $(inum))
+
+      "<div class="response">
+
+      #---When changing to a new item, put up the item title.
+      if $or($not_equal ($(last_inum) $(inum)) $not_equal ($(last_cn) $(cn)))
+         set title %item_title($(inum))
+         "<span class="item_title">%displayed_conf_name ($(cn))
+         "<A HREF="$(mainurl)/viewitem.cml?$(nch)+$(nxt)+$(cn)+$(inum)\
+                   +0+x+1+x#here">
+         "Item $(ilabel): $t2hbr ($(title))</A>
+         "</span>
+         "<p/>
+      end
+  
+      "<span class="response_id">
+      if $not_equal ($(rnum) 0)
+         "Response
+         "<A HREF="viewitem.cml?$(nch)+$(nxt)+$(cn)+$(inum)+$(rnum)+x+1+x#here">
+         "$(ilabel):$(rnum)</A></span>
+      end
+      else
+         "Item $(ilabel):
+      end
+      "</span>
+      set person %person($(owner))
+      if $empty ($user_info ($(owner) lname))
+         set person ($(owner))
+      end
+      "<span class="response_author">$(person)</span>
+      "<span class="response_date"
+      "   >%monthDayYearHourTZ($(time)) $(timezonename)</span>
+      "$ifthen ($(filtered) \
+           <span class="bozofiltered">&nbsp;&nbsp;&nbsp;Filtered</span>)
+  
+      #--- Determine what text to display (author searches can't use the
+      #    find filter)
+      if $not_empty($(sr_author))
+#        set text $str_sub(0 400 $re_text($(cn) $(inum) $(rnum)))
+         set text $unhtml(x $str_sub(0 400 $(text)))
+      end
+      else
+   #     set text $find_filter( $sizeof($(sr_what)) $(sr_what) \
+   #            $(sr_inword) $re_text($(cn) $(inum) $(rnum)))
+         set un_tags p,div,br,li,tr,pre,old,ul
+         set text $find_filter( $sizeof($(sr_what)) $(sr_what) \
+                $(sr_inword) $unhtml ($(un_tags) $(text)))
+      end
+   
+      #--- Display the response text
+      if $not ($(filtered))
+         "<div class="response_body">
+         "<div 
+         "  style="$ifthen($not_empty($(lmargin)) margin-left: $(lmargin);) \
+                   $ifthen($not_empty($(rmargin)) margin-right: $(rmargin);)">
+           "$str_replace(&amp; & $wrap2html($(text)))
+         "</div>
+         "</div>
+      end
+   
+      "</div>
+      set no_hits
+      set last_inum $(inum)
+      set last_cn   $(cn)
+   end
+end
+else
+   "<TABLE CELLPADDING=2 CELLSPACING=0 border=0>
+   for cn inum rnum in $(sr_results)
+      set q SELECT r.userid owner, r.time  \
+              FROM resps r WHERE r.items_id=$(inum) AND r.rnum=$(rnum) AND r.version= \
+                 (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum)
+      set h $sql_query_open ($(q))
+      eval  $sql_query_row  ($(h))
+      eval  $sql_query_close($(h))
+
+      #---When changing to a new item, put up the item title.
+      if $or($not_equal ($(last_inum) $(inum)) $not_equal ($(last_cn) $(cn)))
+         set title %item_title($(inum))
+         "<TR $(body_fg)>
+         "<td colspan=3><b>%displayed_conf_name ($(cn))</b></td>
+         "<td><A HREF="$(mainurl)/viewitem.cml?\
+              $(nch)+$(nxt)+$(cn)+$(inum)+0+x+1+x#here"
+         " ><B>Item $(ilabel): $t2hbr ($(title))</B></A></td>
+      end
+
+      "<TR>
+      "<TD></TD>
+      "<TD><A HREF="viewitem.cml?$(nch)+$(nxt)+$(cn)+$(inum)+$(rnum)+\
+                                 x+1+x#here">
+      "$(ilabel):$(rnum)</A></TD>
+      "<TD align=right><nobr
+      "   >%monthDayYearHourTZ($(time)) $(timezonename)</nobr></td>
+      set person %person($(owner))
+      if $empty ($user_info ($(owner) lname))
+         set person ($(owner))
+      end
+      "<TD><nobr>$(person)</nobr></TD>
+ 
+      set no_hits
+      set last_inum $(inum)
+      set last_cn $(cn)
+   end
+   "</TABLE>
+end
+
+if $empty ($(sr_next))
+   "<p/>
+   "<CENTER>
+   if $not_empty($(sr_error))
+      "<FONT COLOR=RED><B>$(sr_error)</B></FONT>
+   end
+   else
+      "<B>There are no more hits</B>.
+   end
+   "<p/><A HREF="$(mainurl)/search.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+   "Start a new search.</A>
+   "</CENTER>
+end
+else
+   set ilist $plusmod ($(ilist) 1 $(ilistmax))
+   set ilist$(ilist)  $(sr_next)
+   "<HR>
+   "<CENTER>
+   "<A HREF="$(mainurl)/searchf.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+ilist$(ilist)">
+   "Display next $(sr_hits) hits.</A>
+   "</CENTER>
+end
+
+"$(no_hits)
+
+if $and ($(trailerbar) $empty($(no_hits)))
+   include $(main)/trailer.i searchf Search Results
+end
+else
+   "<HR>
+end
+
+"</div>
+"</body>
+"</HTML>
+#---------------------------------------------------------------

@@ -1,0 +1,82 @@
+#
+#--- purchaseGroupMembership.cml
+#
+#----------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+include $(main)/css.i 1
+"</head>
+"<body>
+
+#---Return processing from PayPal.
+
+if $equal ($arg(2) call)
+   set groupOwner    $arg(3)
+   set groupName     $arg(4)
+   set paypalAccount $arg(5)
+   set amount        $arg(6)
+   "To purchase a membership in the '$(groupName)' group for 
+   "a one-time fee of US \$$(amount),<br>
+   "click on the PayPal "buy now" button below.
+   "<p/>
+   "When you are finished, you <b>must</b> click on the "Return to CaucusCare" link!!
+   "<p/>
+   "<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+   "   <input type="hidden" name="cmd" value="_xclick">
+   "   <input type="hidden" name="amount" value="$(amount)">
+   "   <input type="hidden" name="item_name" value="Membership in $host() group $(groupOwner) $(groupName)">
+   "   <input type="hidden" name="quantity"  value="1">
+   "   <input type="hidden" name="shipping"  value="0">
+   "   <input type="hidden" name="business"  value="$(paypalAccount)">
+   "   <input type="hidden" name="custom"    value="$userid() $(groupOwner) $(groupName)">
+   "   <input type="hidden" name="rm"        value="2">
+
+   set hashCode $md5hash($userid():$(groupOwner):$(groupName):purchase)
+
+
+   "   <input type="hidden" NAME="return" 
+   "      value="$(mainurl)/purchaseGroupMembership.cml?\
+             $unique()+$userid()+$(groupOwner)+$(groupName)+$(hashCode)" />
+   "   <input $(src_buynow) name="submit" alt="Buy Now" type="image">
+   "</form>
+   
+   "<p/>
+end
+
+#---Return processing from PayPal.
+else
+   set userid     $arg(2)
+   set groupOwner $arg(3)
+   set groupName  $arg(4)
+   set gotHash    $arg(5)
+   set hashCode $md5hash($userid():$(groupOwner):$(groupName):purchase)
+   set query INSERT INTO grouprules \
+      (grkey, owner, name, userid, access)  VALUES \
+      (NULL, '$(groupOwner)', '$(groupName)', '$(userid)', $priv(include))
+
+   set h $sql_query_open($(query))
+   eval  $sql_query_close($(h))
+   eval  $group_update_rule ($(userid) $quote ($(groupOwner) $(groupName)))
+
+#  "<pre>
+#  "userid    =$(userid)<br/>
+#  "groupOwner=$(groupOwner)<br/>
+#  "groupName =$(groupName)<br/>
+#  "hash1     =$(gotHash)<br/>
+#  "hash2     =$(hashCode)<br/>
+
+   "<script language="javascript">
+#  "   window.opener.location.reload();
+   "   setTimeout(function() { self.close() }, 2000);
+   "</script>
+
+#  "query=$(query)<p/>
+#  "h=$(h)
+#  "</pre>
+end
+
+"</body>
+"</html>

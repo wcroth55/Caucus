@@ -1,0 +1,62 @@
+#
+#---CUS_ENGRPF.CML     Process form results from e-mail notification 
+#                      group editing in cus_engrp.cml
+#
+#   arg(3)   conf num
+#   arg(5)   group num
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/06/06 Fix organizer-vs-instructor confusion.
+#------------------------------------------------------------------
+
+include $(main)/secure.i ins $arg(3)
+
+#---Get list of items (in "english") by converting checked boxes
+#   to triplets, then calling $it_pack().
+#set triplet
+#for ic in $form(ibox)
+#   set triplet $(triplet) $arg(3) $(ic) 0
+#end
+#set items $it_pack ($arg(3) 1 $(triplet))
+
+set items $form(ibox)
+
+#---Include newly-created items?
+set newly $word (1 $form(new) 0)
+
+#---Were all items selected?
+#set sel_all $equal ($quote($form(listall)) $quote($form(ibox)))
+
+#---If all items were selected, *and* newly created items as well,
+#   then just consider the itemlist to be ALL.
+#if $and ($(sel_all) $(newly))
+#   set items All
+#end
+
+#---Write the results to the appropriate confs var.
+#---Set summary/detail, and list of hours.
+eval $set_site_data ($arg(3) - en_hours-$arg(5) $form(summary) $form(hd))
+
+#---Set the list of days (weekly or monthly)
+if $form(wd)
+   eval $set_site_data ($arg(3) - en_dates-$arg(5) 1 $form(wd))
+end
+else
+   eval $set_site_data ($arg(3) - en_dates-$arg(5) 0 $form(md))
+end
+
+#---Set the list of items.
+set newestItemTime $quote($sql_query_select(\
+    SELECT MAX(r.time) FROM conf_has_items h, resps r \
+     WHERE h.cnum=$arg(3) AND h.items_id=r.items_id AND r.rnum=0 AND r.version = \
+         (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+     ))
+eval $set_site_data ($arg(3) - en_items-$arg(5) \
+                    1 $(newly) 1 $(newestItemTime) 0 $(items))
+
+"%location($(mainurl)/cus_en.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#------------------------------------------------------------------

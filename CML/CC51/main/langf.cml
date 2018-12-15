@@ -1,0 +1,20 @@
+#
+#---LANGF.CML.   Process form in LANGUAGE.CML, return to previous page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i dfbutton.cml
+end
+ 
+set nch    $unique()
+
+#---Figure out which button was pressed.
+eval $set_browser_format($form(browlang))
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#--------------------------------------------------------------------

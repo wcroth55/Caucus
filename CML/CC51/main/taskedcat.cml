@@ -1,0 +1,120 @@
+#
+#---taskedcat.cml    Edit list of task categories.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   ... usual
+#   
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/07/05 New file.
+#: CR 10/06/09 Remove $sql_sequence(task_cats)
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i taskedcat.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch     $unique()
+set cnum    $arg(3)
+set cname   %displayed_conf_name ($(cnum))
+set arglist $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set nxt     $page_save (1 taskedcat.cml $(arglist)+$arg(9) # Edit Categories)
+
+set tname   $upper1($(tasks_name))
+set pname   $(tname): Edit Categories
+set pagename <span class="pageTitle"><B>$(pname)</B></span><BR>
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(tname)) 0 0 1
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/header.i  tasks </a><a href="tasks.cml?$(nch)+$(arglist)"\
+    >$(tname)s</a>&nbsp;$(compass_arrow)&nbsp;<a href="#top">Edit Categories
+
+#======================================================================
+#---Handle form processing from previous call, first.
+
+if $not_empty ($form(submitter))
+   count num 1 100000
+      set category $form(category$(num))
+#     "num=$(num), category='$(category)', catname='$form(catname$(num))'<br>
+      if $empty ($(category))
+         break
+      end
+      if $equal ($(category) 0)
+         if $empty ($form(catname$(num)))
+            break
+         end
+         set query INSERT INTO task_cats (category, catname) \
+                   VALUES (NULL, '$escsingle($form(catname$(num)))')
+      end
+      else
+         set query UPDATE task_cats \
+                      SET catname='$escsingle($form(catname$(num)))' \
+                    WHERE category=$form(category$(num))
+      end
+      set h $sql_query_open ($(query))
+#     "  h=$(h), query='$(query)'<br>
+      eval  $sql_query_close($(h))
+   end
+end
+
+
+#======================================================================
+#---Handle category deletion from previous call.
+
+if $not_empty ($arg(9))
+   set h $sql_query_open (DELETE FROM task_cats WHERE category = $arg(9))
+   eval  $sql_query_close($(h))
+end
+
+#======================================================================
+#---Now display current value of page.
+
+set query SELECT category, catname FROM task_cats ORDER BY catname
+set h $sql_query_open ($(query))
+
+"<blockquote>
+"<form name="cats" method="post"
+"      action="taskedcat.cml?$(nch)+$(arglist)">
+"<table border=0>
+"<tr><td colspan=2>Edit or delete the category names, 
+"       or add a new category at the bottom.</td>
+set num 0
+while $sql_query_row ($(h))
+   if $greater ($(category) 0)
+      set num $plus ($(num) 1)
+      "<tr>
+      "<td width="1%"><a href="taskedcat.cml?$(nch)+$(arglist)+$(category)"
+      "   ><img $(src_trash) border=0></td>
+      "<td><input type="text" size="20" name="catname$(num)"
+      "       value="$escquote($(catname))"
+      "   ><input type="hidden" name="category$(num)" value="$(category)"></td>
+   end
+end
+eval $sql_query_close($(h))
+set num $plus ($(num) 1)
+"<tr><td></td>
+"<td><input type="text" size="20" name="catname$(num)"
+"   ><input type="hidden" name="category$(num)" value="0"></td>
+
+"<tr><td>&nbsp;</td>
+"<tr><td></td>
+"<td><input type="submit" name="submitter" value="Make Changes"></td>
+
+"</table>
+
+"</form>
+"</blockquote>
+
+"</div>
+"</body>
+"</html>

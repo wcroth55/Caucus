@@ -1,0 +1,302 @@
+<html>
+<head>
+<style type="text/css">
+   body, td { font-family: arial;  font-size: 80%; }
+   LI { margin-top: .4em; }
+</style>
+<title>Caucus Groups in C5</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+<blockquote>
+<h2>Caucus Groups in C5</h2>
+Charles Roth, 5/17/2005<br>
+Copyright (C) 2005 CaucusCare.&nbsp; All rights reserved.
+
+<p/>
+<b>I. Introduction</b><br>
+The way groups are handled in Caucus is completely redone in C5,
+according to the following principles.
+
+<p/>
+<ol>
+<li>Every collection of people is a group.&nbsp;
+   (Groups, conferences, manager privs, etc.)
+<li>Groups can contain subgroups.
+<li>Groups are defined by owner (userid, conf name, etc.) and group name.
+<li>Groups define membership <b>and</b> access level.
+<li>Groups must be usable in simple MySQL "joins" to determine who
+    is in a group, and with what access level.
+<li>Users may opt-out of access to a group.
+<li>Groups may define opt-in access levels.
+</ol>
+
+<p/>
+<b>II. Opt-out and Opt-in</b><br>
+The last two points are tricky, and are driven by a design decision
+about conferences.&nbsp;
+In Caucus 4, each conference has a userlist, and a membership
+list.&nbsp;
+The userlist is the list of "invitees"; the membership list is
+the set of invitees who actually "showed up", so to speak.&nbsp;
+While distinguishing between the two is useful, in practice it has
+led to endless confusion, and even more complicated work-arounds
+such as "force join" and "auto join" for cases where the organizer
+needs to <b>make</b> people be members.
+<p/>
+So, in C5, the userlist and the membership become one: the conference
+group.&nbsp;
+If your access to the conference group is readonly or higher, you
+are a member.&nbsp;
+Period.
+<p/>
+<b>However</b>, if you don't want to be a member, you can "opt out"
+of a group.&nbsp;
+As implemented, it means you can add an opt-out rule to a group
+that you belong to.&nbsp;
+If you change your mind (again), you can remove your opt-out rule,
+and get back your original access.
+<p/>
+Opt-in is similar.&nbsp;
+Whoever owns a group can define opt-in access for a set of people.&nbsp;
+They are not members of the group, but they can <b>choose</b> to
+add themselves to the group, with whatever access level the
+owner originally specified.
+
+
+<p/>
+<b>III. The Formal Details</b><br>
+The rest of this document lays out 
+the details and formal definitions of these principles.&nbsp;
+Take a deep breath and read onward!
+
+<p/>
+<ol>
+<li><b>Every collection of people is a group.</b>&nbsp;
+Groups are groups.&nbsp;
+Conference user lists are groups.&nbsp;
+Item access lists (new in C5) are groups.&nbsp;
+Manager privileges are groups.&nbsp; Etc.
+
+<p/>
+<li><b>Groups contain userids, or other groups.</b>&nbsp;
+   Each entry in a group is called a "rule".&nbsp;
+   E.g. a group G that contains userid A, userid B, and group X
+   has three rules, one each for A and B, and one for X.&nbsp;
+   (For now, when a group is contained in another group, 
+   it is shown with a preceding "&lt;" as in C4.)
+
+<p/>
+<li><b>Userids in groups may have wildcards.</b>&nbsp;
+  The MySQL "LIKE" syntax is used, 
+   e.g. "user%" or "%_class" or "abc%xyz".&nbsp;
+  Asterisks in C4 groups are translated to %'s.
+
+<p/>
+<li><b>All groups are owned by someone or something.</b>&nbsp;
+Group names take the form:
+<p/>
+<ul>
+<i>owner<b>.</b>name</i>
+</ul>
+<p/>
+Owners can be:
+<ul>
+<li>"CONF".&nbsp;  E.g. CONF.demo is the userlist for conference "demo".
+<li>"MGR".&nbsp; Special manager groups are owned by "MGR".
+<li>A userid.&nbsp;  E.g. "roth.special" is owned by userid "roth".&nbsp;
+</ul>
+<p/>
+Note that all userids are lower-case, and all "special" owners
+are all upper-case.&nbsp;
+Additional categories of special owners may be added later,
+such as the C4 "interface" groups that record who was registered
+under which interface.
+<p/>
+Currently, everyone can read or use all groups.&nbsp;
+Userid groups (e.g. "roth.special") can be edited or deleted by the owning
+userid.&nbsp;
+Conference groups (e.g. "CONF.demo") can be edited by the matching
+conference organizers.&nbsp;
+All groups may be edited by members of "mgr.groups" (the managers with
+"edit groups" privilege).
+
+<p/>
+<li><b>Rules define access</b>.&nbsp;
+Each rule selects a userid or group, <b>and</b> an access level, 
+<b>and</b>
+whether that is "real" or "optional" access.&nbsp;
+Access levels are represented internally by integers, and in the
+user interface by keywords.&nbsp;
+There is an "out-of-the-box" list of standard access levels, 
+and custom (site) levels may also be added.
+
+<p/>
+The standard access levels are:
+<ul>
+<table>
+<tr><td><b>Keyword</b></td>  <td><b>Value</b></td>  
+    <td>&nbsp;&nbsp;&nbsp;</td> <td><b>Description</b></td>
+<tr><td>organizer</td>   <td align=right>40</td> <td></td>
+    <td>Full management powers for whatever the group is used in</td>
+<tr><td>instructor</td>  <td align=right>30</td> <td></td>
+    <td>(limited organizer powers)</td>
+<tr><td>include</td>     <td align=right>20</td>
+<tr><td>readonly</td>    <td align=right>10</td>
+<tr><td>exclude</td>  <td align=right>0</td> <td></td>
+    <td>No access</td>
+<tr><td>inherit</td>  <td align=right>-1</td> <td></td>
+    <td>Inherit actual access level from subgroup</td>
+</table>
+</ul>
+
+<p/>
+If a rule lists a userid but no access level, then the default
+level of "include" is implied.&nbsp;
+The precise implications of an access level depend on what
+a group is used for.&nbsp;
+E.g. for a conference the levels are pretty clear, but
+for a group that defines manager privs, everything above "exclude"
+means you have that priv, and everything below means you do not
+have that priv.&nbsp;
+Ditto emailing everyone in a group, and so on.
+<p/>
+If an access level is "optional", then users do not have any access,
+and are not considered members --
+except that they have the ability to add a rule to the group with 
+the "real" equivalent access.&nbsp;
+(Optional exclude access is probably meaningless -- generally
+anyone with real access in a group can exclude themselves.&nbsp;
+This may be prohibited separately at the interface level, e.g.
+a conference organizer may turn off the ability to for users
+to exclude themselves.)
+
+<p/>
+<li><b>Rules may inherit or override.</b>&nbsp;
+When a rule in group G references another group X (i.e. a subgroup), 
+it is interpreted in one of two ways:
+<ol>
+<li>If the rule access in G is inherit, then the rules in X are inherited
+exactly as they are (i.e. as if those rules were copied directly into G).
+<li>Otherwise, the rule in G applies to everyone in X who has readonly
+or higher access in X.
+</ol>
+
+<p/>
+Example:
+<ul>
+<table border=0>
+<tr valign=top>
+<td><b>Group G</b><br>
+&lt;M include<br>
+&lt;F inherit</td>
+<td>&nbsp;&nbsp;</td>
+<td><b>Group M</b><br>
+alfred readonly<br>
+bob include<br>
+charlie organizer<br>
+dexter exclude</td>
+<td>&nbsp;&nbsp;</td>
+<td><b>Group F</b><br>
+alice readonly<br>
+betty include<br>
+charlotte organizer<br>
+debby exclude</td>
+</table>
+</ul>
+
+<p/>
+Group G's rules yield the following access:
+<ul>
+<li>Include: alfred, bob, charlie, betty
+<li>Readonly: alice
+<li>Organizer: charlotte
+</ul>
+
+<p/>
+<li><b>Exclude wins.&nbsp; Then highest access wins.</b>&nbsp;
+If more than one rule in a group applies to a userid 
+(including rules from subgroups), then:
+<ul>
+<li>Any exclude rule for that userid wins.&nbsp;
+(Opt-out acts like exclude.)
+<li>Otherwise, the highest (most privileged) access wins.
+</ul>
+<p/>
+Example: if we modified group G above to add two new rules:
+<ul>
+dexter include<br>
+debby include
+</ul>
+<p/>
+Then dexter would have include access (because he is effectively
+<b>not in</b> group M), but debby would still be excluded, because
+the inherited exclude rule from F wins over the new include rule in G.
+
+<p/>
+<li><b>Assume simplicity.</b>&nbsp;
+The group structure as presented is complex, if thorough.&nbsp;
+But in most cases, the interface need only present the simplest
+aspects of the groups.&nbsp;
+Only if a user chooses to invoke a more complex option (such
+as wildcards or inheritance or optional access) 
+do the relevant interface options appear.&nbsp;
+<p/>
+So, for example, most of the time the access rule "include" is assumed
+when including groups within groups.
+
+<p/>
+The "exclude" concept, in particular, adds a lot of complexity.&nbsp;
+But in general it is only needed to counter the effects of a wild-card
+match, such as "give everyone access <b>except</b> certain people".&nbsp;
+In most cases, neither wild-cards nor exclude will be used, and
+the interface can appear correspondingly simpler.&nbsp;
+
+<p/>
+<li><b>Group rules define JOINable groups table.</b>&nbsp;
+The implementation of the groups rules is done via two tables: 
+'grouprules' and 'groups'.&nbsp;
+The rules as described above are recorded in 'grouprules'.&nbsp;
+The 'groups' table records the relationship between every userid
+and <b>every</b> group.&nbsp;
+The idea is that 'groups' can be used in simple MySQL "joins"
+when a query needs to be restricted by membership in a group.
+
+<p/>
+More precisely, each row in 'groups' has a structure something like:
+<pre>
+   userid   varchar
+   group    varchar
+   access   int</pre>
+
+The values in 'groups' are totally derived from the rules in
+'grouprules'.&nbsp;
+Every time a group is changed and the relevant rows in 'grouprules'
+are changed, <b>all</b> rows in 'groups' that reference the changed group,
+either directly <b>or through included layers of subgroups</b>, are updated
+to match.&nbsp;
+(This also means that any time a new userid is added, any wild-card
+group rules must be scanned for matches against the new userid, and
+the 'groups' table similarly updated.&nbsp;
+Thus, determining group membership and access is very fast and simple,
+but changing group membership is expensive.)
+<p/>
+Thus, from our previous example, 'groups' would have a
+row for (userid='alfred', group='M'), <b>and</b>
+a row for (userid='alfred', group='G').
+
+<p/>
+This means it is possible (and easy!) to craft queries such as
+<pre>
+   SELECT userid, access FROM groups WHERE group='G'</pre>
+and still get a list of <b>all</b> the userids that belong to
+group G, and their access level, 
+no matter how many layers of included sub-groups are involved.
+
+</ol>
+
+</blockquote>
+
+<hr>
+</body>
+</html>

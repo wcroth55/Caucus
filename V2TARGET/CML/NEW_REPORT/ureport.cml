@@ -1,0 +1,103 @@
+#
+#---UREPORT.CML  Caucus User REPORT program.  Report on user personal info.
+#
+#   Invoked as:
+#      sweba ureport.conf ureport.cml e x      email  [urc]
+#      sweba ureport.conf ureport.cml c cnum   email  [urc]
+# or   sweba ureport.conf ureport.cml u userid email  [urc]
+# or   sweba ureport.conf ureport.cml g group  email  [urc]
+#
+#   Arguments:
+#      $arg(1)  e=everyone, c=conference, u=single userid, g=group
+#      $arg(2)  cnum     conference number (or 0 for all users)
+#      $arg(2)  userid   report on just this user
+#      $arg(2)  group    group file name
+#      $arg(3)  email    send report to this email address
+#      $arg(4)  urc      report is based on this registration directory name
+#
+#   Purpose:
+#      UREPORT produces a report on the Caucus "personal information"
+#      for a group of users.  The group may either be all the members
+#      of a particular conference, all Caucus users on a site, or
+#      a single userid.
+#
+#      The report is formatted as one line per user, with tab-separated
+#      fields of personal info, in the order established by the
+#      "control new user registration" management page.
+#
+#      The report is e-mailed to the requestor.
+#
+#   How it works
+#
+#: CR 12/09/99 00:06 New script.
+#: CR  3/31/00 13:22 Add single-user option.
+#: CR  4/06/00 13:34 Use $config() to get mailx if possible.
+#: CR 03/25/01 16:00 Add [urc] argument to make report registration-specific
+#: CR 03/19/03 New args...
+#: CR 04/02/03 use send_tab_spreadsheet to send as attachment.
+#: CR 11/12/03 Add sendmail arg to send_tab_spreadsheet call.
+#: CR 01/18/05 Build process id into output file (to make it unique)
+#==========================================================================
+
+#---Test argument(s).
+if $empty ($arg(3))
+   "Usage: sweba ureport.conf ureport.cml c cnum email_addr [urc]
+   "
+   quit
+end
+
+#---Determine location of mailx client
+set mailx /usr/bin/mailx
+if $empty ($config())
+   set mailx $word (1 $config(mailx) $(mailx))
+end
+
+#---Set urcbase, depending on urc argument.
+set urcbase urc
+if $not_empty ($arg(4))
+   if $not_empty ($site_var ($arg(4)1))
+      set urcbase $arg(4)
+   end
+end
+
+eval $cl_list()
+
+set pid $word (1 $replace (/ 32 $pid()))
+set fname /tmp/ureport.$caucus_id().$(pid)
+eval $output ($(fname) 644)
+
+include REPORT/header.i
+
+if $equal ($arg(1) u)
+   set subject Caucus Report: user '$arg(2)'
+   include REPORT/douser.i $arg(2)
+end
+
+elif $equal ($arg(1) e)
+   set subject Caucus Report: all users
+   for id in $all_users()
+      include REPORT/douser.i $(id)
+   end
+end
+
+elif $equal ($arg(1) c)
+   set subject Caucus Report: $upper1 ($replace (_ 32 $cl_name($arg(2))))
+   for id in $peo_members($arg(2))
+      include REPORT/douser.i $(id)
+   end
+end
+
+elif $equal  ($arg(1) g)
+   set subject Caucus Report: Group $arg(2)
+   for id in $all_users()
+      if $in_group ($(id) $arg(2))
+         include REPORT/douser.i $(id)
+      end
+   end
+end
+
+eval $output()
+
+eval $xshell (1 1 1 $caucus_path()/SCRIPTS/send_tab_spreadsheet  \
+                     $(fname)  "$(subject)"  $arg(3) $config(sendmail))
+#==========================================================================

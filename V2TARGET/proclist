@@ -1,0 +1,85 @@
+#!/bin/sh
+#
+#---PROCLIST.    Write list of processes to stdout.
+#
+#   Usage:
+#     proclist  all       (write list of all processes)
+#     proclist  mine      (write only processes belonging to this userid)
+#
+#   Uses 'uname' to attempt to determine the proper syntax for 'ps'.
+#----------------------------------------------------------------------------
+
+#---Determine system type.
+system=`uname -a | (read a b; echo $a)`
+tmp=/tmp/tmp.$$
+rm -f $tmp
+
+if test $system = "Linux"; then
+   if test "x$1" = "xmine"; then
+      ps -x
+   else
+      ps -ax
+   fi
+fi
+
+if test $system = "OSF1"; then
+   if test "x$1" = "xmine"; then
+      ps -u `whoami`
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "SunOS"; then
+   if test "x$1" = "xmine"; then
+      if ps -x 2>/dev/null; then
+         :
+      else
+         ps -u $LOGNAME
+      fi
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "HP-UX"; then
+   if test "x$1" = "xmine"; then
+      ps -u `whoami`
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "IRIX"; then
+   if test "x$1" = "xmine"; then
+      ps -u `whoami`
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "SCO_SV"; then
+   if test "x$1" = "xmine"; then
+      ps -e
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "AIX"; then
+   if test "x$1" = "xmine"; then
+      ps -o "pid comm" -u `whoami`
+   else
+      ps -ae
+   fi
+fi
+
+if test $system = "BSD/OS"; then
+   if test "x$1" = "xmine"; then
+      ps -x
+   else
+      ps -ax
+   fi
+fi
+
+#----------------------------------------------------------------------------

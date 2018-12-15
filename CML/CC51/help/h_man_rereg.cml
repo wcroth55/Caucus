@@ -1,0 +1,46 @@
+#
+#---H_MAN_REREG.I    Help about "Manage: Relicense Caucus" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_rereg.cml $quote(Help on Manage: \
+          Relicense Caucus)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Relicense page allows the <B>primary</B> manager to
+"relicense Caucus on the fly, by applying a new activation
+"key immediately.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're the primary manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Relicense Caucus</U>.
+
+"<P>
+"<B>What Is An Activation Key?</B><BR>
+"Your Caucus license may be limited in certain ways, notably
+"by the total number of registered users allowed, maximum
+"number of conferences, or (in very special cases) by an
+"expiration date.&nbsp;
+"If you need to change these limits for any reason, 
+"CaucusCare can supply you with a new activation key
+"that changes the limits on your license.
+
+"<P>
+"Just type the new activation key into the box on this page,
+"and press <B>Submit</B>.&nbsp;
+"(The key is always exactly 21 characters long.&nbsp;
+"If you received the new key by e-mail, you may want to 'cut
+"and paste' it from your e-mail into this box, to remove the
+"chance of any error.)
+
+"<P>
+"If for some reason the key is incorrect, your license will
+"not be changed.
+
+include $(help)/hb.i

@@ -1,0 +1,37 @@
+#
+#---man_fieldsf.cml.    Handles form submission from user info fields page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/18/05 New file.
+#: CR 01/19/06 Complain if field could not be created.
+#--------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_fields.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+
+set nch $unique()
+
+if $not_empty ($form(name))
+   set fields_error
+   set name $replace (32 _ $form(name))
+   set   success $add_user_info ($(name) $form(type) 0$form(magic) $form(descr))
+   if $(success)
+      set query INSERT INTO user_columns (name, type, magic, descr) \
+                VALUES ('$(name)', '$form(type)', 0$form(magic), \
+                        '$escsingle($form(descr))')
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+   end
+   else
+      set fields_error Field name reserved. Try a different name.
+   end
+end
+
+"%location($(mainurl)/man_fields.cml?$(nch)+$arg(2)+x+x+x+x+x+x)
+#------------------------------------------------------

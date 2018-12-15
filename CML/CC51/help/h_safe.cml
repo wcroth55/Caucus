@@ -1,0 +1,77 @@
+#
+#---H_SAFE.I    Help about an individual filesafe page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/11/0l New file.
+#---------------------------------------------------------------
+
+set lowerfs $lower ($(filesafe_name))
+
+include $(help)/ht.i h_safe.cml $quote(Help on an individual $(lowerfs))
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page is a single $(lowerfs).&nbsp;
+"It contains one or more <b>sections</b>, each
+"of which can contain many files or URLs.&nbsp;
+"See the 
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x">$(filesafe_name)</A>
+"page for a general description of $(lowerfs)(s) and how they work.
+
+"<p>
+"<b>What Is On This Page?</b><br>
+"Immediately below the Caucus 
+"<A HREF="$(helpurl)/h_comp.cml?x+x">compass bar</A> is
+"the $(lowerfs) <b>name</b> and <b>description</b> (the description
+"is the part after the colon).
+
+"<p>
+"The rest of the page is divided into sections, with the
+"section name at the top, and a large horizontal divider between
+"sections.
+
+"<p>
+"Within a section is a list of files or URLs, followed by some boxes
+"and buttons for uploading new files or adding new URLs.&nbsp;
+"(You may not see the buttons if you have "readonly" access
+"to the $(lowerfs).)
+
+"<p>
+"<b>What Can I Do From Here?</b><br>
+"<ol>
+"<li><b>See files or pages.</b>&nbsp;
+"Click on any file name or URL within a section to see or download 
+"that file or page.&nbsp;
+"That is the main purpose of having the $(lowerfs).
+
+"<p>
+"<li><b>Add new files or URLs.</b>&nbsp;
+"If you have the proper access, you can add new files or URLs
+"to a section within the $(lowerfs).&nbsp;
+"<ul>
+"<li><b>Files:</b>&nbsp;
+"click on the <b>Browse</b> button to select a file on your local PC,
+"and follow the instructions in the dialog box that appears.&nbsp;
+"<li><b>URLs:</b>&nbsp; type the full URL, including the "http://",
+"    in the "File or URL" box.
+"</ul>
+"Then enter appropriate text in the "Description" and "Keywords"
+"boxes, and click <b>Add or Update</b>.
+"<p>
+"(If you've already added a file, but need to update it, just
+"upload it again -- that's why the button says "Add/Update".)
+
+"<p>
+"<li><b>Delete files or URLs.</b>&nbsp;
+"If you have the proper access, you can delete (remove) files or URLs
+"from the $(lowerfs).&nbsp;
+"Click on the checkboxes in the list of files, and then
+"click on the <b>Delete</b> button.
+"</ol>
+
+
+include $(help)/hb.i

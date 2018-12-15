@@ -1,0 +1,78 @@
+#
+#---H_IMANAGE.I.  Help about "Item Management Page"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_imanage.cml $quote(Help on Manage Item)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The 'Manage Item' page is exactly that -- a page for managing
+"an item.&nbsp;
+"If you have the proper privilege, you can edit an item,
+"delete it, or freeze it.&nbsp;
+"You can also forget it (not see it anymore), or copy it somewhere else.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Click on the item <B>number</B> of the desired item.&nbsp;
+"<B>Or</B>, click on the item title, and then the <B>Edit</B>
+"button next to the item text.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<P>
+"<B>If you created the item</B> (or if you're an organizer),
+"you can
+"<UL>
+"<LI><A HREF="$(helpurl)/h_forget.cml?x+x">Forget</A> the item
+"<LI>Edit the item text
+"<LI>Change the item title
+"<LI>Choose between signed and <A HREF="$(helpurl)/h_anon.cml?x+x">anonymous</A>
+"responses
+"<LI><A HREF="$(helpurl)/h_frozen.cml?x+x">Freeze</A> the item
+"<LI>Delete the item (but be careful -- items cannot be <B>un</B>deleted.)
+"<P>
+"<LI>Copy the item (make a duplicate in this conference or another conference)
+"<LI>Move the item (to another conference)
+"<P>
+"The Copy and Move options are a little complicated.&nbsp;
+"Read over the buttons and menu carefully before pressing either
+"the Copy of Move buttons.&nbsp;
+"The Copy and Move buttons on this page copy or move <B>everything</B>
+"in the item, including all of its responses.
+"<P>
+"You can Copy or Move the item to a <B>new</B> item (in this conference
+"or another conference) by clicking the "new item" radio button.&nbsp;
+"<B>Or</B>, you can copy or move the item onto the end of an existing
+"item, by clicking the "item" radio button and typing an item number
+"into the box.
+"<P>
+"Use the pull-down menu to the right of the radio buttons to select
+"the conference to Copy or Move <B>to</B>.&nbsp;
+"Unless you change the pull-down menu, it defaults to the current
+"conference name.
+"<P>
+"Normally, any copied or moved items and responses appear with a "Copied by..."
+"tag so that people will know how the text got there.&nbsp;
+"If you're the organizer, you can check the "Suppress copied by" box
+"to leave off this notice.
+
+"</UL>
+
+"<P>
+"<B>If you did not create the item</B>, you can still
+"<UL>
+"<LI><A HREF="$(helpurl)/h_forget.cml?x+x">Forget</A> the item, or
+"<LI>Copy the item (make a duplicate in this conference or another conference)
+"</UL>
+"In that case, those are your only choices.
+
+
+include $(help)/hb.i
+#-----------------------------------------------------------------------

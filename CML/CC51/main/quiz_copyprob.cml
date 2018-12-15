@@ -1,0 +1,112 @@
+#
+#---quiz_copyprob.cml.   Copy a single problem.
+#
+#   arg(9) problem key (problem to copy)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/01/06 New file.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_copyprob.cml
+end
+
+set pkey $arg(9)
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+
+set title
+set query SELECT userid, title, visible0, visible1, onepage \
+            FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+#---Get fields from current problem.
+set title
+set q3 SELECT owner, category, title, text, texttype FROM quizproblems \
+        WHERE pkey=$(pkey) and deleted=0
+set h3 $sql_query_open ($(q3))
+eval   $sql_query_row  ($(h3))
+eval   $sql_query_close($(h3))
+
+set nxt   $page_save (1 quiz_copyprob.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Quiz:&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote(Quiz: $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  \
+    </A><a href="quiz_prob.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"\
+    >$replace(32 02 $(title))</a>\
+    &nbsp;$(compass_arrow)&nbsp;<a href="#top">Copy&nbsp;problem
+ 
+
+"<blockquote>
+"<p/>
+"Click on a quiz to copy this problem and add it <b>to</b> that quiz.
+"<p/>
+"<ul>
+"<table border=0>
+set hdr_create <tr><td colspan=2><b>Quizzes I created</b></td>
+set query SELECT qkey, title FROM quiz WHERE userid='$userid()' AND deleted=0 \
+           ORDER BY title
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   "$(hdr_create)
+   set hdr_create
+   "<tr><td></td>
+"   <td><a href="quiz_copyprobf.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)"
+   "   >$(title)</a></td>
+end
+eval  $sql_query_close($(h))
+
+set hdr_edit <tr><td>&nbsp;&nbsp;&nbsp;</td>\
+             <tr><td colspan=2><b>Quizzes I can edit</b></td>\
+                 <td></td><td><b>Owner</b></td>
+
+set query SELECT q.qkey, q.title, q.userid, i.fname, i.lname \
+            FROM quiz q, groups g, user_info i \
+           WHERE g.owner = 'Quiz' AND g.name = q.qkey  \
+             AND g.userid  = '$userid()'  AND  g.access >= $priv(organizer) \
+             AND q.userid != '$userid()'  AND  q.deleted=0 \
+             AND i.userid = q.userid \
+           ORDER BY q.title
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   "$(hdr_edit)
+   set hdr_edit
+   "<tr><td></td>
+   "<td><a href="quiz.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+   "   >$(title)</a></td>
+   "<td>&nbsp;&nbsp;</td>
+   "<td><A HREF="javascript: pop_up('person', '$(userid)');" \
+        \%help(h_name)>$(fname) $(lname)</a></td>
+end
+eval  $sql_query_close($(h))
+
+
+"</table>
+"</ul>
+"</blockquote>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

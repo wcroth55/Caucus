@@ -1,0 +1,83 @@
+#
+#---H_CUSTOM.I    Help about "Customize" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_custom.cml $quote(Help on Customize Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize pages provide a conference 
+"organizer with control over how the conference works&#151;who may 
+"participate, how the conference is described, and so forth.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).
+
+"<P>
+"<B>What is on the Customize Page?</B><P>
+"<OL>
+
+include $(help)/h_pagetop.i
+
+"<P><LI>
+"Below the page title are two links to detailed pages about
+"the practice of organizing a conference.&nbsp;
+"The <U>Guide for Conference Organizers</U> 
+"can help make your conference more effective and achieve 
+"your group's goals.&nbsp;  
+"The <U>Conference Organizer's How To</U> provides more information on the 
+"details of actual conference management.
+
+"<P><LI>
+"The rest of the Customize page consists of links to the individual 
+"customization pages.  You can select the links here for more information
+"about each of the pages.
+"<P>
+"<DL>
+"<DT><A HREF="$(helpurl)/h_customu.cml?x+x">Users</A> 
+"<DD>Control who can join the conference, and what they can do
+"in the conference.&nbsp; 
+"Set user options for 
+"creating and modifying items and responses.<P>
+
+"<P>
+"<DT><A HREF="$(helpurl)/h_customi.cml?x+x">Conference
+"Information</A>
+"<DD>Set or change information <B>about</B> the conference that
+"may be seen by anyone.&nbsp;
+"This includes the one-line "description" that may be seen on
+"the $(center_name) page, and the conference "introduction"
+"that is seen by people joining the conference for the first time.
+
+"<P>
+"<DT><A HREF="$(helpurl)/h_customc.cml?x+x">Colors</A> 
+"<DD>Set the background, text, and link colors for this conference.
+
+"<P>
+"<DT><A HREF="$(helpurl)/h_customh.cml?x+x">Conference
+"Home Page Options</A>
+"<DD>Control the appearance of the conference home page.&nbsp;
+"This includes the "greeting" text that appears at the top of this
+"page, the name of the page, and the layout of the list of items.
+
+
+"<P>
+"<DT><A HREF="$(helpurl)/h_cus.cml?x+x">E-mail 
+"Notification</A> 
+"<DD>Enable and define automatic e-mail notification of new
+"activity in the conference.
+
+"<P>
+"<DT><A HREF="$(helpurl)/h_custome.cml?x+x">E-mail Participants</A> 
+"<DD>Modify the options for users participating by email.
+
+"</DL>
+"</OL>
+include $(help)/hb.i

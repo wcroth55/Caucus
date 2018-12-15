@@ -1,0 +1,314 @@
+#
+#---INDVRESP.CML.    Pop-up window with action list for checked responses
+#                    on a viewitem page.
+#
+#   arg(1) unique
+#       2  cnum
+#       3  inum
+#       4  error code (from indvrespf.cml)
+#             1 no access to conference
+#             2 no item supplied
+#             3 no such item
+#             4 adding failed (frozen?)
+#             5 cannot create new item
+#             6 copying not allowed
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/09/02 use src_bullet
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  5/12/03 Put conference number (not name) in boxform.sconf.
+#: CR  5/13/03 Add "print" option.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 10/13/04 Major reformat, add Set all.
+#: CR 11/12/04 Move dbut.datenow assignment into "if org|instructor" block.
+#: CR 01/29/05 Hack printwindow via opener.printwin to avoid pop-up blockers.
+#: CR 03/09/05 Add Task option.
+#: CR 04/13/05 C5 code merge.
+#: CR 12/02/05 Use query to get list of confs for move/copy.
+#: CR 04/22/10 Temporarily disable 'move' with '#?'.
+#-----------------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Selected Responses?</TITLE>
+
+"<script type="text/javascript" language="javascript">
+"  function setlist(arg) {
+"     var dbut = document.buttons;
+"     var dbox = document.boxform;
+"     dbox.b_action.value  = arg;
+"     dbox.checklist.value = "";
+"     dbox.category.value  =
+"          dbut.category.options[dbut.category.selectedIndex].text;
+"     dbox.sconf.value  =
+"          dbut.sconf.options[dbut.sconf.selectedIndex].value;
+"     dbox.itemno.value    = (dbut.appitem.value != "" ? dbut.appitem.value : dbut.brkitem.value);
+"     dbox.anonly.value = "0";
+"     dbox.task.value = dbut.tasks.options[dbut.tasks.selectedIndex].value;
+   if $gt_equal (%access($arg(2)) $priv(instructor))
+"     dbox.anonly.value  = (dbut.anonly.checked ?  "1" : "0");
+"     dbox.datenow.value = (dbut.datenow.checked ? "1" : "0");
+   end
+
+#---New code for "one form per response" in viewitem.cml
+"     for (i=0;   i<window.opener.document.forms.length;   ++i) {
+"        if (window.opener.document.forms[i].bx != null  &&
+"            window.opener.document.forms[i].bx.checked)
+"              dbox.checklist.value +=
+"                 window.opener.document.forms[i].bx.value + " ";
+"     }
+
+"     document.boxform.submit();
+"     return false;
+"  }
+
+"function confirmDelete() {
+"   return confirm("OK to delete these responses?");
+"}
+
+"function copyOrMove() {
+"   for (i=0;  i<2;  ++i) {
+"      if (document.buttons.cm[i].checked) {
+"         setlist (document.buttons.cm[i].value);
+"         break;
+"      }
+"   }
+"}
+
+if $(use_resize)
+"   var started = new Date();
+"   function resizer() {
+"      var thistime = new Date();
+"      if (thistime.getTime() - started.getTime() < 3000)
+"         return;
+"      var xv = $if ($(is_netscape4) window.innerWidth  document.body.clientWidth);
+"      var yv = $if ($(is_netscape4) window.innerHeight document.body.clientHeight);
+"      window.opener.xs_indv = xv;
+"      window.opener.ys_indv = yv;
+"      location.href = "indvrespr.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+" + \
+                                      xv + "+" + yv;
+"   }
+end
+
+"function selectAll(state) {
+"   for (i=0;   i<window.opener.document.forms.length;   ++i) {
+"      if (window.opener.document.forms[i].bx != null)
+"          window.opener.document.forms[i].bx.checked = state;
+"   }
+"   return false;
+"}
+"</SCRIPT>
+
+include $(main)/css.i 1
+
+"</HEAD>
+
+"<BODY $(body_bg) ONLOAD="document.buttons.appitem.focus();" \
+       $ifthen ($(use_resize) onResize="resizer();") >
+
+"<form NAME="boxform" METHOD=POST
+"    ACTION="$(mainurl)/indvrespf.cml?$arg(1)+$arg(2)+$arg(3)">
+"<INPUT TYPE=HIDDEN NAME=checklist VALUE="">
+"<INPUT TYPE=HIDDEN NAME=b_action  VALUE="">
+"<INPUT TYPE=HIDDEN NAME=category  VALUE="">
+"<INPUT TYPE=HIDDEN NAME=itemno    VALUE="">
+"<INPUT TYPE=HIDDEN NAME=towhere   VALUE="new">
+"<INPUT TYPE=HIDDEN NAME=datenow   VALUE="">
+"<INPUT TYPE=HIDDEN NAME=anonly    VALUE="">
+"<INPUT TYPE=HIDDEN NAME=sconf     VALUE="">
+"<input type="hidden" name="task"  value="">
+
+#"<A NAME="top">
+"<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="100%">
+"<TR><TD><span class="bigger"><B>Selected Responses</B></FONT></TD>
+"<TD ALIGN=right><INPUT TYPE=button NAME=close VALUE="Close"
+"    onClick="window.opener.pop_gone('indv');  window.close();"></TD>
+"</TABLE>
+#"</A>
+"</form>
+
+if $equal ($arg(4) 0)
+   "You've selected one or more responses.&nbsp;
+   "Now choose one of the actions below.&nbsp;
+   "(You can select more responses first by clicking
+   "on their checkboxes.)
+end
+elif $equal ($arg(4) 1)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> the conference does not exist,
+   "or you cannot create items in it.
+end
+elif $equal ($arg(4) 2)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> you must enter an item number,
+   "or the word "new".
+end
+elif $equal ($arg(4) 3)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> there is no such item.
+end
+elif $equal ($arg(4) 4)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> cannot add to item;
+   "it may be frozen.
+end
+elif $equal ($arg(4) 5)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> cannot create new item.
+end
+elif $equal ($arg(4) 6)
+   "<BLINK><B>Copy or Move failed:</B></BLINK> copying not allowed in
+   "this conference.
+end
+
+#set bullet <IMG $(src_bullet)>
+set bullet <b><span class="bigger">&#149;</FONT></b>&nbsp;
+#set bullet <b>&#149;</b>
+
+"<form NAME=buttons>
+"<p/>
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+
+#---Notebook
+"<tr>
+"<td>$(bullet)</td>
+"<td><b>Add</b> to Notebook Category</td>
+"<tr>
+"<td></td>
+"<td><SELECT NAME="category">
+      for category center in $user_data($userid() mark_categories)
+         "<OPTION>$replace(_ 32 $(category))</OPTION>
+      end
+      "<OPTION>(Create New Category)</OPTION>
+    "</SELECT></td>
+"<td align=right><input type="button" name="add" value="Go"
+   "    onClick="setlist('Add');"></td>
+
+#---Task List
+"<tr><td>&nbsp;</td>
+"<tr>
+"<td>$(bullet)</td>
+"<td><b>Add</b> to Task</td>
+"<tr>
+"<td></td>
+"<td><SELECT NAME="tasks">
+      "<option value="0">(Create New Task)
+      set query SELECT title, tkey, tid, lead, assigner, tgroup FROM tasks \
+                 WHERE deleted = 0  AND  current = 1 \
+                 ORDER BY title
+      set h $sql_query_open ($(query))
+      while $sql_query_row  ($(h))
+         if $or ($equal (x$userid() x$(lead))  $equal (x$userid() x$(assigner)))
+            "<option value="$(tid)">$(title)
+         end
+      end
+      eval  $sql_query_close($(h))
+    "</SELECT></td>
+"<td align=right><input type="button" name="add" value="Go"
+   "    onClick="setlist('Task');"></td>
+
+"<tr><td>&nbsp;</td>
+
+"<tr>
+"<td>$(bullet)</td>
+"<td><b>Copy</b><input type="radio" name="cm" value="Copy" checked>&nbsp; 
+"    <b>Move</b><input type="radio" name="cm" value="Move" >&nbsp;
+   "text to another item in</td>
+"</table>
+
+   set query  \
+      SELECT a.name, a.cnum cnm, a.access, o.alpha FROM \
+         (SELECT c.name, c.cnum, g.access FROM (confs c, groups g) \
+            LEFT JOIN confhidden h \
+              ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+           WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+             AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+             AND  c.deleted = 0 \
+             AND  h.hidden IS NULL) a \
+        LEFT JOIN conforder o \
+          ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+       ORDER BY ifnull(o.alpha, a.name)
+
+set h $sql_query_open ($(query))
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td>&nbsp;&nbsp;</td>
+"<td><SELECT NAME=sconf>
+   while $sql_query_row  ($(h))
+      "<OPTION VALUE="$(cnm)"
+      "   $if ($equal($(cnm) $arg(2)) SELECTED)>$replace(_ 32 $(name))</OPTION>
+   end
+   "</SELECT>
+"</td>
+"</table>
+eval $sql_query_close($(h))
+
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>
+"     <input type="radio" name="towhere" value="new" checked
+"        onClick="document.boxform.towhere.value = 'new';">new item<br>
+
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><input type="radio" name="towhere" value="app"
+"        onClick="document.boxform.towhere.value = 'app';">append to item </td>
+      "<td># <INPUT TYPE=TEXT NAME="appitem" SIZE=3 VALUE=""></td>
+      
+      "<tr>
+      "<td><input type="radio" name="towhere" value="brk"
+"        onClick="document.boxform.towhere.value = 'brk';">breakout from item&nbsp;</td>
+      "<td># <INPUT TYPE=TEXT NAME="brkitem" SIZE=3 VALUE=""></td>
+      "</table>
+
+      if $gt_equal (%access($arg(2)) $priv(instructor))
+         "<INPUT TYPE=CHECKBOX NAME="anonly" VALUE="1"
+         ">&nbsp;Don't show "Copied by..."<br>
+         "<INPUT TYPE=CHECKBOX NAME="datenow" VALUE="1"
+         ">&nbsp;Don't preserve original date<br>
+      end
+      "<p/>
+      "Does <b>not</b> copy or move items or breakouts, <b>just</b> text!
+#     "<INPUT TYPE=CHECKBOX NAME="itemchk" VALUE="1">&nbsp;new&nbsp;item,
+#     "or add to
+#     "item&nbsp;#&nbsp;<INPUT TYPE=TEXT NAME=itemno SIZE=3 VALUE=""> in
+"</td>
+"<td align=right valign=top><input type="button" name="copymove" value="Go"
+   "    onClick="copyOrMove();"></td>
+"</table>
+
+
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr><td><img $(src_clear) width=1 height=8></td>
+"<tr>
+"<td>$(bullet)</td>
+"<td><b><A HREF="#" onClick="return selectAll(false);">Clear</A></b> or
+"    <b><A HREF="#" onClick="return selectAll(true);" >Set</A></b>
+"them all.</td>
+
+#<tr><td>&nbsp;</td>
+"<tr><td><img $(src_clear) width=1 height=4></td>
+"<tr>
+"<td>$(bullet)</td>
+"<td><b><A HREF="#" onClick="return confirmDelete() && setlist('Delete');">Delete</A></b>
+"them all</td>
+
+
+"<tr><td><img $(src_clear) width=1 height=4></td>
+"<tr>
+"<td>$(bullet)</td>
+"<td><b><A HREF="#"
+"  onClick="%js_open_sub(cauprint opener);   self.opener.printwin = win;   \
+            return setlist('Print');"
+"  >Print</A></b> them</td>
+"<tr>
+"<td></td> <td>(Pop up a printer-friendly window containing them)</td>
+
+"</table>
+
+"</form>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------

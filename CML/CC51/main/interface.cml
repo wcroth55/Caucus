@@ -1,0 +1,17 @@
+#
+#---interface.cml    switch to a new interface
+#
+#   arg(1)   nch
+#   arg(2)   interface name
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#---------------------------------------------------------------------
+
+set mainurl
+
+"Location: $(http)://$host()/$(sweb)/swebsock/$pid()/$arg(2)/main/center.cml?$unique()+x+x+x+x+x+x+x
+"
+#---------------------------------------------------------------------

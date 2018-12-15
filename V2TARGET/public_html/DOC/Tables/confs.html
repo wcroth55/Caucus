@@ -1,0 +1,64 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>confs&nbsp;&nbsp;&nbsp;</span>Confs  
+<p/><b>Categories: </b>
+<a href='_Conferences.html'>Conferences</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>cnum</td>
+<td>varchar(10) </td>
+<td>PK </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>parent</td>
+<td>varchar(10) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> unused for now  <br></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>private</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1 => conf is private, does not appear in conf lists unless user has access.  <br></td>
+<tr valign=top class='row0'>
+<td>lastAccess</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td>'0'</td>
+<td> time of last access by anyone (in seconds since Jan 1 1970)  <br></td>
+<tr valign=top class='row1'>
+<td>deleted</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> epoch time when this conf was marked deleted, else 0  <br></td>
+</table>
+</body>
+</html>

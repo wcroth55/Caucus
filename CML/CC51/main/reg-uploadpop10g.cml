@@ -1,0 +1,79 @@
+#
+#---uploadpop10g.cml   Final handling of uploading up to 10 files.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/01/06 New file.
+#: CR 05/14/06 Add handling for uploaded "gallery" images.
+#------------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+"<html>
+"<head>
+include $(main)/css.i
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+"<script type="text/javascript" language="javascript">
+count i 1 10
+   set fname $replace (/ 32 $form(uploaded$(i)))
+   set fname $word ($sizeof($(fname)) $(fname))
+
+   if $empty($(fname))
+      continue
+   end
+   elif $equal ($form(showas) links)
+      set addtext \
+         ' \%libname2($userid() $(isresp) $escsingle($(fname) $(fname)))'
+   end
+   elif $equal ($form(showas) urls)
+      set addtext ' \%liblink2($userid() $(isresp) $escsingle($(fname))) '
+   end
+   elif $equal ($form(showas) img)
+      set addtext ' \%libimg2($userid() $(isresp) $escsingle($(fname)))'
+   end
+   elif $equal ($form(showas) gal)
+      set  thumbNailSize $word (1 $form(gwidth) 150)x$word(1 $form(gheight) 100)
+      set  tempThumb /tmp/$caucus_id().thumb.$userid().jpg
+      eval $xshell (1 1 1 $config(convertDir)/convert  \
+                    $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                    -resize $(thumbNailSize) $(tempThumb))
+      eval $copy2lib ($(tempThumb) $(libdir)/$(fname).thumb.jpg)
+
+      #---If bigger than 800x600, build a medium-sized version as well.
+      set msmarker
+      set geometry $xshell (1 1 1 $config(convertDir)/identify -verbose  \
+                    $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                    | /bin/grep Geometry)
+      set geometry $replace(x 32 $(geometry)) 0 0 0
+      if $or ($greater ($word (2 $(geometry)) 800) \
+              $greater ($word (3 $(geometry)) 600))
+         eval $xshell (1 1 1 $config(convertDir)/convert  \
+                       $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                       -resize $(mediumSized) $(tempThumb))
+         eval $copy2lib ($(tempThumb) $(libdir)/$(fname).medium.jpg)
+         set msmarker 1
+      end
+
+      set addtext ' \%libgallery($userid() $(isresp) \
+                      $escsingle($(fname)) $(msmarker))'
+   end
+   else
+      continue
+   end
+
+   "window.opener.ebox_addtext($(addtext));
+end
+
+"self.close();
+"</script>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

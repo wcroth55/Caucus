@@ -1,0 +1,158 @@
+#
+#---CUS_MAILALL.CML.   Organizer sending e-mail to everyone in a conference.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/05/02 Add E-mail users option.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 04/20/04 Show path as "customize" or "control panel".
+#: CR 01/11/06 Modify for C5.
+#: CR 03/27/10 Add support for attaching a file.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_mailall.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+set is_course $equal (x$site_data($arg(3) - confType) xCourse)
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set title1 Customize 
+set title2 Conference Information
+set nxt   $page_save (1 cus_mailall.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title1) : E-mail all)
+
+include $(main)/head.i $arg(3)  $quote($(title1) : E-mail all)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+set custompage custom.cml
+include $(main)/header.i cus_mailall </A><A HREF="$(custompage)?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">$(title1)\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">E-mail all
+
+"<script type="text/javascript" language="javascript">
+"function validate() {
+"   if (document.email.etext.value.length == 0) {
+"      confirm ("Please enter the text of your message.");
+"      return  (false);
+"   }
+"   return true;
+"}
+
+"function seelistvalues() {
+"   var de = document.email;
+"   var ds = document.seelist;
+
+"   ds.justme.value  = '';
+"   ds.type.value    = '';
+"   ds.name.value    = '';
+"   if (de.choice[0].checked)  ds.justme.value = '1';
+"   if (de.choice[1].checked) {
+"      ds.name.value = de.name.value;
+"      ds.type.value = de.type.value;
+"   }
+"   var sl = window.open ("", "seelistwin",
+"       "menubar=1,toolbar=1,resizable=1,scrollbars=1,width=600,height=350");
+"   sl.focus();
+"   ds.submit();
+"   return false;
+"}
+
+"</script>
+
+"<form name="seelist"  method="post"
+"    action="man_mailalls.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                     $arg(7)+$arg(8)" target="seelistwin">
+"<input type="hidden" name="justme"   value="">
+"<input type="hidden" name="type"     value="CONF">
+"<input type="hidden" name="name"     value="$arg(3)">
+"</form>
+
+
+"<form name="email" ENCTYPE="multipart/form-data" method="post"
+"      onSubmit="return validate();"
+"    ACTION="man_mailallf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+$arg(8)+x">
+"<blockquote>
+
+"<b>You may use this page to send a brief e-mail to (choose one):</b>
+"<p>
+
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>Just me (to test)</td>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>Everyone in this conference</td>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td colspan=3>(<a href="#" onClick="seelistvalues();"
+"   >See list of recipients</a>)</td>
+
+"<tr>
+"<td></td>
+"<td><input type=radio name="choice" value="0" 
+" onClick="de=document.email; de.name.value = ''; de.justme.value='1';"></td>
+"<td></td>
+"<td><input type=radio name="choice" value="1" checked
+" onClick="de=document.email; de.name.value='$arg(3)';  de.type.value='CONF';"
+"></td>
+"<tr><td></td>
+
+"</table>
+
+
+"<input type=hidden name="name" value="$arg(3)">
+"<input type=hidden name="type" value="CONF">
+"<input type=hidden name="justme" value="">
+
+"<p>
+"Enter the subject and text of your e-mail in the boxes below, and press
+"<b>Send</b>.&nbsp;
+"Please use this ability with descretion, and only for
+"urgent matters that affect everyone!
+
+"<p>
+#---Don't let them send unless the sender has a valid e-mail address!
+set e-mail $user_info ($userid() email)
+if %bad_email_address($(e-mail))
+   "<b>Warning:</b>&nbsp; Your e-mail address appears to be incorrect.&nbsp;
+   "Please click on your name to correct it.
+end
+else
+   "<table cellspacing=0 cellpadding=0>
+   "<tr>
+   "<td><b>Subject:</b>&nbsp;</td>
+   "<td><input type=text name="subject" size="$(cols)"></td>
+   "<tr valign=top>
+   "<td><b>Text:</b></td>
+   "<td><textarea wrap="virtual" name="etext" rows=$(rows) cols=$(cols)
+   "  ></textarea>
+   "<tr><td>&nbsp;</td>
+   "<tr><td></td><td><input type="file"   name="upload">&nbsp;&nbsp;&nbsp;
+   " (Optionally attach a file.)
+   "</td>
+   "<tr><td>&nbsp;</td>
+   "<tr><td></td><td><input type="submit" name="submit" value="Send"></td>
+   "</table>
+   "<p>
+end
+
+
+"</blockquote>
+
+"</form>
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

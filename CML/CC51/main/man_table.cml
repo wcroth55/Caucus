@@ -1,0 +1,87 @@
+#
+#---MAN_TABLE.CML.   Manager creating a new table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/12/01 09:30 Dynamic tables.
+#: CR 10/11/05 C5 changes.
+#---------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_table.cml
+end
+
+include $(main)/secure.i manage systemEditSwitches
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_bull.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Create Table )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Create Table)  table.js
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_table </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Create Table
+
+
+"<BLOCKQUOTE>
+"<FORM NAME=table METHOD=POST ACTION="man_tablef.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"<P>
+"Use this page to create a Caucus "dynamic table".&nbsp;
+"A table is like a spreadsheet, and each table has a unique name.&nbsp;
+"Tables are available from anywhere in Caucus; you make a table <B>xyz</B>
+"appear by entering the <B>\%table(xyz)</B> macro anywhere you can put
+"Caucus text.
+
+if $equal ($arg(7) 1)
+   "<P>
+   "<B>Error: please enter values in all of the boxes.</B>
+end
+if $equal ($arg(7) 2)
+   "<P>
+   "<B>Error: that table name is already in use.</B>&nbsp;
+   if $gt_equal ($group_access ($userid() Caucus4 edit@arg(8)) $priv(minimum))
+      "You may <A HREF="#" onClick="return tablepop('$arg(8)');">edit</A> 
+      "it instead.
+   end
+end
+
+"<P>
+"<TABLE>
+"<TR>
+"<TD>Table name:</TD>
+"<TD><INPUT TYPE=TEXT NAME=name SIZE=20></TD>
+
+"<TR>
+"<TD>Number of rows:</TD>
+"<TD><INPUT TYPE=TEXT NAME=rows SIZE=4></TD>
+
+"<TR>
+"<TD>Number of columns:</TD>
+"<TD><INPUT TYPE=TEXT NAME=cols SIZE=4></TD>
+
+"<TR>
+"<TD></TD>
+"<TD><INPUT TYPE=SUBMIT  NAME="submit"  VALUE="Create Table"></TD>
+"</TABLE>
+
+"</FORM>
+"</BLOCKQUOTE>
+
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

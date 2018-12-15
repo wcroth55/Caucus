@@ -1,0 +1,14 @@
+#!/bin/sh
+
+rm -f jenzabar.jar
+
+CLASSPATH=./jdom.jar:./mysql-connector-java-3.1.8-bin.jar:src:.
+export CLASSPATH
+
+rm -f src/com/caucus/jenzabar/*.class
+javac src/com/caucus/jenzabar/CaucusPerson.java
+javac src/com/caucus/jenzabar/HttpRequest.java
+javac src/com/caucus/jenzabar/JenzabarInterface.java
+
+cd src
+jar cfm ../jenzabar.jar Manifest.txt com/caucus/jenzabar/*.class

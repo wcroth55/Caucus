@@ -1,0 +1,63 @@
+#
+#---H_NOTE_EDIT.I   Help about "Edit a Notebook Entry" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_note_edit.cml $quote(Help on Edit a Notebook Entry)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The "Edit a Notebook Entry" page provides the controls for you to modify an
+"item in your Caucus <A HREF=$(helpurl)/h_notebook.cml?x+x+Notebook>
+"Notebook.</A>
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>Notebook</B> icon.&nbsp;
+"Then click on the <U>[EDIT]</U> link next to the desired
+"entry.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+
+"<DL>
+"<DT><B>Entry name:</B>
+"<DD>You can change the name of this entry by typing a new name in the text 
+"field that contains the current name of the entry.<P>
+
+"<DT><B>Category:</B>
+"<DD>The menu that follows lists your notebook
+"categories plus the option "---New category called--&gt;". 
+"The currently select option is the category that this entry is in.
+"Next to the menu is a text entry box.<P>
+
+"<DD>If you want to move this notebook entry to an existing category, select
+"the category from the menu. If you want to create a new category for the
+"entry, choose the "---New category called--&gt;" option and type in
+"a new category name in the text field next to the menu.<P>
+
+"<DT><B>Monitor this item:</B>
+"<DD>If this notebook entry points to an item or response, 
+"you'll see an additional checkbox labeled "Monitor this item for future 
+"activity." If you check this option, a note will be added in your list
+"of notebook entries indicating when new activity occurs in this item.<P> 
+
+"<DT><B>Change</B>
+"<DD>To save any changes you make to this entry, press the
+"<B>Change this entry</B> button.<P>
+
+"<DT><B>Delete</B>
+"<DD>If you no longer want this notebook entry, press the
+"<B>Delete this entry</B> button.<P>
+
+"<DT><B>No changes</B>
+"<DD>If you decide not to do anything to this entry, press the
+"<B>No changes</B> button to return to your notebook listing.<P>
+
+
+
+"</DL>
+include $(help)/hb.i

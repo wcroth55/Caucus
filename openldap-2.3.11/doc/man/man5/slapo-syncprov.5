@@ -1,0 +1,61 @@
+.TH SLAPO-SYNCPROV 5 "RELEASEDATE" "OpenLDAP LDVERSION"
+.\" Copyright 2004-2005 The OpenLDAP Foundation All Rights Reserved.
+.\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
+.\" $OpenLDAP: pkg/ldap/doc/man/man5/slapo-syncprov.5,v 1.2.2.3 2005/08/17 16:15:34 kurt Exp $
+.SH NAME
+slapo-syncprov \- Syncrepl Provider overlay
+.SH SYNOPSIS
+ETCDIR/slapd.conf
+.SH DESCRIPTION
+The Syncrepl Provider overlay implements the provider-side support for
+syncrepl replication, including persistent search functionality. The overlay
+can be used with any backend that maintains entryCSN and entryUUID
+attributes for its entries. It also creates a contextCSN attribute in
+the root entry of the database.
+
+The contextCSN is updated for every write operation performed against the
+database. To reduce database contention, the contextCSN is only updated in
+memory. The value is written to the database on server shutdown and read into
+memory on startup, and maintained in memory thereafter. Checkpoints may be
+configured to write the contextCSN into the underlying database to minimize
+recovery time after an unclean shutdown.
+
+Note that due to deadlock constraints in the LDBM database, this overlay
+will only work in RefreshOnly mode, and cannot perform checkpoints, on LDBM.
+
+On databases that support inequality indexing, it is helpful to set an
+eq index on the entryCSN attribute when using this overlay.
+.SH CONFIGURATION
+These
+.B slapd.conf
+options apply to the Syncrepl Provider overlay.
+They should appear after the
+.B overlay
+directive and before any subsequent
+.B database
+directive.
+.TP
+.B syncprov-checkpoint <ops> <minutes>
+After a write operation has succeeded, write the contextCSN to the underlying
+database if
+.B <ops>
+write operations or more than
+.B <minutes>
+time have passed
+since the last checkpoint. Checkpointing is disabled by default.
+.TP
+.B syncprov-sessionlog <ops>
+Specify a session log for recording information about write operations made
+on the database.  The
+.B <ops>
+specifies the number of operations that are recorded in the log. All write
+operations (except Adds) are recorded in the log.
+When using the session log, it is helpful to set an eq index on the
+entryUUID attribute in the underlying database.
+.SH FILES
+.TP
+ETCDIR/slapd.conf
+default slapd configuration file
+.SH SEE ALSO
+.BR slapd.conf (5).
+OpenLDAP Administrator's Guide.

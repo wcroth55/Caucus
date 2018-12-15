@@ -1,0 +1,116 @@
+#
+#---quiz_summary.cml.   See summary results (text and graphs) of
+#                       an entire quiz -- all problems.
+#
+#   arg(9)   problem key (optional -- only shows that one problem if supplied)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/27/06 New file.
+#: CR 05/25/06 Add arg(9), to show a single problem.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_summary.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal ($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+
+set title
+set query SELECT userid, title, visible0, visible1, onepage, seesummary \
+            FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+set nxt   $page_save (1 quiz_summary.cml \
+                   $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                   # Quiz:&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote(Quiz: $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  </A><a href="#top">Summary
+
+set allowed 1
+set access %access($arg(3))
+if $equal ($(seesummary) takers)
+   set allowed $gt_equal ($(access) $priv(minimum))
+end
+elif $equal ($(seesummary) editors)
+   set allowed $gt_equal ($(access) $priv(instructor))
+end
+if $not(0$(allowed))
+   "</body>
+   "</html>
+   quit
+end
+
+"<p/>
+if $or ($empty($arg(9))  $equal ($arg(9) x))
+   "This page displays all of the $(problemName)s for this $(type), a graphic
+   "summary of the $(type) takers' choices, and all text responses
+   "to each $(problemName).
+
+   set query SELECT p.pkey, p.category, p.title, p.totalpoints, m.sortorder, \
+                    p.text, p.texttype \
+               FROM quizproblems p, quizmap m \
+              WHERE p.pkey=m.pkey AND m.qkey=$(qkey) AND p.deleted=0 \
+              ORDER BY m.sortorder, p.pkey
+   set indent <li>
+end
+else
+   "This page displays a graphic summary of the quiz takers' choices,
+   "and all text responses to the problem.
+
+   set query SELECT p.pkey, p.category, p.title, p.totalpoints, \
+                    p.text, p.texttype \
+               FROM quizproblems p WHERE p.pkey=$arg(9) 
+   set indent
+end
+
+set h $sql_query_open ($(query))
+
+"<ol>
+while $sql_query_row  ($(h))
+
+   set q5 SELECT count(DISTINCT userid) FROM quizscore \
+           WHERE pkey=$(pkey) AND status >= 2
+   set divisor $sql_query_select($(q5))
+
+   "<p/>
+   "$(indent)<b>$(title)</b>&nbsp;&nbsp; ($(divisor) answers)<br>
+   include $(main)/quiz_probtext.i
+
+   "<p/>
+   include $(main)/quiz_graphprob.i $(qkey) $(pkey)
+
+   include $(main)/quiz_prob_otherans.i $(qkey) $(pkey)
+end
+eval  $sql_query_close($(h))
+
+"</div>
+"</BODY>
+"</HTML>
+#-----------------------------------------------------------------------

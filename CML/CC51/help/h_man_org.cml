@@ -1,0 +1,70 @@
+#
+#---H_MAN_ORG.I    Help about "Manage Conference Settings" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_org.cml $quote(Help on Manage Conference Settings)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Conference Settings page allows authorized managers to change 
+"specific settings about a conference.&nbsp;
+"They include: who is the primary
+"organizer, am I an organizer, and is e-mail notification
+"allowed for this conference?&nbsp;
+"<P>
+"The real purpose of this page is to allow the manager to over-ride
+"or correct some of the settings of the conference, either by becoming
+"an organizer, or explicitly changing a few of the settings.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Conference Settings</U>.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"This page has two stages.&nbsp;
+"In the first stage, you see a menu that lists
+"all of the available conferences.&nbsp;
+"To change the settings for
+"a conference, choose it from the menu and press the <B>Modify this Conference
+"</B> button.
+
+"<P>
+"The second stage of this page displays the current seetings of the
+"conference you selected.&nbsp;
+"(If there are only a few conferences on your host, the two
+"stages are merged onto one page.)
+
+"<P>
+"Once you see the listing for the desired conference, you can:
+"<UL>
+"<LI>Type in the userid of a new primary organizer.&nbsp;
+"This is particularly helpful if the old primary organizer is no
+"longer around, and cannot "pass the baton" by him or her self.
+"<P>
+"<LI>Make yourself an organizer.&nbsp; (Check the first check-box.)&nbsp;
+"This is helpful when the regular organizer needs some assistance 
+"performing organizer functions or duties.
+"<P>
+"<LI>Allow e-mail notification for the conference.&nbsp;
+"E-mail notification is a powerful tool, but sometimes it is best
+"to turn it off globally, but specifically allow it just for a few
+"conferences.&nbsp;
+"That is the purpose of this checkbox.&nbsp;
+"(For more information on e-mail notification, see the related
+"switches in "Edit the Caucus switches" from the main manager page,
+"or the FAQ in the Caucus Technical Library -- follow the Support
+"links from <A HREF="http://www.caucuscare.com" 
+"TARGET="_enotify">www.caucuscare.com</A>.
+"</UL>
+
+"<P>
+"<B>Note:</B> It is impolite if not unethical to modify organizer lists without
+"first consulting the current organizer of the conference.
+include $(help)/hb.i

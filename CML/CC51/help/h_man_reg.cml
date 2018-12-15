@@ -1,0 +1,62 @@
+#
+#---H_MAN_REG.I    Help about "Manage: New User Registration Layout" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+set help_not_found 0
+include $(help)/ht.i h_man_reg.cml \
+        $quote(Help on New User Registration Layout)
+
+"<B>What Is It?</B><BR>
+"The New User Registration Layout page controls what information
+"is recorded about each person in Caucus, and exactly how the "user
+"registration" page looks to a new Caucus user.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Control the New User Registration Layout</U>.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"The New User Registration page is broken up into numbered "blocks",
+"each of which you can control.&nbsp;
+"Each block can be a particular kind of field about a user, or
+"arbitrary HTML or CML text used to format part of the page.&nbsp;  
+
+"<P>
+"Each row on this page controls a block.&nbsp;
+"Each column is a particular kind of information about a block.&nbsp;
+"See the column descriptions at the bottom of the main page
+"to understand each column.
+
+"<P>
+"The important thing to note about this page is that it really
+"controls <B>all</B> the information that is stored about a
+"particular user (except for usage reports like "who has seen
+"an item").&nbsp;
+"It also controls, field by field, 
+"whether that information appears on the new user
+"registration page, the "personal information page" (what you see
+"when you click on a person's name in Caucus), and whether a user
+"can <B>change</B> their own information.
+
+"<P>
+"Typically, for each field you'll choose 'yes' (a checked box) 
+"for all three cases.&nbsp;
+"But there may be special circumstances where some information should
+"not be viewable by everyone, or perhaps other information should
+"not be changeable by the person.
+"<P>
+"Also note that whenever you, the manager, click on a person's name,
+"you'll see an <B>Edit</B> button in the upper right-hand corner of
+"the pop-up window.&nbsp;
+"You can use that button to edit <B>all</B> of a person's information,
+"regardless of the "Appears on" checkbox settings.
+
+include $(help)/hb.i

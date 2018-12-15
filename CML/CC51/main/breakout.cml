@@ -1,0 +1,380 @@
+#
+#---breakout.cml   Handle user dialog for creating a "breakout" item.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#  arg(6)  if org, x=>chose d(iscussion) or q(uiz).
+#  arg(7)  itemid
+#  arg(8)  resp no
+#
+#: CR 06/15/06 New file.
+#==================================================================
+
+set  nch   $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i breakout.cml
+end
+ 
+set nxt   $page_save (1 breakout.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Breakout)
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set arglist $arg(3)+$arg(4)+$arg(5)
+
+eval %onnow_check()
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Breakout</TITLE>
+
+include $(main)/css.i 1
+
+#---If arg(9) and arg(10) are non-empty, and are numbers, save
+#   the new window size as persistent variables.
+if $and ($not_empty ($arg( 9))   $equal ($is_num($arg( 9)) $strlen($arg(9))) \
+         $not_empty ($arg(10))   $equal ($is_num($arg(10)) $strlen($arg(10))) )
+   eval $set_user_data ($userid() xs_break $arg( 9))
+   eval $set_user_data ($userid() ys_break $arg(10))
+end
+
+
+"<script type="text/javascript" language="javascript">
+include $(main)/popup.js
+include $(main)/setsort.js
+
+if $(use_resize)
+"   var started = new Date();
+"   function resizer() {
+"      var thistime = new Date();
+"      if (thistime.getTime() - started.getTime() < 3000)
+"         return;
+"      var xv = $if ($(is_netscape4) window.innerWidth  document.body.clientWidth);
+"      var yv = $if ($(is_netscape4) window.innerHeight document.body.clientHeight);
+"      window.opener.xs_person = xv;
+"      window.opener.ys_person = yv;
+"      location.href = "breakout.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+               $arg(6)+$arg(7)+$arg(8)+" + xv + "+" + yv;
+"   }
+end
+"</SCRIPT>
+
+"<script type="text/javascript" language="javascript" 
+"        src="$(http)://$host()/~$caucus_id()/CB51/richtext.js"></script>
+"<script type="text/javascript" language="javascript" 
+"        src="$(http)://$host()/~$caucus_id()/CB51/html2xhtml.js"></script>
+
+"</HEAD>
+
+if $not_empty($form(isform))
+   eval $set_user_data ($userid() describeBreakout \
+                        $word (1 $form(describeBreakout) 0))
+end
+
+#include $(main)/body.i $arg(3) $ifthen ($(use_resize) onResize="resizer();")
+"<body $ifthen ($(use_resize) onResize="resizer();") >
+
+set describeBreakout $word(1 $user_data ($userid() describeBreakout) 1)
+
+set is_org $gt_equal (%access($arg(3)) $priv(instructor))
+
+if $(isBlog)
+   set describeBreakout 0
+end
+else 
+   "<form NAME="bo" method="post"
+   "      action="breakout.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                  $arg(6)+$arg(7)+$arg(8)">
+   "<input type="hidden" name="isform" value="1">
+   
+   "<table width="100%" CELLSPACING=0 CELLPADDING=0 border=0>
+   "<TR ><TD><span class="bigger"><B>Start a breakout item</B></span></TD>
+   #  "<td><a href="#">(Skip this introduction next time)</a></td>
+      "<td>&nbsp;Always show the introduction?
+      "  <input type="checkbox" name="describeBreakout" value="1"
+      "         $ifthen ($(describeBreakout) checked)
+      "         onChange="document.bo.submit();"></td>
+      "<TD ALIGN=right><nobr>
+      "<INPUT TYPE=BUTTON VALUE="Close"
+      "  onClick="window.opener.pop_gone('person'); window.close();"></nobr></TD>
+   "</table>
+   "</form>
+end
+
+if $(describeBreakout)
+   "<b>Introduction</b><br>
+   "If this is the first time you're considering starting a breakout item,
+   "please read the rest of this introduction.&nbsp;
+   "Breakouts are a great way of organizing conversations, 
+   "but overusing them can create a mess --
+   "the "losing the forest for the trees" syndrome.&nbsp;
+   "(On the other hand, if you're tired of seeing this introduction,
+   "just click on the checkbox above.)
+
+   "<p/>
+   "<b>What is a breakout item?</b><br>
+   "A breakout item is a new conversational topic, or "thread".&nbsp;
+   "Literally, it "breaks away" from the current line of discussion,
+   "and starts a new conversation.&nbsp;
+   "It should be related in some way -- a subtopic of, or a temporary
+   "digression from, the main topic.&nbsp;
+   
+   "<p/>
+   "<b>When should I start a breakout?</b><br>
+   "Whenever the subtopic becomes important enough (or long enough)
+   "to deserve its own item with its own thread of responses:
+   "<ul>
+   "<li>When the conversation in an item "drifts" to a different topic,
+   "or especially when multiple topics are interspersed or alternating
+   "in the same discussion.
+   "<li>When you are starting a new item, and you know that it is going
+   "to require related but distinct sub-topics.
+   "</ul>
+   "On the other hand, if there is "drift" that has nothing to do with
+   "the original topic, it's better to select those responses, and copy
+   "or move them to a completely new item that is <b>not</b> a breakout.
+   
+   "<p/>
+   "<b>What does it look like?</b><br>
+   "On the item list on the conference home page, breakout items appear
+   "under their parent items, indented and with a sub-item-number.&nbsp;
+   "For example:
+   "<table cellspacing=0 cellpadding=0 
+   "   style="margin-left: 2em; border: solid 1px; margin-top: 3px;">
+   "<TR class="itemlist_row0" valign=top>
+   "<td class="itemlist_row_num">
+   "   <a href="#">4</A></td>
+   "<TD class="itemlist_row_text">
+   "<A HREF="#" >What Music Do You Like?</A>
+   "</TD>
+   "<TD class="itemlist_row_text"
+   "  ><nobr><A HREF="#" >Leonard Berstein</a></nobr></td>
+   "<TD></TD>
+   "<TD class="itemlist_row_num"
+   "  ><A HREF="#" >98</A></TD>
+   
+   "<TR class="itemlist_row1" valign=top>
+   "<td class="itemlist_row_num"></td>
+   "<TD class="itemlist_row_text">
+   "<a href="#">4.1</a>&nbsp;
+   "<A HREF="#" >Classical vs. Jazz</a>
+   "</TD>
+   "<TD class="itemlist_row_text"
+   "  ><nobr><A HREF="#" >George Gershwin</a></nobr></td>
+   "<TD></TD>
+   "<TD class="itemlist_row_num"
+   "  ><A HREF="#" >17</A></TD>
+   
+   
+   "<TR class="itemlist_row0" valign=top>
+   "<td class="itemlist_row_num"></td>
+   "<TD class="itemlist_row_text">
+   "&nbsp;&nbsp;<a href="#">4.1.1</a>&nbsp;
+   "<A HREF="#" >Jazz Greats</a>
+   "</TD>
+   "<TD class="itemlist_row_text"
+   "  ><nobr><A HREF="#" >Louis Armstrong</a></nobr></td>
+   "<TD></TD>
+   "<TD class="itemlist_row_num"
+   "  ><A HREF="#" >11</A></TD>
+   
+   
+   "<TR class="itemlist_row1" valign=top>
+   "<td class="itemlist_row_num"></td>
+   "<TD class="itemlist_row_text">
+   "<a href="#">4.2</a>&nbsp;
+   "<A HREF="#" >Folk Music</a>
+   "</TD>
+   "<TD class="itemlist_row_text"
+   "  ><nobr><A HREF="#" >Paul Stukey</a></nobr></td>
+   "<TD></TD>
+   "<TD class="itemlist_row_num"
+   "  ><A HREF="#" >23</A></TD>
+   "</table>
+
+   "<p/>
+   "Within an item, a response that has a breakout item shows
+   "it in a narrow blue box, as below:
+
+   "<table border="0" cellspacing="1" cellpadding="4" 
+   "   bgcolor="#006B91"
+   "   style="margin-left: 2em; margin-top: 3px;">
+   "<tr><td bgcolor="#CEEAF5"
+   "><font face="Arial,Helvetica,sans-serif" 
+   " style="font-family: Arial, Helvetica, sans-serif; font-size: 8pt;"
+   ">Breakout: see
+   "<A HREF="#" >4.1&nbsp; Classical vs. Jazz</a>
+   "</font></td>
+   "</table>
+
+   "<p/>
+   "At the top of a breakout item, there's also a link to its parent
+   "item and response in a narrow pink box, as below:
+   "<span style="margin-left: 2em;"><b>Jazz Greats</b></span>
+   "<table border="0" cellspacing="1" cellpadding="4" 
+   "   bgcolor="#C10000"
+   "   style="margin-left: 2em; margin-top: 3px;">
+   "<tr><td bgcolor="#FFD0D0"
+   "><font face="Arial,Helvetica,sans-serif" 
+   " style="font-family: Arial, Helvetica, sans-serif; font-size: 8pt;"
+   ">Parent: see
+   "<A HREF="#" >4.1&nbsp; Classical vs. Jazz</a>
+   "</font></td>
+   "</table>
+
+   "&nbsp;<br>
+   "<p/>
+   "<b>Start your own breakout item</b>
+end
+
+
+"<script type="text/javascript" language="javascript">
+"   function hasTitleText() {
+"      if (document.ebox.ti_resp.value == ""  ||
+"          document.ebox.tx_resp.value == "") {
+"         confirm ("Please fill in both title and text\nfor this new item.");
+"         return false;
+"      }
+"      return true;
+"   }
+"</script>
+
+
+set addQuiz   $word (1 $site_data ($arg(3) - addQuiz)   0)
+set addSurvey $word (1 $site_data ($arg(3) - addSurvey) 0)
+
+if $and ($(is_org) $or($(addQuiz) $(addSurvey)) $equal($arg(6) x) $not($(isBlog)))
+   "<form>
+   "<p/>
+   "<b>First</b>, choose the type of item: 
+   "<input type="radio" name="itemtype" value="discussion"
+   "  onClick="location.href = 'breakout.cml?$(nch)+$(nxt)+$(arglist)+d+$arg(7)+$arg(8)';"
+   "> discussion
+
+   if $(addQuiz)
+      "&nbsp;&nbsp;&nbsp;
+      "<input type="radio" name="itemtype" value="quiz"
+      "  onClick="window.opener.location.href = \
+              'quizCreate.cml?$(nch)+$(nxt)+$arg(3)+$arg(7)+x+x+$arg(7)+$arg(8)';"
+      "> quiz
+   end
+
+   if $(addSurvey)
+      "&nbsp;&nbsp;&nbsp;
+      "<input type="radio" name="itemtype" value="survey"
+      "  onClick="window.opener.location.href = \
+              'quizCreate.cml?$(nch)+$(nxt)+$arg(3)+$arg(7)+x+x+$arg(7)+$arg(8)+s';"
+      "> survey
+   end
+   "</form>
+end
+else
+
+   set itemType $arg(4)
+   if $equal ($(type) freeblog)
+      set itemType f
+   end
+   if $equal ($(type) modblog)
+      set itemType m
+   end
+
+   "<form method="post" name="ebox" 
+   "   ACTION="additemf.cml?$(nch)+$(nxt)+$arg(3)+$(itemType)+$arg(5)+$arg(6)+$arg(7)+$arg(8)" 
+   "      onSubmit="return ebox_submit() & hasTitleText();">
+   
+   
+   "<p/>
+   set title
+   
+   set breakoutTitleLabel $if ($not($(isBlog)) Breakout New blog entry)
+   "$(breakoutTitleLabel) title: <INPUT TYPE="text" NAME="ti_resp" SIZE=60 VALUE="$(title)" >
+   "<p/>
+   
+   include $(main)/ebox_type.i
+   if $(ebox_rt)
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5></td>
+      "<td align=right><img $(src_eboxtr)></td>
+      include $(main)/ebox_rt.i 0 0 0 i_item 0
+   end
+   elif $(ebox_ek)
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5 rowspan=2><b>Then choose from:</b></td>
+      "<td align=right><img $(src_eboxtr)></td>
+   
+      "<tr $(eboxbg)>
+      "<td><img $(src_clear) width=1 height=3></td>
+      "<td><img $(src_clear) width=1 height=3></td>
+      include $(main)/ebox_ek.i $if ($empty($arg(9)) 0 2) 0 0 i_item hasTitleText()
+   end
+   elif $(ebox_ta)
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5 rowspan=2><b>Then choose from:</b></td>
+      "<td align=right><img $(src_eboxtr)></td>
+      "<tr $(eboxbg)>
+      "<td><img $(src_clear) width=1 height=3></td>
+      "<td><img $(src_clear) width=1 height=3></td>
+      include $(main)/ebox_ta.i $if ($empty($arg(9)) 0 2) 0 0 i_item 0
+   end
+   
+   if $(ebox_ta)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><TABLE>
+         "<TR>
+         "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create"></TD>
+         "<TD>&nbsp;new item now.</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "<TD>
+            include $(main)/boxsize.i
+         "</TD>
+         "</TABLE>
+      "</td>
+      "<td></td>
+   end
+   
+   if $(ebox_rt)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><TABLE>
+         "<tr><td><img $(src_clear) width=1 height=3></td>
+         "<TR>
+         "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create"></TD>
+         "<TD>&nbsp;new item now.</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "</TABLE>
+      "</td>
+      "<td></td>
+   end
+   
+   "<tr valign=bottom>
+   "<td><img $(src_eboxbl)></td>
+   "<td $(eboxbg) colspan=5> </td>
+   "<td align=right><img $(src_eboxbr)></td>
+   "</table>
+   
+   "</form>
+end
+
+"</div>
+"</body>
+"</HTML>
+
+if $empty ($arg(9))
+   set time_additem $time()
+end

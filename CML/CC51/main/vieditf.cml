@@ -1,0 +1,85 @@
+#
+#---vieditf.cml.  Handle edit-response forms, then back to viewitem
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  3/20/00 20:31 Allow organizers to change author.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 11/09/04 Post-process richtext for blueing URLS.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   set tx_resp $form(tx_resp)
+   set tp_resp $form(tp_resp)
+   include $cml_dir()/startup.i viedit.cml +tx_resp+$(tp_resp)
+end
+
+include $(main)/secure.i member $arg(3)
+
+include $(main)/computeItemAccess.i $arg(3) $arg(4)
+
+set nch $unique()
+#set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+##---Upload goes to its own special page.
+##   (Save the response text and type, if the user had started one.)
+#if $not_empty ($form(upload.x))
+#   set tx_resp $form(tx_resp)
+#   set tp_resp $form(tp_resp)
+#   "%location($(mainurl)/upload.cml?$(nch)+$(nxt)+\
+#              $arg(3)+$arg(4)+$arg(5)+x+$arg(7)+$arg(8))
+#   return
+#end
+
+#---Shrink or Expand...
+if $not_empty ($form(shrink.x)$form(expand.x))
+   include $(main)/boxsizef.i resp # 0
+   return
+end
+
+#---Handle changing author (owner).
+if $and ($(is_org))
+   if $not_equal (x$form(owner) x$(owner))
+      if $empty (%per_lname ($form(owner)))
+         set nosuch There is no userid '$form(owner)'.
+         "%location(viedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                             $arg(7)+$arg(8))
+         return
+      end
+      eval $resp_set ($arg(4) $arg(5) userid $form(owner))
+   end
+end
+
+if $and ($not_empty ($form(tx_resp) ) \
+         $not_equal ( x$form(unique_box) x$(last_unique))  )
+   set newprop $minus ($tablefind ($form(tp_resp) format literal html cml) 1)
+   if $equal ($(newprop) 1)
+      eval $set_wrap ($plus ($(cols) 1))
+   end
+
+   #---Special filtering for ebox_rt (richtext) generated text.
+   set temp $form(tx_resp)
+   if $(ebox_rt)
+      set temp $addtarget ($(temp))
+      set temp     $h2url ($(temp))
+   end
+
+   eval $resp_set ($arg(4) $arg(5) text $(temp))
+   if $not_equal ($(newprop) $(prop))
+      eval $resp_set ($arg(4) $arg(5) prop $(newprop))
+   end
+   eval $set_wrap (0)
+   include $(main)/updateRespEditIdAndTime.i $arg(4) $arg(5) 0
+
+   set last_unique $form(unique_box)
+
+   include $(main)/ebox_chosen.i
+end
+
+
+set caller $page_caller (1 $arg(2))
+"%location($(mainurl)/viewitem.cml?$(nch)+$(caller)+\
+           $arg(3)+$arg(4)+$arg(5)+x+$arg(7)+$arg(8)#here)
+#--------------------------------------------------------

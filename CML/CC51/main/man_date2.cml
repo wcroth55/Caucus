@@ -1,0 +1,126 @@
+#
+#---MAN_DATE2.CML.   Display list of users selected by date.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR 01/05/04 Use %datetz() *correctly* in all places.
+#: CR 10/08/05 C5 rewrite.  No more allusers file!
+#: CR 02/28/06 Make list sortable by all columns.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userDelete userReports
+include $(main)/requiredinfo.i
+
+set ldate   $if ($not_empty($form(lyear)) \
+                 $form(lyear)-$form(lmonth)-$form(lday) $(ldate))
+set date    %dateOfyyyy($(ldate))
+set howmany $word (1 $form(howmany) $(howmany))
+set lusers  $word (1 $form(lusers)  $(lusers))
+
+set compare $epoch($(date))
+if $less ($(compare) 10000)
+   "%location($(mainurl)/man_date.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+   return
+end
+
+set nch   $unique()
+
+set nxt   $page_save (2 man_date2.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Users by Date)
+
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Manage Users by Date) checkall.js
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i      man_date  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    Users by Date</A>
+
+#"ldate='$(ldate)'<br>
+#"date='$(date)'<br>
+#"howmany='$(howmany)'<br>
+#"lusers='$(lusers)'<br>
+"<p/>
+
+#---Set sanity limits on value of 'howmany'
+if $empty ($(howmany))
+   set howmany 50
+end
+if $less  ($(howmany) 1)
+   set howmany 50
+end
+
+set compare $epoch  ($(date))
+
+"Users last on Caucus
+"<B>$if ($equal ($(lusers) 0) before after)</B>
+"$words(1 3 %datetz($dateof($epoch($(date)))))
+
+"<p/>
+"<form NAME=dellist METHOD=POST
+"    ACTION="man_date3.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+#---"Before" case
+if $equal ($(lusers) 0)
+   set query SELECT userid FROM user_info  \
+              WHERE laston < '$(ldate)' AND laston > '0000-00-00' \
+              ORDER BY laston LIMIT $(howmany)
+end
+else
+   set query SELECT userid FROM user_info  \
+              WHERE laston > '$(ldate)' ORDER BY laston LIMIT $(howmany)
+end
+set match $sql_query_select ($(query))
+set matchin '$word (1 $(match))'
+for x in $(match)
+   set matchin $(matchin), '$(x)'
+end
+set query SELECT userid, fname, lname, laston, email FROM user_info \
+           WHERE userid IN ($(matchin))
+
+"<table cellspacing=0 cellpadding=0 border=0>
+include $(main)/peoplelist.i man_date2.cml 0 query 1 0 laston
+"</table>
+
+"<INPUT TYPE=HIDDEN NAME=LAST VALUE="LAST">
+
+"<p/>
+if $(count)
+   "You may check the boxes next to individual users,
+   "<A HREF="#" onClick="return checkall(document.dellist);">check all
+   " $(count) boxes</A>,
+   "or return to
+   "<A HREF="man_date.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+        $arg(7)+$arg(8)">Manage users by date</A>.
+   "<P/>
+   "<INPUT NAME=submit TYPE=SUBMIT VALUE="Delete"> all checked users.
+end
+else
+   "No users were found.&nbsp;
+   "You may return to
+   "<A HREF="man_date.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+        $arg(7)+$arg(8)">Manage users by date</A>.
+end
+
+"<P/>
+"<input type="hidden" name="count" value="$(count)">
+"</form>
+
+"<P/>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

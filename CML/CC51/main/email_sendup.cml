@@ -1,0 +1,154 @@
+#
+#---EMAIL_SENDUP.CML.   Caucus CML file: send conference updates by e-mail.
+#
+#   Invoked as:
+#      sweba sweba.conf email_sendup.cml temp mailer
+#
+#   Parameters:
+#      sweba        The Caucus stand-alone CML interpreter program
+#      sweba.conf   The configuration file for sweba
+#      sendup.cml   This file.  (Must be relative to CML_Path in sweba.conf!)
+#      temp         (arg 1) Full pathname of directory for temporary files
+#      mailer       (arg 2) Full pathname of e-mail client
+#      
+#
+#   Purpose:
+#      email_sendup.cml is a CML script for the Caucus stand-alone CML
+#      interpreter, sweba.  It sends the text of any new material in
+#      selected conferences to the users in the subscription
+#      list, via e-mail.  (It also sends *all* the text of a
+#      conference to new e-mail subscribers to an on-going conference.)
+#
+#   How it works:
+#      Each conference has an e-mail list that is controlled by the
+#      switch "mail_out", and by the Caucus interface file custom.cml.
+#      
+#      Typically sendup.cml is run on a regular basis, (e.g. once a day)
+#      by the 'cron' utility or some other automatic scheme.
+#
+#      For each person that has been added to the e-mail list (since
+#      the last time sendup.cml was run), ALL of the items in that
+#      conference are sent to the person, one item per message.
+#
+#      For everyone else on the e-mail list, only new material is
+#      sent.  (All new responses to an item are sent as one message.)
+#
+#   Known bugs:
+#
+#   History of revisions:
+#: CR  8/20/96 17:14 First version.
+#: CR  9/03/96 14:00 Beta version.
+#: CR 12/16/96 23:12 First release version.
+#: CR  7/09/04 Put code in EMAIL44/main directory.
+#: CR 12/13/04 Add outbound attachment handling.
+#: CR 08/24/09 Interface-specific showUserid controls "(userid)" display instead of show_id.
+#----------------------------------------------------------------------------
+
+set mailer $arg(2)
+set main   CC51/main
+set iface  CC51
+include $(main)/calculateShowUserid.i
+
+if $empty ($arg(1))
+   "Error: no temporary file directory specified.
+   return
+end
+set tmp $arg(1)
+
+include $(main)/email_prohibited_tags.i
+#include $(main)/email_macros.i
+include $(main)/macros.i
+include $(main)/email_mimeload.i
+eval $mac_define (digit8 \$str_sub(0 \$minus(8 \$strlen(@1)) 0000000)@1)
+
+#eval $mac_define (show  <img src="http://$host()/~$caucus_id()/\
+#    LIB/\$cl_name(\$(vi_cnum))/\$re_owner(\$(vi_cnum) \$(vi_inum) \$(m_rnum))/\
+#    \$mac_expand(\%digit4(\$(vi_inum))\%digit4(\$(m_rnum)))/\$lower(@1)" \
+#        border=0>)
+#eval $mac_define (showr <img src="http://$host()/~$caucus_id()/\
+#    LIB/\$cl_name(\$(vi_cnum))/\$re_owner(\$(vi_cnum) \$(vi_inum) \$(m_rnum))/\
+#    \$mac_expand(\%digit4(\$(vi_inum))\%digit4(\$(m_rnum)))/\$lower(@1)" \
+#        border=0 align=right>)
+
+eval $mac_define (show  )
+eval $mac_define (showr  )
+eval $mac_define (libimg2   )
+eval $mac_define (libimg2r  )
+eval $mac_define (libimg_at )
+eval $mac_define (liblink2  )
+eval $mac_define (libname2  )
+
+#---If this id is not registered, "create" it as a person.
+if $empty ($user_info ($userid() lname))
+   eval $set_user_info ($userid() lname Mailer)
+   eval $set_user_info ($userid() fname Caucus)
+   include $(main)/group_addnewusers.i $userid()
+end
+
+#---For each conference that has an e-mail list...
+for cnum in $cl_list()
+
+   #...that we have access to...
+   include $(main)/confaccess.i    $(cnum)
+   set access $group_access ($userid() CONF $(cnum))
+   if $less ($(access) $priv(minimum))
+      continue
+   end
+
+   #---Pluck out (just) the addresses for all email participants in this conf.
+   set email_text $site_data($(cnum) - email)$newline()###EOF
+   set email
+   count n 1 10000
+      set line $lines ($(n) 1 $(email_text))
+      set word $word (1 $(line))
+      if $equal ($(word) ###EOF)
+         break
+      end
+      if $empty ($(word))
+         continue
+      end
+      set email $(email) $(word)
+   end
+
+#  "cnum=$(cnum)
+#  "email='$(email)'
+   if $not_empty ($(email))
+   
+      #---People who were just added to the e-mail list get ALL
+      #   material; everyone else just gets NEW material.
+      set cname      $upper1($cl_name($(cnum)))
+      set old_email  $site_data ($(cnum) - old_email)
+#     "old_email='$(old_email)'
+      eval $set_site_data ($(cnum) - old_email $(email))
+      set get_new
+      set get_all
+      for address in $(email)
+         if $tablefind ($(address) $(old_email))
+            set get_new $(get_new) $(address)
+         end
+         else
+            set get_all $(get_all) $(address)
+         end
+      end
+#     "get_new='$(get_new)'
+#     "get_all='$(get_all)'
+      set markseen 1
+      
+
+      #---Handle those that get (just) the new material.
+      if $not_empty ($(get_new))
+         include $(main)/itemListOf.i $(cnum) $userid() new 0 0 0
+         include $(main)/email_senditems.i itemList get_new 1
+         set markseen 0
+      end
+
+      #---Handle those that get all material.
+      if $not_empty ($(get_all))
+         include $(main)/itemListOf.i $(cnum) $userid() all 0 0 0
+         include $(main)/email_senditems.i itemList get_all $(markseen)
+      end
+
+   end
+end
+   
+#----------------------------------------------------------------------------

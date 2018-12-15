@@ -1,0 +1,103 @@
+#
+#---MAN_MKIFACE.CML.   Create (and optionally switch to) a new interface.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/02/03 New file.
+#: CR 12/19/05 Correct secure.i call to be "interfaceManage".
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_cc.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_cc.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Create New Interface )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Create New Interface)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_cc </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Create New Interface</A>
+
+"<form NAME="mk" METHOD=POST
+"    ACTION="man_mkifacef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+"<BLOCKQUOTE>
+"Use this page to create a new interface, which you can
+"then customize to change the look and feel of Caucus.
+"<p>
+"Interface names must be one "word" (no spaces).&nbsp;
+"You must specify and use capitalization exactly, e.g.
+""ABC" is different from "abc".&nbsp;
+"Once you have created an interface <i>name</i>, you'll also want
+"to create an "Interface_Storage_<i>name</i>" conference
+"for it.
+
+"<p/>
+"The new interface will have the same list of user information
+"fields as the current interface (<b>$(iface)</b>).&nbsp;
+"(If you want to base the new interface on some other interface,
+"click on the other interface first.)&nbsp;
+"Then you can customize the interface afterwards.
+
+"<p>
+if $and ($not_empty ($(error)) $not_equal($(error) 0))
+   "<b>Error:</b>&nbsp; $(error)
+   "<p>
+end
+set error
+
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr>
+"<td><b>New interface name:</b></td>
+"<td><img $(src_clear) width=100 height=1></td>
+"<td><b>Existing interfaces:</b></td>
+
+"<tr valign=top>
+"<td><input type="text" name="newface" size="20">
+"<br><input type="submit" name="submit" value="Create"></td>
+"<td></td>
+"<td>
+   set ifaces
+   for xname xsize xdir in $dirlist (2 $caucus_path()/CML)
+      if $equal ($(xdir) 1)
+         if $exists ($caucus_path()/CML/$(xname)/reg)
+            set ifaces $(ifaces) $(xname)
+         end
+      end
+   end
+
+   for xi in $gen_sort (1 $lower($(ifaces)))
+      set xname $word ($(xi) $(ifaces))
+      if $equal ($(xname) $(iface))
+         "$(xname)&nbsp;&nbsp;&nbsp;&nbsp; (current)<br>
+      end
+      else
+         "%interface($(xname))<br>
+      end
+   end
+"</td>
+
+"</table>
+
+"</BLOCKQUOTE>
+"</FORM>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

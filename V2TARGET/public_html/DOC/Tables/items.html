@@ -1,0 +1,71 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>items&nbsp;&nbsp;&nbsp;</span>Items  
+<p/><b>Categories: </b>
+<a href='_Items.html'>Items</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ An Item is a single entry in the items table.  It is a "container"  for a linear chain (thread) of responses.  Each item is independent of any  conferences, but typically appears in one (or more conferences).  <p/>Items are uniquely (internally) identified by items.id, but when an item  appears in a conference, it has a "number" (a label), such as "5", "17.2",  "3.2.6", etc.  "Dotted" item numbers refer to "break-out" items in a hierarchy,  i.e. 3.2.6 is the sixth breakout from the second breakout from item number 3.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>id</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> item creator, FK <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row0'>
+<td>title</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>lastresp</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'-1'</td>
+<td> response number of highest undeleted response  <br></td>
+<tr valign=top class='row0'>
+<td>frozen</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1=frozen  <br></td>
+<tr valign=top class='row1'>
+<td>qkey</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> For items of type 'quiz', FK <a href='quiz.html'>quiz</a>, else NULL.  <br></td>
+<tr valign=top class='row0'>
+<td>type</td>
+<td>enum('item','quiz','wiki') </td>
+<td></td>
+<td></td>
+<td>'item'</td>
+<td></td>
+</table>
+</body>
+</html>

@@ -1,0 +1,121 @@
+#
+#---CUS_CREATE.CML.  Organizer(-like) creating conferences
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/07/01 14:00 New file.
+#: CR 12/18/01 15:00 Allow lower and upper(!) case in conf names!
+#----------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_create.cml
+end
+
+include $(main)/secure.i manage conferenceCreate conferenceAllPrivileges
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set nxt   $page_save (2 cus_create.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Simple Conference Creation)
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Simple Conference Creation)
+
+include $(main)/body.i $arg(3) onLoad="document.concr.cname.focus()" \
+                              onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   cus_create  </A><A HREF="#">Manager \
+     Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Simple Conference \
+     Creation
+
+"<script type="text/javascript" language="javascript">
+"function verify() {
+"   var legal = 
+"         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_";
+"   var cname = document.concr.cname.value;
+"   cname.toLowerCase();
+"   if (cname == "") {
+"      alert ("Please enter a conference name.");
+"      return false;
+"   }
+
+"   for (i=0;   i<cname.length;   ++i) {
+"      var c = cname.charAt(i);
+"      if (legal.indexOf(c) < 0) {
+"         alert ("Please use only numbers, letters, blanks, \n" +
+"                "dots, dashes, or underscores.");
+"         return false;
+"      }
+"   }
+"   return true;
+"}
+"</SCRIPT>
+
+"<BLOCKQUOTE>
+"Use this page to create a new conference.&nbsp;
+"Your new conference will:
+"<P>
+"<UL>
+"<LI>Be open to everyone to join.
+"<P>
+"<LI>List you as the primary organizer.&nbsp;
+"  You will be in charge of it.
+"<P>
+"<LI>Only you (and any organizers you add) can start new discussion items.&nbsp;
+"  <BR>Anyone can respond to them.
+"</UL>
+"<P>
+"You can change these or other options later, if you wish, 
+"by going to the conference and clicking on the "customize" link.
+
+
+"<P>
+"<FORM NAME=concr METHOD=POST onSubmit="return verify();"
+"    ACTION="cus_createf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+#---If from a previous invocation with a bad conf name, complain.
+if $not_empty ($(bad_conf_name))
+  "<B>$(bad_conf_name)</B><P>
+  set bad_conf_name
+end
+
+"<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>
+"<TR>
+"<TD>New conference name:&nbsp;</TD>
+"<TD><INPUT TYPE=TEXT NAME=cname SIZE=40></TD>
+"<TD>&nbsp;<INPUT TYPE="submit" VALUE="Create the Conference"></TD>
+"</TABLE>
+
+"<BLOCKQUOTE>
+"<B>Note:</B> Conference names must
+"be less than 80 characters long, begin with a letter,
+"and contain only letters, numbers, blank spaces, dots ("."), dashes ("-"),
+"or underscores ("_").
+"</BLOCKQUOTE>
+
+"<INPUT TYPE=HIDDEN NAME=primary   VALUE="$userid()">
+"<INPUT TYPE=HIDDEN NAME=orgs      VALUE="caucus">
+"<INPUT TYPE=HIDDEN NAME=archive   VALUE="0">
+"<INPUT TYPE=HIDDEN NAME=allowall  VALUE="$if ($(cc_allowall) on)">
+"<INPUT TYPE=HIDDEN NAME=yesnotify VALUE="$if ($(cc_enotify)  on)">
+"<INPUT TYPE=HIDDEN NAME=join      VALUE="$if ($(cc_join)     on)">
+"<INPUT TYPE=HIDDEN NAME=list      VALUE="$if ($(cc_pcl)      on)">
+"<INPUT TYPE=HIDDEN NAME=customize VALUE="">
+
+"</FORM>
+
+
+"<P>
+"</BLOCKQUOTE>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

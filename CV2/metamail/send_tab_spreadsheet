@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+#---send_tab_spreadsheet    Send a text (tab delimited) spreadsheet via email
+#
+#   Invoked as:
+#      send_tab_spreadsheet  sheet.txt  subject  address  sendmail
+#
+#   Arguments:
+#      sheet.txt  tab-delimited text version of a spreadsheet
+#      subject    e-mail subject line.  If more than one word, must
+#                     be enclosed in double-quotes.
+#      address    e-mail address to send to.  If more than one address,
+#                     must be separated by commas, with no spaces(!).
+#      sendmail   full pathname for sendmail program.
+#
+#   Purpose:
+#      Send a tab delimited "text" spreadsheet as an attachment
+#      via e-mail.  Most e-mail clients will automatically open 
+#      the attachment in Excel, or the relevant spreadsheet utility.
+#
+#   How it works:
+#      Uses a stripped down and hacked-up version of Nathaniel Borenstein's 
+#      metamail package to do the dirty work, specifically:
+#         metasend
+#         mimencode
+#         splitmail (although this could probably be removed with some work)
+#
+#      All of those scripts & programs *must* live in the same directory
+#      as this script(!).
+#
+#      For the original version of metamail that I used to make this hack,
+#      see http://caucuscare.com/metamail.html.
+#
+#   History of revisions:
+#: CR  4/02/03 New script.  Charles Roth, CaucusCare.com
+#: CR 11/12/03 Add sendmail argument.
+#----------------------------------------------------------------------------
+
+if test "x$4" = "x" -o "x$5" != "x"; then
+   echo "Usage: send_tab_spreadsheet  sheet.txt  subject  address  sendmail"
+   exit 1
+fi
+
+dir=`dirname $0`
+
+METAMAIL_SENDMAIL=$4
+export METAMAIL_SENDMAIL
+$dir/metasend -b -s "$2" -f $1 -m application/octet-stream \
+   -D $1.xls -S 50000000 \
+   -e base64 -t $3
+#----------------------------------------------------------------------------

@@ -1,0 +1,304 @@
+#
+#---xuploadpop.cml.  Form processor for uploadpop.cml
+#   New 4/10/11, uses Xupload to handle upload and display 
+#   progress meter.
+
+#"file_1=$form(file_1)
+#"file_1_original=$form(file_1_original)
+#"file_1_status=$form(file_1_status)
+#"utype =$form(utype)
+#"arg(3)=$arg(3)
+#"arg(4)=$arg(4)
+#"arg(5)=$arg(5)
+
+#file_1=vaderHead1.jpg
+#file_1_original=vaderHead.jpg
+#file_1_status=OK. renamed to:vaderHead1.jpg
+#utype =link
+#arg(3)=3
+#arg(4)=1
+#arg(5)=2
+
+set fileName $form(file_1_original)
+set filePath $caucus_path()/REG/uploads/$form(file_1)
+
+
+#howmany=1
+#popup=on
+#utype=link
+#linkname=frazz_simpleSolutionWrong.gif
+#submitter=Continue
+#url_post=http%3A%2F%2Flocalhost%2Freg%2Ftest.cgi&target_dir=%2Fhome%2Fwork%2FREG%2Fuploads
+
+#---Remember to DELETE the zip temporary directory once we're done!!
+
+set nch  $unique()
+
+#---Item/resp uploads go into a two level directory structure underneath
+#   the Caucus library directory: ITEMS/item_id/rnum.  If the item
+#   does not exist yet, item_id = Puserid.  If the response does
+#   not exist yet, rnum=Puserid.
+#
+#   Quiz file uploads go into two-level dir: QUIZ/pkey (problem key #).
+
+set rdir   P$userid()/0
+set isresp 1
+if $not ($tablefind ($arg(4) x b))
+   set isresp 1
+  
+   set rdir $arg(4)/$arg(5)
+   if $not ($arg(6))
+      set rdir $arg(4)/P$userid()
+   end
+end
+if $empty ($arg(7))
+   set libdir  ITEMS/$(rdir)
+end
+elif $equal ($str_sub(0 1 $arg(7)) A)
+   set isresp  ap
+   set libdir  $arg(7)
+end
+else
+   set isresp  qp
+   set libdir  $arg(7)
+end
+
+set libPath $(libdir)/$(fileName)
+#set libname $(libdir)/$form(name.upload)
+#set name_upload $form(name.upload)
+
+
+#---Put the file (or a reference to it) in the user's response text,
+#   according to the "type" of file they selected.
+#set ul_file $form(upload)
+if 0$config(uploadLog)
+   eval $append ($caucus_path()/public_html/uploads.csv $dateof($time()), \
+                 $userid(), $cl_name($arg(3)), $arg(4), $(filePath), \
+                 $word (1 $xshell(1 1 1 /bin/ls --size $(filePath))), \
+                 $(fileName)$newline())
+end
+
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+include $(main)/css.i
+"</head>
+"<body bgcolor="#FFFFFF">
+
+if $empty ($(filePath))
+   "<script type="text/javascript" language="javascript">
+   "self.close();
+   "</script>
+   "</div>
+"</body>
+   "</html>
+   quit
+end
+
+set ul_type $form(utype)
+set texttype
+
+#---Check for binary files uploaded as text, treat them as a link instead.
+if $and ($or ($equal ($form(utype) text) $equal ($form(utype) html)) \
+         $not($file_data ($(filePath) 100 9-26 32-126)))
+   set ul_type link
+end
+
+if   $equal ($(ul_type) text)
+   set addtext '\n$escsingle($readfile($(filePath)))'
+end
+
+elif $equal ($(ul_type) html)
+   set addtext  '\n$escsingle($readfile($(filePath)))'
+   set texttype html
+end
+
+elif $equal ($(ul_type) url)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set addtext ' \%liblink2($userid() $(isresp) $escsingle($(fname))) '
+   end
+end
+
+elif $equal ($(ul_type) link)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set linkname $form(linkname)
+      if $empty($(linkname))
+         set linkname $(fname)
+      end
+      set addtext \
+          '\%libname2($userid() $(isresp) $escsingle($(fname) $(linkname)))'
+   end
+end
+
+elif $equal ($(ul_type) img)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set addtext '\%libimg2($userid() $(isresp) $escsingle($(fname)))'
+   end
+end
+
+elif $equal ($(ul_type) imgr)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set addtext '\%libimg2r($userid() $(isresp) $escsingle($(fname)))'
+   end
+end
+
+elif $equal ($(ul_type) imgg)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set  thumbNailSize $word (1 $form(gwidth) 150)x$word(1 $form(gheight) 100)
+#     set  thumbNailFile $caucus_lib()/$(libdir)/$(fname).thumb.jpg
+      set  tempThumb /tmp/$caucus_id().thumb.$userid().jpg
+      eval $xshell (1 1 1 $config(convertDir)/convert  \
+                    $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                    -resize $(thumbNailSize) $(tempThumb))
+      eval $copy2lib ($(tempThumb) $(libPath).thumb.jpg)
+
+      #---If bigger than 800x600, build a medium-sized version as well.
+      set msmarker
+      set geometry $xshell (1 1 1 $config(convertDir)/identify -verbose \
+                    $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                    | /bin/grep Geometry)
+      set geometry $replace(x 32 $replace(10 32 $(geometry))) 0 0 0
+      if $or ($greater ($word (2 $(geometry)) 800) \
+              $greater ($word (3 $(geometry)) 600))
+         eval $xshell (1 1 1 $config(convertDir)/convert  \
+                       $caucus_lib()/$(libdir)/$escsingle($(fname)) \
+                       -resize $(mediumSized) $(tempThumb))
+         eval $copy2lib ($(tempThumb) $(libPath).medium.jpg)
+         set msmarker 1
+      end
+
+      set addtext '\%libgallery($userid() $(isresp) \
+                    $escsingle($(fname)) $(msmarker))'
+   end
+end
+
+elif $equal ($(ul_type) iframe)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+      set url   $copy2lib ($(filePath) $(libPath))
+      include   $(main)/uploadcheck.i $(libdir) $(fileName)
+      set fname $replace (/ 32 $(url))
+      set fname $word ($sizeof($(fname)) $(fname))
+   
+      set addtext '\%iframe(\%liburl2($userid() $(isresp) $escsingle($(fname))) \
+                           0 $(default_iframe_width) $(default_iframe_height))'
+   end
+end
+
+elif $equal ($(ul_type) zip)
+   include $(main)/virus_checker.i $(filePath) $(libPath) virus_file
+   if $empty ($(virus_file))
+
+      #---Set several things that depend on OS: type of SLASH, unzipper
+      #   program, 'proper' form of uploaded file name.
+      set slash   /
+      set unzip   $caucus_path()/BIN2/unzip
+      set zipfile $(filePath)
+   
+      #---Pluck out the base directory BBASE where the temporary (uploaded zip)
+      #   file was put.
+      set slast $str_revdex (  $(slash) $(zipfile))
+      set bbase $str_sub    (0 $(slast) $(zipfile))
+         
+      #---Create a subdir under BBASE; we'll unzip the uploaded file there.
+      set  subdir $(bbase)$(slash)$userid()$plusmod ($time() 0 10000)
+      eval $xshell (1 1 1 mkdir $(subdir))
+     
+      #---Unzip the archive into a temporary directory; save the output
+      #   (list of file pathnames unzipped).
+      set zipout $xshell(1 1 1 $(unzip) -o $(zipfile) -d $(subdir) )
+   
+      set filelist
+      set pathstart $plus($strlen($(subdir)) 1)
+      set lines $replace($newline() 32 $replace(32 01 $(zipout)))
+
+      set zipout
+      for line in $(lines)
+         set theline $replace(01 32 $(line))
+   
+         #--- files unzipped are preceded by "inflating:", "extracting:", etc.
+         if $greater ($str_index (ing: $word (1 $(theline))) 0)
+            set zipout $(zipout); $(theline)
+            set fname    $str_sub ($(pathstart) 1000 $word (2 $(theline)))
+            set libname  $(libdir)/$(fname)
+            set url      $copy2lib ($(subdir)/$(fname) $(libname) )
+            include $(main)/uploadcheck.i $(libdir) $(fname)
+            eval         $delfile  ($(subdir)/$(fname))
+            set filelist $(filelist) $(fname)
+         end
+      end
+      eval $deldir ($(subdir))
+   
+      "<script type="text/javascript" language="javascript">
+      "location.href = "uploadpop4.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+\
+                 $arg(5)+$arg(6)+$arg(7)+$arg(8))";
+      "</script>
+      "</div>
+"</body>
+      "</html>
+      quit
+   end
+end
+
+if $empty ($(virus_file))
+   "<script type="text/javascript" language="javascript">
+   "   window.opener.ebox_addtext($(addtext));
+       if $equal (x$(texttype) xhtml)
+   "      window.opener.ebox_texttype('$(texttype)');
+       end
+   "   self.close();
+   "</script>
+end
+else
+   "<span class="virus">Virus Warning</span>
+   "<p/>
+   "Your file <b>$(virus_file)</b> appears to be infected,
+   "and has not been uploaded.&nbsp;
+   "Please use a virus checker to examine your computer.
+   "<p/>
+   "<center>
+   "<form><input type="button" Value="Close" 
+   "         onClick="self.close();">
+   "</form>
+   "</center>
+end
+
+eval $delfile($(filePath))
+
+"</div>
+"</body>
+"</html>
+
+#-----------------------------------------------------------------------

@@ -1,0 +1,44 @@
+#: CR 10/31/95 New master makefile.
+
+caucus5.tar: CV2/sweb/swebs CV2/sweb/swebd CV2/sweb/swebsock CV2/sweb/sweba
+	./makekit
+
+CV2/sweb/swebs: $(SWEBLIBS)
+	make -C CV2/api
+	make -C CV2/attach
+	make -C CV2/chg
+	make -C CV2/chx
+	make -C CV2/conf
+	make -C CV2/db
+	make -C CV2/gen
+	make -C CV2/glyph
+	make -C CV2/inout
+	make -C CV2/obj
+	make -C CV2/people
+	make -C CV2/resp
+	make -C CV2/str
+	make -C CV2/subj
+	make -C CV2/sys1
+	make -C CV2/sys2
+	make -C CV2/unit
+	make -C CV2/xaction
+	make -C CV2/metamail
+	make -C CV2/sql MYSQLINC=$(MYSQLINC)
+	make -C CV2/sweb
+	make -C CV2/zutil
+
+libs/lib/libldap.a:
+	make -C openldap
+	make -C openldap install
+
+libs/lib/libiodbc.a:
+	make -C libiodbc-3.52.4
+	make -C libiodbc-3.52.4 install
+
+clean:
+	rm -f caucus5.tar
+
+clobber:
+	rm -f caucus5.tar
+	rm -f CV2/sweb/swebs CV2/sweb/sweba CV2/sweb/swebd CV2/sweb/swebsock
+	rm -f V2DISK0/new_*

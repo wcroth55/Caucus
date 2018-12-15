@@ -1,0 +1,128 @@
+#
+#---IFSPAGE.CML.   Interface Storage Page.
+#   Display a response from the Interface_Storage_$(iface) conference
+#   as a stand-alone page.
+#
+#   arg 3    "x" => just put <HR> at bottom of page (probably short),
+#               anything else => show buttons at bottom of page (probably long)
+#   arg 7    item label
+#   arg 8    response number
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: SB  9/??/99 00:00 first version was "aux.cml"
+#: CR 10/29/99 23:43 renamed ifspage and updated
+#: CR  5/26/00 14:59 Set m_cnum, m_inum, m_rnum so that %liburl2() works.
+#: CR  1/17/03 include tablepop.js !
+#: CR  6/06/03 logevent ifspage
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  1/17/05 Include new css stylesheets!
+#: CR 10/25/05 Any IFS access > 0 is OK.
+#============================================================================
+
+set nch   $unique()
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i ifspage.cml
+end
+ 
+set nxt   $page_save (1 ifspage.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+               # IFS page )
+
+#---assign the arguments to variables that we can get to later
+eval       $cl_list (interface_storage_$(iface))
+set ifsnum $cl_num  (interface_storage_$(iface))
+set ifs_item $item_id($(ifsnum) $arg(7))
+set ifs_resp $arg(8)
+
+#---Log visiting this page.
+eval $logevent (ifspage $(iface) 0 0 $(ifsnum) $arg(7) $arg(8))
+
+#---Make sure %liburl2(), %libimg2() etc know where to find this item.
+set  m_cnum $(ifsnum)
+set  m_inum $(ifs_item)
+set  m_rnum $arg(8)
+
+#---If Interface_Storage_$(iface) does not exist or is not accessible,
+#   return to calling page.
+if $or ($not($(ifsnum))  $not($group_access($userid() CONF $(ifsnum))) )
+  "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+  quit
+end
+
+set qIFS SELECT r.text, r.prop FROM resps r \
+          WHERE r.items_id = $(ifs_item) AND r.rnum=$(ifs_resp) AND r.deleted=0 AND r.version = \
+              (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum)
+set hi $sql_query_open ($(qIFS))
+eval   $sql_query_row  ($(hi))
+eval   $sql_query_close($(hi))
+
+#---If desired response does not exist, return to calling page.
+if $empty($(prop))
+  "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+  quit
+end
+
+#---Start displaying the page!
+set pagename %item_title($(ifs_item))
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>$(pagename)</TITLE>
+
+"<script type="text/javascript" language="javascript">
+"<!-- Hide script from non-JavaScript browsers...
+   include $(main)/popup.js
+   include $(main)/tablepop.js
+   include $(main)/setsort.js
+"//-->
+"</SCRIPT>
+
+#"<BASE HREF="$(mainurl)/">
+include $(main)/css.i
+"</HEAD>
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     ifspage $(pagename)
+
+"<P>
+
+#---CML response text
+if $equal ($(prop) 3)
+   "$cleanhtml(prohibited \
+         $protect($mac_expand($reval($cleanhtml(_empty $(text)))) ))
+   "<BR CLEAR=ALL>
+end
+
+#---HTML response text
+elif $equal ($(prop) 2)
+   "$cleanhtml(prohibited \
+         $protect($mac_expand($cleanhtml(_empty $(text)))))
+   "<BR CLEAR=ALL>
+end
+
+#---"Literal" response text
+elif $equal ($(prop) 1)
+   "<PRE>
+   "$cleanhtml (prohibited $protect($mac_expand($t2html($(text)))))
+   "</PRE>
+end
+
+#---Word-wrapped response text
+else
+   "$cleanhtml (prohibited $protect($mac_expand($wrap2html($(text)))))
+end
+
+if $not_equal ($arg(3) x)
+   include $(main)/trailer.i     ifspage $(pagename)
+end
+
+"</div>
+"</body>
+"</HTML>
+

@@ -1,0 +1,15 @@
+#
+#---MAN_SHUTF.CML.   Handle Shutting down Caucus.
+#
+#   Unix-only code.
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(main)/secure.i manage systemShutdown
+
+eval $xshell (0 0 1 $caucus_path()/stopcaucus 0 $arg(1) $caucus_path())
+
+"%location($(mainurl)/goodbye.cml)
+#----------------------------------------------------------------------

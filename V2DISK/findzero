@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+#-- FINDZERO.   Find Caucus files that are 0 bytes long (that shouldn't be!)
+#
+#   Invoked as:
+#      findzero
+#
+#   Parameters:
+#
+#   Purpose:
+#      There have been a few Caucus sites that, on rare occasions,
+#      somehow manage to write 0 byte caucus data files.  The purpose
+#      of this script is to find those files, while ignoring other
+#      files that should be 0 bytes long (such as lock files, etc.)
+#
+#   Context:
+#      As of November 1998, no reason has been found why Caucus should
+#      be creating these files.  Deductive evidence points to some
+#      strange interaction with backup systems, but no conclusion has
+#      been reached.
+#
+#      Some potentially suspicious code in Caucus 3.1 has been changed
+#      in 4.0 to eliminate some other possibilities, and to detect
+#      the creation (by any program) of 0 byte files.  (If they are
+#      detected, a warning is written to the end of MISC/bugslist.)
+#
+#   How it works:
+#      Assumes caucus is installed in the top-level (home) directory
+#      of the current userid.  Writes results to stdout.
+#
+#      Runs 'find' to scan for 0 byte files, and uses grep to filter
+#      out files that should be 0.
+#
+#      If 0 byte file problems occur on your system, you may wish to
+#      run findzero as a 'cron' job at regular intervals, such as 
+#      hourly, and e-mail any "positive" results to yourself.
+#
+#   History of revisions:
+#: CR  9/01/97 17:00 First version.
+#: CR 11/27/98 11:44 Fully commented version.
+#----------------------------------------------------------------------------
+#
+echo " "
+
+tmp=$HOME/findz$$
+
+cd $HOME
+find . -size 0c -print >$tmp
+cat $tmp | grep -v lockuser | grep -v lockconf | grep -v "\.exists" | \
+           grep -v SOCKET   | grep -v "\.is"   | grep -v locksyst   | \
+           grep -v caucus_passwd_l | grep -v mbox | \
+           grep -v "public_html/LIB"
+
+rm -f $tmp

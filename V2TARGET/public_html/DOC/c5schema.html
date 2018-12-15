@@ -1,0 +1,479 @@
+<html>
+<head>
+<title>Caucus 5.0 Schema</title>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</head>
+
+<body bgcolor="#FFFFFF">
+<blockquote>
+<h2>Caucus 5.0 Schema</h2>
+Last revised 3/1/2005
+
+<p/>
+<b>I. Introduction</b>
+<p/>
+Caucus 5.0 begins the process of replacing, piece by piece,
+the "old" flat-file Caucus database with MySQL.&nbsp;
+Each "piece" means applying these five steps:
+<ol>
+<li>Defining the necessary tables (schema).
+
+<li>Writing code in the CML interpreter that automatically
+creates these tables when needed.
+
+<li>Writing new CML functions that use these tables.&nbsp;
+Often these are similar in form to the old functions, e.g.
+the 'new' $user_info(userid intro) vs the 'old' $per_intro(userid).
+
+<li>Rewriting the relevant CML pages to use the new functions,
+or in many cases to use SQL queries to get and display information.
+
+<li>Writing a "translation" CML script that fetches data for an
+existing site from the "old" database, and writes it into the
+"new" database.
+</ol>
+
+<p/>
+The rest of this document concerns itself with step #1, the actual
+table definitions.&nbsp;
+See the CML reference guide for the 
+<a href="ref426.html">new CML functions</a>.
+
+<p/>
+<b>II. Table Summaries</b>
+<p/>
+<ol>
+<li><b>User Information</b>.<br>
+   Information about the user that needs to be accessible by/to people.
+  <p/>
+  <ul>
+  <li><b>user_info</b> - one row per user, one column per user 
+       information field.&nbsp;
+      When a manager defines a new "master" user information field,
+      Caucus adds a new <b>column</b> to this table.
+  <li><b>user_columns</b> -- one row per user information field.&nbsp;
+     Metadata about the columns in <b>user_info</b>.
+  <li><b>user_iface</b> -- one row per field, per interface.&nbsp;
+     For each interface, records which fields show up (are accessible)
+     on which pages, how, and in what order.&nbsp;
+     (This replaces the old way of handling the definition of the
+      new user registration page.)
+  </ul>
+
+<p/>
+<li><b>User "variable" data</b>.<br>
+   User "variables" that control or modify the actual operation of
+   the software.&nbsp;
+   Typically "sparse" data, in that most users do not have values
+   for "most" variables.
+  <ul>
+  <li><b>user_data</b> - one row per user per variable.&nbsp;
+     This replaces the old "user variable" concept.
+  </ul>
+
+<p/>
+<li><b>Tasks data</b>.<br>
+  For the new "Tasks" feature.
+
+<p/>
+<li><b>Group (access control) data</b>.<br>
+<ul>
+<li><b>grouprules</b> is the list of rule definitions for all groups
+(individual user defined groups, conference groups, manager groups, etc.)
+<li><b>groups</b> is the full list of each-user-to-each-group mappings,
+entirely derived (compiled, if you will) from the rule set in 
+<b>grouprules</b>.&nbsp;
+We use <b>groups</b> to actually test for access to any object
+controlled by a group, since it's easy to do a JOIN with this table.
+
+</ul>
+</ol>
+
+<p/>
+<b>III. Table Details</b>
+<p/>
+While Caucus 5.0 is being built with MySQL, in theory we could use
+it with any relational database via ODBC.&nbsp;
+For this reason (among others), the precise definition of each
+table is <b>not</b> shown below.&nbsp;
+Instead, we simply use "varchar" for short strings, "text" for
+longer (up to many megabyte) strings, "int" for an integer number,
+"dec" for a decimal number, "datetime" for a date and time, etc.&nbsp;
+If you need the precise definition, use your MySQL client to
+describe a table.
+
+<p/>
+<table border=0>
+<tr valign=top><td colspan=4><b>user_info</b></td>
+<tr valign=top class="row0"><td>&nbsp;&nbsp;&nbsp;</td>
+<td>userid&nbsp;&nbsp;</td>
+<td>varchar&nbsp;&nbsp;</td>
+<td>Actual userid (primary key)</td>
+
+<tr valign=top class="row1"><td></td>
+<td>active</td>
+<td>int</td>
+<td>Is this an 'active' user?&nbsp;
+ 10=yes, 0=deleted, other codes reserved</td>
+
+<tr valign=top class="row0"><td></td>
+<td>lname</td>
+<td>varchar</td>
+<td>Last name.&nbsp;
+  A user must have a last name, at a minimum, to exist.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>&nbsp;...</td>
+<td>&nbsp;...</td>
+<td>(other info fields as defined by the manager)</td>
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>user_columns</b></td>
+
+<tr valign=top class="row0"><td></td>
+<td>name</td>
+<td>varchar</td>
+<td>field name (primary key)</td>
+
+<tr valign=top class="row1"><td></td>
+<td>type</td>
+<td>varchar</td>
+<td>type of field: string, text, int (number), date (&amp; time), 
+   dollars (decimal)</td>
+
+<tr valign=top class="row0"><td></td>
+<td>descr</td>
+<td>varchar</td>
+<td>short description of field</td>
+
+<tr valign=top class="row1"><td></td>
+<td>magic</td>
+<td>int</td>
+<td>0 means normal field, anything else means "magic", i.e. 
+       data maintained automatically by Caucus</td>
+
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>user_iface</b></td>
+
+<tr valign=top class="row0"><td></td>
+<td>name</td>
+<td>varchar</td>
+<td>field name (with 'iface' combines to make a primary key)</td>
+
+<tr valign=top class="row1"><td></td>
+<td>iface</td>
+<td>varchar</td>
+<td>interface name (e.g. "CC44")</td>
+
+<tr valign=top class="row0"><td></td>
+<td>format</td>
+<td>varchar</td>
+<td>how an input field should appear: none, text-line, text-box, checkbox,
+    pull-down, or upload</td>
+
+<tr valign=top class="row1"><td></td>
+<td>width</td>
+<td>int</td>
+<td>width of input field (for text-line or text-box)</td>
+
+<tr valign=top class="row0"><td></td>
+<td>choices</td>
+<td>text</td>
+<td>list of choices for pull-downs, separated by newlines</td>
+
+<tr valign=top class="row1"><td></td>
+<td>required&nbsp;&nbsp;</td>
+<td>int</td>
+<td>Is this field required for this interface?&nbsp; 1=yes</td>
+
+<tr valign=top class="row0"><td></td>
+<td>position</td>
+<td>float</td>
+<td>order of fields for pages in this interface</td>
+
+<tr valign=top class="row1"><td></td>
+<td>label</td>
+<td>text</td>
+<td>Label that appears next to a field</td>
+
+<tr valign=top class="row0"><td></td>
+<td>on_reg</td>
+<td>int</td>
+<td>Should this field appear on a registration page?</td>
+
+<tr valign=top class="row1"><td></td>
+<td>on_public</td>
+<td>int</td>
+<td>Should this field appear on a public "display user" page?</td>
+
+<tr valign=top class="row0"><td></td>
+<td>on_self</td>
+<td>int</td>
+<td>Should this field appear on a page where the user can modify their 
+    own info?</td>
+
+<tr valign=top class="row1"><td></td>
+<td>on_mgr</td>
+<td>int</td>
+<td>Should this field appear on a page where a manager can see or modify
+    another user's info?</td>
+
+<tr valign=top class="row0"><td></td>
+<td>macro</td>
+<td>varchar</td>
+<td>Name of macro to be applied to this data when it is displayed</td>
+
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>user_data</b></td>
+
+<tr valign=top class="row0"><td></td>
+<td>userid</td>
+<td>varchar</td>
+<td>Actual userid (with 'name' combines to form primary key)</td>
+
+<tr valign=top class="row1"><td></td>
+<td>name</td>
+<td>varchar</td>
+<td>name of user "variable"</td>
+
+<tr valign=top class="row0"><td></td>
+<td>value</td>
+<td>text</td>
+<td>value of "variable"</td>
+
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>tasks</b></td>
+<tr valign=top class="row0"><td></td>
+<td>tkey</td>
+<td>int</td> <td>primary key</td>
+
+<tr valign=top class="row1"><td></td>
+<td>tid</td>
+<td>int</td>
+<td>?????</td>
+
+<tr valign=top class="row0"><td></td>
+<td>title</td>
+<td>varchar(64)&nbsp;</td>
+<td>Task title</td>
+
+<tr valign=top class="row1"><td></td>
+<td>lead</td>
+<td>varchar(64)</td>
+<td>userid of "lead" person assigned to task</td>
+
+<tr valign=top class="row0"><td></td>
+<td>assigner</td>
+<td>varchar(64)</td>
+<td>userid of person who assigned this task</td>
+
+<tr valign=top class="row1"><td></td>
+<td>tgroup</td>
+<td>varchar</td>
+<td>group allowed to see or modify this task</td>
+
+<tr valign=top class="row0"><td></td>
+<td>target</td>
+<td>date</td>
+<td>Proposed target (due) date of task</td>
+
+<tr valign=top class="row1"><td></td>
+<td>priority</td>
+<td>varchar(32)</td>
+<td>Priority -- usually numerical or simple alphabetic</td>
+
+<tr valign=top class="row0"><td></td>
+<td>category</td>
+<td>varchar(64)</td>
+<td>General category that class belongs to</td>
+
+<tr valign=top class="row1"><td></td>
+<td>links</td>
+<td>varchar</td>
+<td>??? links to items???</td>
+
+<tr valign=top class="row0"><td></td>
+<td>status</td>
+<td>varchar(32)</td>
+<td>Description of status -- open, done, etc.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>updated</td>
+<td>timestamp</td>
+<td>When was this task last updated or modified?</td>
+
+<tr valign=top class="row0"><td></td>
+<td>current</td>
+<td>int</td>
+<td>Is this the most current version of this task?</td>
+
+<tr valign=top class="row1"><td></td>
+<td>deleted</td>
+<td>int</td>
+<td>Has task been deleted?</td>
+
+<tr valign=top class="row0"><td></td>
+<td>text</td>
+<td>text</td>
+<td>Actual (probably HTML) text of task</td>
+
+<tr valign=top><td></td>
+<td colspan=3><br>
+The Tasks table keeps not only a list of all tasks
+on the system, but a complete history of every version of every
+task.
+<p/>
+Thus, each task has a unique <b>tid</b>, but each row has a unique
+primary key, <b>tkey</b>.&nbsp;
+A single task may have many rows with the same <b>tid</b> and
+different <b>updated</b>s.&nbsp;
+Only the most recent row will have <b>current</b> = 1, all others
+will have a value of 0.&nbsp;
+(Seems like there ought to be an SQL way to do this by taking the
+max() of <b>updated</b>, but w/o sub-queries that may not be possible
+or portable.)
+<p/>
+If a task has been deleted, all its rows will have <b>deleted</b> = 1,
+but the rows are still maintained and are in theory still visible
+(although certain UI issues, like who is allowed to examine deleted
+tasks, need to be resolved).
+<p/>
+The format of <b>links</b> still needs to be decided on.
+
+</td>
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>grouprules</b></td>
+<tr valign=top class="row0"><td></td>
+<td>grkey</td>
+<td>int</td> <td>primary key</td>
+
+<tr valign=top class="row1"><td></td>
+<td>owner</td>
+<td>varchar</td>
+<td>Defines type of group: "CONF", "MGR", or an actual (lower-case) userid.</td>
+
+<tr valign=top class="row0"><td></td>
+<td>name</td>
+<td>varchar</td>
+<td>Name of group.&nbsp; For CONF groups, it is the conference number.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>userid</td>
+<td>varchar</td>
+<td>User groups only: the userid (or wild card string) for this rule.</td>
+
+<tr valign=top class="row0"><td></td>
+<td>wildcard</td>
+<td>int</td>
+<td>User groups only: 1 if wildcard, 0 otherwise.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>subowner</td>
+<td>varchar</td>
+<td>For sub-groups rules: the sub-group's owner.</td>
+
+<tr valign=top class="row0"><td></td>
+<td>subname</td>
+<td>varchar</td>
+<td>For sub-groups rules: the sub-group's name.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>access</td>
+<td>int</td>
+<td>Access level, coded as an integer.</td>
+
+<tr valign=top class="row0"><td></td>
+<td>optional</td>
+<td>int</td>
+<td>0 =&gt; normal, 1 =&gt; this is an "opt (in or out)" rule.</td>
+
+<tr valign=top class="row1"><td></td>
+<td>bySelf</td>
+<td>int</td>
+<td>1 if this rule was added <b>by</b> the user that affects it.</td>
+
+<tr valign=top><td></td>
+<td colspan=3><br>
+Every group is identified by an owner, and a name.&nbsp;
+Userid rules have the userid and wildcard fields, sub-group rules
+have the subowner and subname fields.&nbsp;
+All rules must have an access level.&nbsp;
+An access level of -999 (and no data except
+for grkey, owner, and name) acts as a placeholder for
+an otherwise "empty" group.
+<p/>
+Only userid rules may have a non-zero "optional" value.&nbsp;
+The optional rules are tricky, see
+<a href="c5groups.html">Groups in Caucus 5</a> for more explanation.&nbsp;
+Basically they get used in two ways:
+<ol>
+<li>Group owner defines a rule as optional.&nbsp;
+   User does not get access, and is not a member of the group --
+   <b>but</b> it allows a user to add themself (add a rule) to the
+   group with the identical, non-optional values.&nbsp;
+   This is how "opt-in" is implemented.
+<li>Group owner grants someone access in a group.&nbsp;
+    That "someone" may choose to opt-out, effectively by
+    creating an "optional" exclude access rule.
+</ol>
+In either case, the rule that the user created (not really created
+by them, but by a UI in Caucus) is marked as "bySelf".&nbsp;
+These rules may always be deleted later, in case the user
+decides to undo their opt-in or opt-out, respectively.
+
+<p/>
+Whenever a (set of) change(s) has been made to <b>grouprules</b>,
+it is the responsibility of the page to call the CML
+function $group_update() to force the recompilation of 
+(the relevant portions of) the <b>groups</b> table.&nbsp;
+This function "locks", so only one process can be updating the
+groups table at a time -- other callers will automatically wait
+in line.
+</td>
+
+
+<tr valign=top><td>&nbsp;<td>
+<tr valign=top><td colspan=4><b>groups</b></td>
+<tr valign=top class="row0"><td></td>
+<td>userid</td>
+<td>varchar</td> <td>userid affected by this entry</td>
+
+<tr valign=top class="row1"><td></td>
+<td>owner</td>
+<td>varchar</td> <td>identifies group (see <b>grouprules</b> above)</td>
+
+<tr valign=top class="row0"><td></td>
+<td>name</td>
+<td>varchar</td> <td>identifies group</td>
+
+<tr valign=top class="row1"><td></td>
+<td>access</td>
+<td>int</td> <td>access level</td>
+
+<tr valign=top class="row0"><td></td>
+<td>active</td>
+<td>int</td> <td>1 =&gt; real rule; 0 =&gt; rule being rebuilt;
+                 3 =&gt; about to become a real rule</td>
+<tr><td></td>
+<td colspan=3><br>
+We query <b>groups</b> whenever we need to test access of a specific
+userid to a specific group, or (in reverse) for the precise membership of a 
+specific group.&nbsp;
+<p/>
+Note that all userid wildcard rules from <b>grouprules</b> get
+expanded into one row in <b>groups</b> per userid that matches
+the wildcard!&nbsp;
+Thus for many reasons, changing a group is expensive, but checking
+access (or membership) is very fast.
+
+</table>
+
+
+
+
+</body>
+</html>

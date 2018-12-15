@@ -1,0 +1,49 @@
+#
+#---man_statdf.cml.    Handles manager usage statistics: display query
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/15/03 New file.
+#: CR 07/30/03 Change how redirect works.
+#: CR 04/27/05 Redirect to cgi, which loops until file is ready.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_statdf.cml
+end
+
+include $(main)/secure.i manage userReports
+
+eval $mkdir (/tmp/caucus_$caucus_id() 777)
+set  pid $word (1 $replace (/ 32 $pid()))
+set  tmpout caucus_$caucus_id()/$(pid).out
+set  tmpsql caucus_$caucus_id()/$(pid).sql
+
+#---Now write the query to a tmp file, and spawn off a sweba
+#   process (which is *not* subject to the timeouts that a swebs
+#   process is), and let it take as long as it needs to calculate
+#   the results.
+eval $delfile (/tmp/$(tmpout))
+eval $write   (/tmp/$(tmpsql) $form(query))
+set   type    $if ($equal ($str_index (spreadsheet $form(submit)) -1) html xls)
+eval $xshell  (0 0 1 $caucus_path()/SWEB/sweba \
+                     $caucus_path()/SWEB/swebd.conf \
+                     $(iface)/main/sqlreport.cml  \
+                     $(tmpsql) $(tmpout) $(type))
+
+#---Use javascript to redirect to the output page.
+"Content-type: text/html
+"
+"<html>
+"<body bgcolor="#FFFFFF">
+"<script type="text/javascript" language="javascript">
+#   location.href = '/~$caucus_id()/TEMP/$(tmpout).html';
+"   location.href = '/$(sweb)/stats.cgi?$(type)&$(tmpout)';
+"</script>
+"</div>
+"</body>
+"</html>
+
+#------------------------------------------------------

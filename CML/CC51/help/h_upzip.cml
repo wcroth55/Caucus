@@ -1,0 +1,99 @@
+#
+#---H_ZIP.I    Help about the Upzip Page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#--------------------------------------------------------------
+
+include $(help)/ht.i h_zip.cml $quote(Help on Attach Zip File Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Zip File Attach Page controls what happens to your
+"zip archive once you've attached it.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Click on the title of a particular item.&nbsp;
+"At the bottom of this page is a response box, with
+"an <B>Attach</B> icon just above the box.&nbsp;
+"Click on the attach icon.&nbsp;
+"Follow the steps on the attach page to attach a (zip) file,
+"and select the "Zip file" radio button.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Caucus automatically unzipped your file when you attached it.&nbsp;
+"Now you get to choose which of those files should appear as links
+"in your item or response, and how the link should appear.
+
+"<P>
+"On this page you'll see a list of all of the files that were
+"unzipped, with a check-box next to each.&nbsp;
+"Check the box for each file that should appear as a link.
+
+"<P>
+"Below the list is a set of three radio buttons that control how
+"the links will appear.&nbsp;
+"If in doubt, choose "Linked Filenames" (the default).&nbsp;
+"<P>
+"Finally, click on "Finish Attach" to get back to your item or response box.
+
+"<P>
+"Exactly which combinations of check boxes and radio buttons you
+"should select depends on the purpose of your attached file(s).&nbsp;
+"Some possibilities include:
+
+"<P>
+"<OL>
+"<LI><B>A web page.</B>&nbsp;
+"Typically a single web page consists of a single HTML file, plus
+"several image files.&nbsp;
+"Assuming you've zipped them all together and attached the zip file,
+"now you should just check the box next to the HTML file, and select
+"the "Linked Filename" radio button.&nbsp;
+"Then when another user clicks on your link, a new window will open,
+"displaying your entire web page.
+
+"<P>
+"<LI><B>A web site.</B>&nbsp;
+"A small web site might include several HTML files, a bunch of image
+"files, and perhaps some other data files as well.&nbsp;
+"Here you'd probably want to just check the "top" HTML file, 
+"corresponding to the home page of the site, and also select
+"the "Linked Filename" radio button.
+
+"<P>
+"<LI><B>A Photo Gallery.</B>&nbsp;
+"If you've just attached images, you can can check them all, and
+"select the "Images" radio button.&nbsp;
+"<B>Caution:</B> if you've attached many small images, or several large
+"images, it may be better to select the "Linked Filenames" button --
+"other users with only dial-up access may come to hate you if they
+"have to wait for your images to download!&nbsp;
+"By selecting linked filenames, they have the choice of deciding
+"when or whether to see your images.
+
+"<P>
+"<LI><B>A Document Library.</B>&nbsp;
+"If you're attaching several (non-HTML) documents, and you want
+"to show links to them that other people can use when they're not
+"in Caucus, check all the boxes and select "Full URLs".&nbsp;
+"Then others can cut and paste the URLs from your response and
+"use them later.
+"</OL>
+
+"<P>
+"Note that when you return to the item or response box, the names of your 
+"file(s) appear in the box inside a Caucus "macro", such as 
+""\%libname()".&nbsp;
+"For "Linked Filenames", you can change the text of the link
+"by changing the last word in the "\%libname()" macro.&nbsp;
+"For more help on macros, click on the "get Help" link that
+"appears above and just to the right of the item or response box.
+include $(help)/hb.i
+

@@ -1,0 +1,114 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>conf_has_items&nbsp;&nbsp;&nbsp;</span>Link items to their containing conferences  
+<p/><b>Categories: </b>
+<a href='_Items.html'>Items</a>&nbsp;
+<a href='_Conferences.html'>Conferences</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+A many-to-many relationship that links items to conferences.  Each row declares that  a particular item appears in a particular conference, and specifies the item number sequence  (e.g. 5.1.2) used to label that item in that conference.  <p/>Note that an item that is shared across multiple conferences may be "hidden" or  "retired" in one conference, but not in another.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>cnum</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> FK <a href='confs.html'>confs</a>  <br></td>
+<tr valign=top class='row1'>
+<td>items_id</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> FK <a href='items.html'>items</a>  <br></td>
+<tr valign=top class='row0'>
+<td>item0</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> item number (label), level 0  <br></td>
+<tr valign=top class='row1'>
+<td>item1</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> level 1 (x.n)  <br></td>
+<tr valign=top class='row0'>
+<td>item2</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> level 2 (x.x.n)  <br></td>
+<tr valign=top class='row1'>
+<td>item3</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>item4</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>item5</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>hidden</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1=hidden  <br></td>
+<tr valign=top class='row1'>
+<td>retired</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1=retired  <br></td>
+<tr valign=top class='row0'>
+<td>items_parent</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> parent item, for breakouts  <br></td>
+<tr valign=top class='row1'>
+<td>resps_parent</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>'0'</td>
+<td> parent response, for breakouts. (items_parent, resps_parent) is FK to <a href='resps.html'>resps</a>  <br></td>
+<tr valign=top class='row0'>
+<td>deleted</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> epoch time when this entry was marked deleted, else 0  <br></td>
+</table>
+</body>
+</html>

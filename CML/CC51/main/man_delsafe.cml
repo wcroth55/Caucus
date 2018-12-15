@@ -1,0 +1,34 @@
+#---man_delsafe.cml.    Delete an entire file safe.
+#
+#   arg(9)   filesafe handle
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/23/02 Add filesafe to CC44.
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#: CR 06/16/04 Match filesafe sections against FS_$arg(9)_ (note trailing _!)
+#: CR 10/03/05 Split code off into filesafe_del.i
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_delsafe.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+include $(main)/filesafe_del.i $lower($arg(9))
+
+if $(file_manager)
+   "%location ($(mainurl)/man_safe.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+\
+                          $arg(5)+$arg(6)+$arg(7)+$arg(8)+everyone)
+end
+else
+   "%location ($(mainurl)/myfilesafe.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+\
+                          $arg(5)+$arg(6)+$arg(7)+$arg(8))
+end
+#------------------------------------------------------

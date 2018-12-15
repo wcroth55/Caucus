@@ -1,0 +1,148 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>events&nbsp;&nbsp;&nbsp;</span>
+<p/><b>Categories: </b>
+<a href='_.html'></a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+More detailed description can be found in the Documentation section of caucus.com.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>event</td>
+<td>varchar(12) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> name of event, e.g. 'login', 'read', 'additem', etc.  <br></td>
+<tr valign=top class='row1'>
+<td>userid</td>
+<td>varchar(80) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>sessionid</td>
+<td>char(20) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Unique identifier of a single user session  <br></td>
+<tr valign=top class='row1'>
+<td>time</td>
+<td>timestamp </td>
+<td>I </td>
+<td>No</td>
+<td>CURRENT_TIMESTAMP</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>duration</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Duration in seconds of the event (e.g. 'addresp' duration is time in seconds from    viewing item until clicking "post"  <br></td>
+<tr valign=top class='row1'>
+<td>size</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> in bytes (e.g. 'addresp' is size of new response)  <br></td>
+<tr valign=top class='row0'>
+<td>conf</td>
+<td>int(11) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> conference number  <br></td>
+<tr valign=top class='row1'>
+<td>item</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> item id number  <br></td>
+<tr valign=top class='row0'>
+<td>r0</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Response number, or first response in a range  <br></td>
+<tr valign=top class='row1'>
+<td>rn</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Last response number in a range  <br></td>
+<tr valign=top class='row0'>
+<td>iface</td>
+<td>varchar(40) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Caucus interface name (e.g. "CC51")  <br></td>
+<tr valign=top class='row1'>
+<td>object</td>
+<td>varchar(80) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Object of event, e.g. user creation is userid of new user  <br></td>
+<tr valign=top class='row0'>
+<td>s1</td>
+<td>varchar(80) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Arbitrary string #1  <br></td>
+<tr valign=top class='row1'>
+<td>s2</td>
+<td>varchar(80) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>s3</td>
+<td>varchar(80) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>n1</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Arbitrary number #1  <br></td>
+<tr valign=top class='row0'>
+<td>n2</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>n3</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+</table>
+</body>
+</html>

@@ -1,0 +1,122 @@
+#
+#---man_editcml.cml.   Allow direct editing of CML files.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/00 20:21 Add recommendation about bulletins.  See man_bull.cml.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage systemEditCML
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_shut.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Edit CML Files )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Edit CML Files)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_shut  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    Edit CML Files</A>
+
+"<BLOCKQUOTE>
+"Use this page to directly edit the CML files that make up
+"the current ('$(iface)') interface.&nbsp;
+"<p>
+"<b>Warning!</b>&nbsp; It is quite possible to completely mess up
+"the interface this way.&nbsp;
+"Make sure you know what you are doing.&nbsp;
+"It is possible to recover from this, but it will require manual
+"intervention at the Unix command line prompt.&nbsp;
+"In particular, see the CaucusCare document on the
+"<a href="http://caucuscare.com/TLIB/override.html" 
+"    target="_blank">overrideable directory structure</a>,
+"and heed the words of the poet:
+"<ul>
+"<i>A little knowledge is a dangerous thing;<br>
+"Drink deep, or taste not the Pierian spring.</i>
+"</ul>
+
+"<p>
+
+#---Build in main_list, reg_list, and help_list the available override dirs.
+for sd in main reg help
+   set $(sd)_list $(sd).9 $(sd).8 $(sd).7 $(sd).6 $(sd).5 $(sd).4 \
+                  $(sd).3 $(sd).2 $(sd).1 $(sd)
+   count w 1 10
+      set top $word ($(w) $($(sd)_list))
+      if $exists ($caucus_path()/CML/$(iface)/$(top))
+         set $(sd)_list $rest ($(w) $($(sd)_list))
+         break
+      end
+   end
+end
+
+"<table cellspacing=0 cellpadding=0 border=0>
+for sd in main reg help
+   for top in $($(sd)_list)
+      set files
+      set header <tr><td>$(top)</td> <td></td> <td>&nbsp;&nbsp;</td>
+      for xname xsize xdir in $dirlist (2 $caucus_path()/CML/$(iface)/$(top))
+         if $and ($equal ($(xdir) 0)  $not_equal ($str_sub (0 1 $(xname)) .))
+            set files $(files) $(xname)
+         end
+      end
+
+      set sortlist $gen_sort (1 $(files))
+      for fi in $(sortlist)
+         set xname $word ($(fi) $(files))
+
+         set description
+         set fd $open ($caucus_path()/CML/$(iface)/$(top)/$(xname) r)
+         if $greater ($(fd) 0)
+            "$(header)
+            set header
+            while $readln ($(fd) cmlline)
+               if $and ($equal ($str_sub (0 1 $(cmlline)) #) \
+                        $not_equal ($word (1 $(cmlline)) #))
+                  set description $str_sub (4 1000 $(cmlline))
+                  set lowname $lower ($(xname))
+                  set lowdesc $lower ($word (1 $(description)))
+                  if $or ($equal ($(lowname)  $(lowdesc)) \
+                          $equal ($(lowname). $(lowdesc)))
+                     set description $rest (2 $(description))
+                  end
+                  break
+               end
+            end
+            eval $close ($(fd))
+         end
+               
+         "<tr valign=top><td></td>
+         "   <td><a href="$(mainurl)/man_editing.cml?\
+                  $(nch)+$arg(2)+x+$(top)+$(xname)+$(sd)">$(xname)</a></td> 
+         "   <td></td> 
+         "   <td>$t2esc($(description))</td>
+      end
+   end
+end
+"</table>
+
+#"for xname xsize xdir in $dirlist ($caucus_path()/CML/$(iface)/m
+
+"</BLOCKQUOTE>
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

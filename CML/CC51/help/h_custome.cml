@@ -1,0 +1,71 @@
+#
+#---H_CUSTOME.I    Help about "Customize: E-Mail" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_custome.cml $quote(Help on Customize E-Mail)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize E-Mail Participants page provide a conference 
+"organizer with control over users participating in the conference
+"by e-mail.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).&nbsp;
+"Click on <U>E-mail Participation</U>.&nbsp;
+
+"<P>
+"<B>What is on the Customize E-Mail Participants Page?</B><P>
+
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+
+"<P>
+
+"<FONT SIZE=+2><B>E-mail participants</B></FONT><BR>
+"Caucus provides the ability for people without Web access
+"to participate in a conference via e-mail.&nbsp;
+"If you do not see this option on the Customize page,
+"and have people who might need this feature, contact
+"your Caucus manager about enabling E-mail participation.
+"<P>
+"To use this feature, you <B>must</B> allow the "Caucus Mailer"
+"user ID to join your conference, by placing it in an
+"<B>include</B> part of the User List on the Customize : Users page.&nbsp;
+"Contact your system administrator to get this user ID.
+
+"<P>
+"To add someone to the list of E-mail participants, 
+"type their e-mail address on a line in the text box.&nbsp;
+"They will receive the <B>entire conference</B> as a set of
+"e-mail messages, one per item.&nbsp;
+"Each day thereafter, they will receive all <B>new</B> material in
+"the conference as e-mail messages&#151;again, as one message per item.
+"<P>
+"E-mail participants may also add responses to the conference by
+"simply replying to a message.&nbsp;
+"Their response will automatically be added to the proper item.
+
+"<P>
+"<B>Note:</B> You must use the actual <B>reply</B> address of
+"the E-mail participant.&nbsp;
+"See the Technical Library under the Caucus Support section
+"at <A HREF="http://www.caucuscare.com">www.caucuscare.com</A>
+"for more information.
+
+"<P>
+"<B>Make These Changes button:</B>&nbsp; 
+"Once you have made changes to the E-Mail Participants,
+"you <B>must press this button</B>
+"to save them.&nbsp;
+
+include $(help)/hb.i
+

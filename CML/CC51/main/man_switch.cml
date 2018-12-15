@@ -1,0 +1,72 @@
+#
+#---MANAGE_SWITCH.CML.   Manager setting Caucus switches
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  2/22/02 17:15 Complete rewrite of switch handling.
+#=====================================================================
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_switch.cml
+end
+
+include $(main)/secure.i manage systemEditSwitches
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_switch.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Switches )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Switches)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_switch  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Switches
+
+
+"<BLOCKQUOTE>
+"Use this page to change the 'switches' that control over-all
+"Caucus operation.&nbsp;
+"The switches are divided up into sections, relating to
+"<A HREF="#confcreate">conference creation</A>,&nbsp;
+"<A HREF="#debug">debugging</A>,&nbsp; 
+"<A HREF="#email">email</A>,&nbsp;
+"<A HREF="#display">item &amp; response display</A>,&nbsp;
+"<A HREF="#manage">management options</A>,&nbsp; 
+"<A HREF="#misc">miscellaneous interface controls</A>,&nbsp;
+"<A HREF="#passwords">passwords &amp; security</A>,&nbsp;
+"<A HREF="#response">responses</A>,&nbsp;
+"and
+"<A HREF="#visual"><NOBR>visual effects</NOBR></A>.
+"<P>
+"<B>Important!</B>&nbsp;
+"When you are finished making changes, scroll down to the very bottom
+"of the page, and click on <B>Make Changes</B>.
+"</BLOCKQUOTE>
+"<P>
+
+"<form METHOD=POST ACTION="man_switchf.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+\
+                           $arg(5)+$arg(6)+$arg(7)+$arg(8)">
+include $(main)/siteswitch.i
+
+"<P>
+"<INPUT TYPE=SUBMIT VALUE="Make Changes"> to all switches.
+"<P>
+"(<B>Note</B>: some changes may not take effect until you
+"<B>Quit</B> and re-enter Caucus.)
+
+"</FORM>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

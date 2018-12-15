@@ -1,0 +1,42 @@
+#
+#---H_ROOT.CML.    Root of help pages. (usually in separate sub-window).
+#
+#  arg(1)   'x' or new window width
+#  arg(2)   'x' or new window height
+#  arg(3)   name of page for help on caller 
+#           (e.g., "h_center.cml" for Caucus Center)
+#  arg(4)   title of caller page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/01/03 Add $logevent() call.
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_root.cml $quote(Caucus Help) 1
+
+#---Log help window pop-up if not a duplicate.
+if $greater ($time() 0$(time_help))
+   eval $logevent (help $(iface) 0 0 0 0 0 0 _ $arg(3))
+   set time_help $time()
+end
+
+"<P>
+"Three different kinds of help are available in Caucus.&nbsp;
+"Please click on one of the choices below:
+"<UL>
+#"<LI><A HREF="$(helpurl)/h_$arg(1).cml?$arg(1)">Help 
+"<LI><A HREF="$(helpurl)/$arg(3)?x+x">Help
+"     about the page you came from</A>
+" -- the $replace (_ 32 $arg(4)) page.
+"<P>
+"<LI><A HREF="$(helpurl)/h_toc.cml?x+x">A Table of Contents</A> of all Help.
+"<P>
+"<LI><A HREF="$(helpurl)/h_tutor1.cml">The Caucus Tutorial</A>
+"-- intended for people who are new to Caucus.
+"</UL>
+
+"</BODY>
+"</HTML>
+#-----------------------------------------------------------------------

@@ -1,0 +1,129 @@
+#0 lisa 0 22-SEP-95 17:29 Lisa Kimball
++3 87 2547
++4 2
+ Designing your Caucus Conference Center
+ <TABLE>
+ <TR>
+ <TD WIDTH=10%>&nbsp;</TD>
+ <TD>
+    <TABLE BORDER>
+    <TR>
+    <TD>
+    Here's another "how to" item, this one taken from the
+    <A HREF="http://www.tmn.com" TARGET="_blank">Meta Network</A> again.
+ 
+    <P>
+    This item introduces some ideas about how to structure
+    your overall Caucus site, or set of conferences.
+    </TD>
+    </TABLE>
+ </TD>
+ <TD WIDTH=10%>&nbsp;</TD>
+ </TABLE>
+ <P>
+ One of the first things you'll want to do is sketch out the
+ initial design for your Conference Center.
+ 
+ <P>
+ It's helpful to think in terms of three types of conferences:
+ 
+ <P>
+ <OL>
+    <LI><B>A "central" conference.</B>
+ 
+        <P>
+        You'll need one conference where EVERYONE
+        checks in regularly for bulletins, general information,
+        and pointers to happenings in other conferences.&nbsp;    Some
+        Conference organizers configure their system so that all
+ users
+        arrive in the central conference automatically.
+ 
+        <P>
+        The NAME of this central conference will help convey its
+        purpose - and can contribute to establishing the
+        Conference Center's atmosphere.&nbsp;    Examples of central
+ conference names
+        include; News, Salon, Lounge, Portal, and Town_Square.
+ 
+        <P>
+    <LI>  <B>Open Conferences.</B>
+ 
+        <P>
+        You will probably want to start other conferences which
+        are open to everyone with access to your Conference
+ Center.&nbsp;   It is
+        usually a good idea to limit the number of these for a
+        while at first, so your members
+        don't get overwhelmed and lost.
+ 
+        <P>
+        Some typical purposes for open conferences are: providing
+        user support, publishing a newsletter, open planning
+        processes, and tracking special events.
+ 
+ 
+        <P>
+    <LI> <B> Private Conferences.</B>
+ 
+        <P>
+        One of the best applications of a Conference Center is
+ to support
+        teams, task forces, committees, work groups, boards, and
+        any other defined groups who share a common purpose or
+ are working on a project together.&nbsp;
+ Most
+        of these will need their own PRIVATE conference in which
+        to work.
+ 
+        <P>
+        You'll want to set up some process for groups who want to
+        establish a private conference and help them select a
+ good
+        name, choose an organizer, and get their members started.
+ </OL>
+ <P>
+ Have you selected the name for your Conference Center yet?&nbsp;
+ Mapping
+ out the design of the conferences can help you think about the
+ character of your center and what you want to convey through
+ its
+ name.
+#0001 lisa 0 22-SEP-95 17:35 Lisa Kimball
++4 2
+ It can be helpful to provide your network members with a "map"
+ to show the layout of the different conferences.
+ <P>
+ You could put the MAP on the "welcome" page, or put a link to
+ it there... or even put it as a button or a link at the bottom
+ of every page.
+ <P>
+ Here's an example of how it might look:
+ <P>
+ <PRE>
+   ____YOUR CONFERENCE CENTER_____________________________
+  |                                                       |
+  | O              +------- PRIVATE CONFERENCES ------+   |
+  | P              |     _____             ______     |   |
+  | E    _____     |    /     \           /      \    |   |
+  | N   /     \    |   | TEAM1 |         | TEAM2  |   |   |
+  |     CENTRAL    |    \_____/  _______  \______/    |   |
+  |     \_____/    |            /       \             |   |
+  | T              |            PROJECT X             |   |
+  | O    _____     |     _____  \_______/   ____      |   |
+  |     /     \    |    /     \            /    \     |   |
+  |     NEWUSER    |   PROJECT Y          PROJECT Z   |   |
+  | A   \_____/    |    \_____/            \____/     |   |
+  | L              |                                  |   |
+  | L              +----------------------------------+   |
+  |                                                       |
+  |_______________________________________________________|
+ </PRE>
+#0002 lisa 0 23-SEP-95 13:11 Lisa Kimball
++3 6 267
+ You can use responses to this item to brainstorm about names for
+ your conferences.
+ 
+ What would be a good name for your central conference?  What
+ kinds of metaphors work for your members?  What words convey the
+ feeling you want your Conference Center to communicate?

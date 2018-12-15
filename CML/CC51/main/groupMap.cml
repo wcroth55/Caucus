@@ -1,0 +1,82 @@
+#
+#---groupMap.cml  Implementation of %groupMap() macro.
+#
+#   arg(2)  groupType
+#   arg(3)  groupName
+#
+#:CR 05/14/08 New script.
+#:CR 01/17/09 Click on marker pops-up person page.
+#:CR 10/12/09 Filter out latitude_longitude with > 1 word (prob manual data!)
+#---------------------------------------------------------------------
+
+
+set groupType $if ($equal($arg(2) System) Caucus4 $arg(2))
+set zoom 1
+
+set query SELECT u.userid, u.fname, u.lname, u.latitude_longitude \
+            FROM user_info u, groups g \
+           WHERE u.active >= 10 \
+             AND u.userid  = g.userid   \
+             AND g.owner='$arg(2)' AND g.name='$arg(3)' \
+             AND g.access >= 10 \
+             AND u.latitude_longitude!='' AND u.latitude_longitude!='(none)' \
+           ORDER BY lname, fname
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+   include $(main)/css.i
+
+   "<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=$config(GoogleMapKey)"
+   "           type="text/javascript"></script>
+   "<script type="text/javascript">
+       include $(main)/popup.js
+
+   "   function createMarker (point, myTitle, userid) {
+   "      var marker = new GMarker(point, { title: myTitle });
+   "      GEvent.addListener  (marker, "click", function() {
+   "         pop_up('person', userid);
+   "      });
+   "      return marker;
+   "   }
+   "   function initialize() {
+   "     if (GBrowserIsCompatible()) {
+   "       var point;
+   "       var marker;
+   "       var map = new GMap2(document.getElementById("map_canvas"));
+   "       map.setCenter(new GLatLng(37.4419, -95.1419), $(zoom));
+#  "       map.addControl(new GSmallZoomControl());
+   "       map.addControl(new GLargeMapControl());
+   "       map.addControl(new GMapTypeControl());
+   
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+      set latlong $replace(, 32 $(latitude_longitude))
+      set latlong $replace(.  0 $(latlong))
+      set word1 $word (1 $(latlong))
+      set word2 $word (2 $(latlong))
+      if $and ($not_empty($(word1)) $numeric ($(word1)) \
+               $not_empty($(word2)) $numeric ($(word2)) \
+               $equal ($sizeof($(latitude_longitude)) 1)   )
+         " point = new GLatLng($(latitude_longitude));
+         " marker = createMarker (point, "$escquote($(fname) $(lname))", "$(userid)");
+         " map.addOverlay(marker);
+#        " map.addOverlay(new GMarker(point, { title: "$escquote($(fname) $(lname))"} ));
+      end
+   end
+   eval  $sql_query_close($(h))
+   "     }
+   "   }
+
+   "</script>
+"</head>
+
+"<body onload="initialize()" onunload="GUnload()">
+"   <div id="map_canvas" style="width: 700px; height: 450px"></div>
+#"query='$(query)'
+#"<p/>
+#"h=$(h)
+#"mainurl='$(mainurl)'
+"</body>
+"</html>

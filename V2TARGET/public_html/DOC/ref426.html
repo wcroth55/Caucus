@@ -1,0 +1,234 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.26: Caucus 5.0 Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.26:&nbsp; Caucus 5.0 Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref425.html">PREV</A>]
+</TD>
+</TABLE>
+
+<P>
+In Caucus 5.0, the underlying proprietary flat-file database is
+replaced by MySQL, a full-featured, open-source, 
+relational database management
+system ("RDBMS").&nbsp;
+When Caucus 5.0 is released, there will be a new version of the
+CML reference guide; in the meantime, new functions in 5.0 will
+be documented here, along with an indication of which functions
+they replace.
+
+<p/>
+<b>Note:</b> even when new functions are meant to entirely replace
+the equivalent old functions, the old functions (at least for now)
+are still operational.&nbsp;
+The old functions should <b>only</b> be used for conversion purposes,
+e.g. as part of a script used to read the old data and write it
+in the new database.
+
+<p/>
+See the <a href="c5schema.html">Caucus 5.0 Schema</a> for
+detailed descriptions of the MySQL tables used in Caucus 5.0.
+
+
+<p>
+<ol>
+<li><b>User Information</b>
+<p/>
+Personal information about all users are stored in a single table
+(called user_info),
+and referenced by field name (aka "column name").&nbsp;
+The three functions that follow provide direct access to the
+user_info table.&nbsp;
+(The <a href="ref425.html#sql_query_open">$sql_query_open()</a> 
+function may also be used to run
+queries against this table.)
+
+<DL>
+<p>
+<dt><a name="add_user_info">$add_user_info (field type)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Creates a new column called <i>field</i>, of a given <i>type</i>.&nbsp;
+<i>Type</i> must be one of the following:
+<ul>
+<table border=0>
+<tr><td>string</td>  <td>arbitrary text, up to 255 characters long</td>
+<tr><td>text</td>    <td>arbitrary text, any length (up to 16MB)</td>
+<tr><td>date</td>    <td>Date and time, in the form "YYYY-MM-DD HH:MM:SS"</td>
+<tr><td>number&nbsp;&nbsp;</td>  <td>an integer number</td>
+<tr><td>dollars</td> <td>a number with two decimal points</td>
+</table>
+</ul>
+<p/>
+Evaluates to 1 if successful, else 0.
+<p/>
+The user_info table initially has the pre-defined fields shown
+below.&nbsp;  Only 'lname' is required to have a value for a user to exist.
+<ul>
+<table border=0>
+<tr><td>lname</td>  <td>string</td>  <td>"Last" name</td>
+<tr><td>fname&nbsp;&nbsp;</td>  <td>string</td>  <td>First (&amp; middle, etc.) name</td>
+<tr><td>prefix</td>  <td>string</td>  <td>Prefix or salutation</td>
+<tr><td>suffix</td>  <td>string</td>  <td>Suffix or organization</td>
+<tr><td>intro</td>  <td>text</td>  <td>"Brief introduction"</td>
+<tr><td>phone</td>  <td>string</td>  <td>Telephone(s)</td>
+<tr><td>email</td>  <td>string</td>  <td>e-mail address</td>
+<tr><td>active **&nbsp;&nbsp;</td>  <td>number&nbsp;&nbsp;</td>  <td>is user active?</td>
+<tr><td>laston **</td>  <td>date</td>  <td>date last on Caucus</td>
+</table>
+</ul>
+<p/>
+The fields marked with "**" are automatically maintained by Caucus,
+and generally should not be set with $set_user_info().
+
+<p/>
+<dt><a name="set_user_info">$set_user_info (userid field value)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Assigns <i>value</i> to <i>field</i> for user <i>userid</i>.
+<p/>
+
+<dt><a name="user_info">$user_info (userid field)</a>
+<dd>Evaluates to the value of <i>field</i> for <i>userid</i>.
+
+</DL>
+
+<p/>
+These three functions effectively replace most of the "$per" and "$my"
+functions, specifically:
+<ul>
+<li>$per_name(id)
+<li>$per_intro(id)
+<li>$per_phone(id)
+<li>$per_laston(id)
+<li>$set_per_name(id name)
+<li>$set_per_phone(id phone)
+<li>$set_per_intro(id text)
+<li>$my_name()
+<li>$my_phone()
+<li>$my_intro()
+<li>$my_laston()
+<li>$set_my_name(name)
+<li>$set_my_phone(number)
+<li>$set_my_intro(text)
+</ul>
+
+<p/>
+They <b>also</b> replace any instances of $user_var() and $set_user_var()
+that are used for personal information -- such as the fields that
+a manager may add on the "modify the XYZ registration interface" page.
+
+<p/>
+<b>Example</b><br>
+The new user_info functions are meant as simple "drop-in" replacements
+for the old functions listed above.&nbsp;
+In cases where CML code is displaying many user fields at once, building
+a regular SQL query may be simpler and more efficient.&nbsp;
+For example, consider the following CML code fragment for displaying
+a list of all users, sorted alphabetically by last name:
+<pre>
+   "&lt;table&gt;
+   set query SELECT prefix, fname, lname, suffix, userid, email \
+               FROM user_info ORDER BY lname
+   set h $sql_query_open($(query))
+   while $sql_query_row ($(h))
+      "&lt;tr&gt;
+      "&lt;td&gt;$(prefix) $(fname) $(lname) $(suffix) ($(userid))&lt;/td&gt;
+      "&lt;td&gt;$(email)&lt;/td&gt;
+   end
+   eval $sql_query_close($(h))
+   "&lt;/table&gt;
+</pre>
+
+<p/>
+<b>'Magic' Fields</b><br>
+Certain fields are 'magic', in that they have some special behaviour,
+and should not be written to from any kind of SQL query.
+
+<p/>
+<ul>
+   <li><b>lname</b>.&nbsp;
+   To <b>create</b> a new user, evaluate 
+   $set_user_info (<i>userid</i> lname <i>lastname</i>).&nbsp;
+   You must do this first, before attempting to call $set_user_info() 
+   to set any other values for that userid.
+   <p/>
+   <li><b>laston</b>.&nbsp;
+       This field is set automatically by Caucus when a user logs in, and
+       when they log out.&nbsp;
+       Calling $set_user_info (userid laston xyz) sets the
+       "laston" field to the current date and time (ignoring the
+       value of xyz), and only if <i>userid</i> is same as
+       the current user.
+       
+</ul>
+
+<p/>
+<li><b>User Data</b>
+<p/>
+Even with the new user_info table, there is still a need for 
+user data such as the "variables" provided by the old 
+$user_var() function.&nbsp;
+This data is often "sparse", in the sense that only a few variables
+may have data for most users.&nbsp;
+It is also frequently used for managing the user interface, rather
+than representing any "personal" information about a user.
+<p/>
+In Caucus 5.0, this data is stored in a new table called user_data,
+which has only three columns:
+<ul>
+<li>userid
+<li>name (of data field)
+<li>value (always a string, any size up to 16MB)
+</ul>
+<p/>
+This data is accessed in a manner exactly parallel to the old 
+"user variables", except that there is no cache and thus
+no $clear_user_data(), and there are no locking issues
+(no need to call $lock() when writing user data).
+
+<dl>
+<P><DT><A NAME="user_data">$user_data(user vname)</A>
+<DD>
+Evaluates to the value of userid <I>user</I>'s variable called
+<I>vname</I>.
+
+<P><DT><A NAME="set_user_data">$set_user_data(user vname value)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets userid <I>user</I>'s variable <I>vname</I> to <I>value</I>.
+
+<P><DT><A NAME="list_user_data">$list_user_data(user str)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to a blank-separated list of <I>user</I>'s variable
+names that begin with <I>str</I>.&nbsp;  
+If <I>str</I> is not supplied, lists all of <I>user</I>'s variables.
+</dl>
+
+</ol>
+
+   
+
+
+</BLOCKQUOTE>
+<P>
+<HR>
+</BODY>
+</HTML>

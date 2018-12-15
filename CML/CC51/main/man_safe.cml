@@ -1,0 +1,262 @@
+#
+#---MAN_SAFE.CML.   Manage File Safe
+#
+#   arg(9)  filesafe name
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/23/02 Add filesafe to CC44.
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#: CR 01/25/03 Add configurable hdr
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 06/16/04 Match filesafe sections against FS_$arg(9)_ (note trailing _!)
+#: CR 10/02/05 C5 changes.
+#----------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_safe.cml
+end
+
+include $(main)/secure.i manage filesafeManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_safe.cml \
+               $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                      # Manage $(filesafe_name))
+
+include $(main)/head.i $arg(3)  $quote(Manage $(filesafe_name))
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+set filesafe_title $upper1($replace(_ 32 $arg(9)))
+set pagename Manage $(filesafe_name): $(filesafe_title)
+if $equal ($lower($(filesafe_name)) $lower($word(1 $(filesafe_title))))
+   set pagename Manage $(filesafe_name): $rest (2 $(filesafe_title))
+end
+   
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_safe  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    $(filesafe_name)</A>
+
+"<BLOCKQUOTE>
+"<big>Please choose from one of the numbered options below:</big>
+
+"<p>
+"<ol>
+
+"<form NAME="cc" METHOD=POST
+"    ACTION="man_safef.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                    $arg(7)+$arg(8)+$arg(9)">
+
+"<font size=+1><li>
+    "Edit <a href="man_safeopt.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+       $arg(6)+$arg(7)+$arg(8)+$arg(9)">$(filesafe_name) Display Options</a>.
+"</font>
+
+"<p>
+"<font size=+1><li>Create a new $(filesafe_name) named:&nbsp;</font><br>
+"    <input type="text"  name="newname"  size=40>&nbsp;&nbsp;&nbsp;
+"    <input type="submit" name="submit"  value="Go">
+
+"<p>
+"<script type="text/javascript" language="javascript">
+"   function showsafe (sel) {
+"      location.href = '$(mainurl)/man_safe.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+\
+                        $arg(5)+$arg(6)+$arg(7)+$arg(8)+' + \
+                        sel.options[sel.selectedIndex].value;
+"      return;
+"   }
+"</script>
+
+"<font size=+1><li>Edit $(filesafe_name): %filesafe($arg(9))</font>
+
+    #--- When user chooses a filesafe from the select list, immediately
+    #    reload this page *with* that filesafe, so we can edit its sections.
+"   <select name="fslist" onChange="showsafe (document.cc.fslist);">
+"   <option value="_">(choose)
+    set fsn_list $list_site_data (0 - FN_)
+    for fsndex in  $gen_sort (1 $(fsn_list))
+       set fsn $word ($(fsndex) $(fsn_list))
+       if $not_empty ($site_data (0 - $(fsn)))
+
+          set fn $str_sub (3 1000 $(fsn))
+          set fname $upper1 ($replace (_ 32 $(fn)))
+          if $equal ($arg(9) $(fn))
+             "<option selected value="$(fn)">$(fname)
+          end
+          else
+             "<option          value="$(fn)">$(fname)
+          end
+       end
+    end
+"   </select>
+
+if $empty($site_data(0 - fsTitleSize))
+   eval $set_site_data(0 - fsTitleSize 1)
+end
+if $empty($site_data(0 - fsTitleColor))
+   eval $set_site_data(0 - fsTitleColor blue)
+end
+if $empty($site_data(0 - fsTitleFont))
+   eval $set_site_data(0 - fsTitleFont Arial)
+end
+if $empty($site_data(0 - fsSepColor))
+   eval $set_site_data(0 - fsSepColor red)
+end
+if $empty($site_data(0 - fsSepHeight))
+   eval $set_site_data(0 - fsSepHeight 5)
+end
+
+#----------------------------------------------------------------
+
+#**#---Determine number of items in IFS conference (if possible).
+#**set cnum $word (1 $cl_list(interface_storage_$(iface)))
+#**set ifitems 0
+#**if $not_empty ($(cnum))
+#**   if $greater (%access($(cnum)) 0)
+#**      set ifitems $it_last ($(cnum))
+#**   end
+#**end
+
+#----------------------------------------------------------------
+
+
+"<TABLE border=0>
+
+   #---Header control
+   "<tr>
+   "<TR VALIGN=top><TD>Header text:</TD>
+   "<TD colspan=4><table cellspacing=0 cellpadding=0>
+   "<tr valign=top><td>
+
+   #---header variable FH_(filesafe) contains
+   #   (word 1) either "", "0" (none), "t" (CML text), or an item number.
+   #   The remaining text (if any) is the CML text for option "t".
+   set header $site_data(0 - FH_$arg(9))
+   set h1     $word (1 $(header))
+   set h2     $rest (2 $(header))
+   "<SELECT NAME=h1>
+   "  <option value="0"  $ifthen ($equal (x$(h1) x0) selected) >(none)
+   "  <option value="t"  $ifthen ($equal (x$(h1) xt) selected) >CML text -&gt;
+#**count ic 1 $(ifitems)
+#**"  <option value="$(ic)" $ifthen ($equal (x$(h1) x$(ic)) selected) 
+#**"     >Interface Storage $(iface) Item $(ic)
+#**end
+
+   "</SELECT>&nbsp;&nbsp;</td>
+
+   "<td><TEXTAREA NAME=h2 COLS=28 ROWS=2 WRAP=virtual>
+      if $equal (x$(h1) xt)
+         "$escquote($t2esc ($(h2)))
+      end
+   "</TEXTAREA></TD>
+   "</table>
+   "</td>
+#-----------------------------------------------------------
+
+   "<tr><td>Display&nbsp;name</td>
+   "<TD><input type="text" name="dispname" 
+   "   maxlength="50" size="40" value="$site_data(0 - FN_$arg(9))"></TD>
+   "<td><b>Delete Section?</b></td>
+
+set highest 0
+set counter 0
+set files   0
+set vnames  $list_site_data (0 - FS_$arg(9)_)
+for vdex in $gen_sort (1 $(vnames))
+   set vname $word ($(vdex) $(vnames))
+
+   set vtitle $site_data (0 - $(vname))
+   if $empty ($(vtitle))
+      continue
+   end
+
+   set counter $plus ($(counter) 1)
+   set files $plus ($(files) $divide ($sizeof(\
+                             $dirlist (0 $caucus_lib()/FILESAFE/$(vname))) 2))
+   "<TR>
+   "<TD>Section $(counter):</TD><TD><input type="text" name="$(vname)" 
+   "   maxlength="50" size="40" value="$site_data(0 - $(vname))"></TD>
+
+   "<td align=center><input type="checkbox" name="cb_%makeLegal($(vname))"></td>
+   "</TR>
+
+   #---Keep track of the highest section number.
+   set secus   $str_revdex (_ $(vname))
+   set secnum  $str_sub ($plus ($(secus) 1) 1000 $(vname))
+   set highest $max ($(highest) $(secnum))
+end
+
+set counter $plus ($(counter) 1)
+set highest $plus ($(highest) 1)
+set highest $str_sub ($strlen($(highest)) 5 0000)$(highest)
+#set vprefix $str_sub (0 $(secus) $(vname))
+set vprefix FS_$arg(9)
+set vname   $(vprefix)_$(highest)
+"<TR>
+"<TD>Section $(counter):</TD><TD><input type="text" name="$(vname)" 
+"     maxlength="50" size="40" value=""></TD>
+"</TR>
+
+# prompt for filesafe readonly variable
+"<tr>
+" <td>Readonly $(filesafe_name)?</td>
+" <td><input type="checkbox" name="readonly"
+"      $ifthen($not_empty($site_data(0 - FReadonly_$arg(9))) checked)></td>
+"</tr>
+
+"<tr>
+"<td colspan=2
+"  ><a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+x+x+Filesafe+_+$arg(9)"
+"  >Edit Access Control</a></td>
+
+"</TABLE>
+
+"<input type=hidden name="newsec"    value="$(vname)">
+#<input type=hidden name="vprefix"   value="$(vprefix)">
+"<input type=hidden name="vprefix"   value="FS_$arg(9)">
+
+
+"<br>
+"<INPUT NAME=submit TYPE=SUBMIT VALUE="Make Changes">
+
+"</form>
+
+"<script type="text/javascript" language="javascript">
+"function deletesafe (n) {
+"   return (n == 0  ||  
+"           confirm ('$(files) file(s) remain.  OK to delete them all?'));
+"}
+"</script>
+
+"<form NAME="dd" METHOD=POST  onSubmit="return deletesafe($(files));"
+"    ACTION="man_delsafe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                    $arg(7)+$arg(8)+$arg(9)">
+
+"<input name=deletebutton type=submit 
+"      value="Delete this entire $(filesafe_name)">
+"</form>
+
+#"<p>
+#"<font size=+1><li>Go to $(filesafe_name): </font> %filesafe($arg(9))
+
+"</ol>
+
+"</div>
+"</body>
+"
+"</BLOCKQUOTE>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>

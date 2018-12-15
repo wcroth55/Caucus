@@ -1,0 +1,31 @@
+#
+#---man_bullf.cml.    Handles manager editing bulletin.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/00 20:21 New file (new feature).  See head.i
+#-----------------------------------------------------------
+
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i manage systemBulletins
+
+set nch $unique()
+
+set  often $if ($empty($form(btext)) 0 $form(often))
+
+eval $set_site_data  (0 - bulletin $time() $(often) \
+                                    $replace (" 32 $form(btext)))
+
+set  last_bulletin_check
+
+
+"%location($(mainurl)/$page_return ($arg(2) # \
+  manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+
+#-----------------------------------------------------------

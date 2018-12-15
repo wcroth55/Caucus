@@ -1,0 +1,88 @@
+#
+#---PASSCHK.CML    Verify user password (to defeat browser password cache)
+#
+#   Arguments:
+#     arg(3)      "x"
+#
+#     arg(4)      none    (normal)
+#                 3       complain that password may not be blank
+#                 4       bad old password
+#                 5       no password changer 
+#                 8       a system error occurred in the password changer
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i center.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+include $(main)/head.i $arg(3)  $quote(Password Confirmation)
+
+include $(main)/body.i $arg(3) ONLOAD="document.confirm.oldpw.focus()" onUnload="pop_close('all');"
+
+include $(main)/headquit.i
+
+
+"<H2>Password Confirmation</H2>
+  
+set check_pw 1
+
+set  pw_msg  Please enter your password again: <BR>
+
+if $equal (x$arg(4) x3)
+   "<P>
+   "Your password <B>may not be blank</B>.  Please try again.
+   "<HR>
+end
+
+if $equal (x$arg(4) x4)
+   "<P>
+   "That is the incorrect password for user <B>$userid()</B>.
+   "<P>
+   "If you are <B>not</B> user $userid(), please <B>quit</B> 
+   "your Web browser now, and start it up again.
+   "<P>
+   set pw_msg Otherwise, please try again:<BR>
+end
+
+if $equal (x$arg(4) x5)
+   "<P>
+   "This site has <B>not</B> enabled password checking.
+   "<B>Please contact the site system administrator immediately!</B>
+   set check_pw 0
+end
+
+if $equal (x$arg(4) x8)
+   "<P>
+   "<B>A system error occurred when trying to check your password.</B>
+   "<P>
+   "If this problem persists, please contact the site system
+   "administrator.
+   set check_pw 0
+end
+
+"<P>
+if $(check_pw)
+   "<FORM METHOD=POST ACTION="passchkf.cml?$(nch)+$arg(2)" 
+   "      NAME="confirm">
+   
+   "$(pw_msg)
+   "<INPUT TYPE="password" NAME="oldpw" SIZE=20>
+   "<P>
+   "<INPUT TYPE="submit" VALUE="Press to Confirm password">
+   "</FORM>
+end
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------------------

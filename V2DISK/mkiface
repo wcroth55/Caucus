@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+#---mkiface.    Create a new Caucus interface, based on CC51.
+#
+#   Invoked as:
+#      mkiface  home new
+#
+#   Arguments:
+#      home       $1  full pathname of Caucus home directory.
+#      new        $2  name of new Caucus interface.
+#
+#   Purpose:
+#      Create a new Caucus "interface" (and thus CML directory)
+#      'new', based on and linked to the master CC51 directory.
+#
+#   How it works:
+#     
+#   Returns (writes to stdout):
+#      0  on success
+#      1  if 'new' already exists
+#      2  no 'new' supplied
+#      3  other error
+#
+#   History of revisions:
+#: CR  3/02/03 New script.
+#: CR 10/12/05 C5 changes.
+#----------------------------------------------------------------------------
+
+if test "x$2" = "x"; then
+   echo "2"
+   exit
+fi
+
+#---Make sure interface doesn't exist!
+if test -d $1/CML/$2; then
+   echo "1"
+   exit
+fi
+
+cd $1/CML
+mkdir $2
+chmod 755 $2
+cd    $2
+ln -s $1/CML/CC51/main main
+ln -s $1/CML/CC51/reg  reg
+ln -s $1/CML/CC51/help help
+mkdir main.1
+mkdir help.1
+mkdir reg.1
+chmod 755 main.1 help.1 reg.1
+
+echo "0"
+#----------------------------------------------------------------------------

@@ -1,0 +1,57 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>task_links&nbsp;&nbsp;&nbsp;</span>Task-to-Item links  
+<p/><b>Categories: </b>
+<a href='_Tasks.html'>Tasks</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ Links tasks to specific conf/item/response(s).&nbsp;  A response may link to multiple tasks; a task may link to  multiple responses.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>tid</td>
+<td>int(11) </td>
+<td>(pk) I </td>
+<td>No</td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>cnum</td>
+<td>int(11) </td>
+<td>(pk) I </td>
+<td>No</td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>inum</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>rnum</td>
+<td>int(11) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>deleted</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1=deleted  <br></td>
+</table>
+</body>
+</html>

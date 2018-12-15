@@ -1,0 +1,199 @@
+#
+#---SEARCH.CML.   Search items...
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  9/25/05 Use SQL query instead of m_confs.
+#-------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i search.cml
+end
+
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set nxt   $page_save (1 search.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Search Items)
+
+set pagename <span class="pageTitle">Search Items</span>
+
+include $(main)/head.i $arg(3)  $quote(Search Items)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i  search  Search Items
+
+"<form METHOD=POST ACTION="searchf.cml?$(nch)+$arg(2)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+#---Header
+
+"<P>
+"<BLOCKQUOTE>
+"Use this page to search 
+if $not_equal ($arg(3) x)
+   "conference <B>$(cname)</B> 
+end
+"for particular words.&nbsp;
+"Answer all the questions below, and then press the <B>Begin</B>
+"button at the bottom.&nbsp;
+if $not_equal ($arg(3) x)
+   "If you prefer, you may search 
+   "<A HREF="search.cml?$(nch)+$arg(2)+x+$arg(4)+$arg(5)+$arg(6)+\
+                               $arg(7)+$arg(8)">many conferences</A> at once.
+end
+"</BLOCKQUOTE>
+
+"<P>
+"<CENTER>
+"<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 width="90%"><TR>
+"<TD ALIGN=CENTER BGCOLOR=#BBBBBB>
+"<B>Keyword Search</B></TD>
+"<TD ALIGN=CENTER><I>&nbsp;or&nbsp;</I></TD>
+"<TD ALIGN=CENTER BGCOLOR=#BBBBBB>
+"<B>Author Search</B></TD>
+"<TR>
+"<TD ALIGN=CENTER $(body_fg)>Enter a word (or words) to search for
+"postings that contain that text:</TD>
+"<TD></TD>
+"<TD ALIGN=CENTER $(body_fg)>Enter a userid, first name, or last name to 
+"search for postings by a particular author:</TD>
+"<TR>
+"<TD ALIGN=CENTER $(body_fg)><INPUT TYPE="text"   NAME="what" SIZE=30></TD>
+"<TD></TD>
+"<TD ALIGN=CENTER $(body_fg)><INPUT TYPE="text"   NAME="author" SIZE=30></TD>
+
+"<TR VALIGN=top>
+"<TD $(body_fg) ALIGN=CENTER>
+   "<TABLE CELLSPACING=0 CELLPADDING=0>
+   "<TR><TD COLSPAN=2>Search for responses that have:</TD>
+   "<TR><TD>&nbsp;&nbsp;</TD>
+   "    <TD><INPUT TYPE="radio" NAME="and_or" VALUE="and" CHECKED> <B>all</B>
+   "        of these words, or </TD>
+   "<TR><TD>&nbsp;</TD>
+   "    <TD><INPUT TYPE="radio" NAME="and_or" VALUE="or"> <B>any one</B>
+   "     of these words.</TD>
+
+   "<TR><TD>&nbsp;</TD>
+
+   if $not ($(japanese_search))
+      "<TR><TD COLSPAN=2>Search for matches at the </TD>
+      "<TR><TD>&nbsp;</TD>
+      "    <TD><INPUT TYPE="radio" NAME="inword" VALUE="0" CHECKED
+      "        >&nbsp;<B>beginning</B> of a word, or </TD>
+      "<TR><TD>&nbsp;</TD>
+      "    <TD><INPUT TYPE="radio" NAME="inword" VALUE="1">&nbsp;<B>anywhere</B>
+      "       in a word.</TD>
+   end
+   "</TABLE>
+"</TD>
+"<TD></TD>
+
+"<TD $(body_fg) ALIGN=CENTER>
+   "<TABLE CELLSPACING=0 CELLPADDING=0>
+   "<TR><TD COLSPAN=2>Treat this word as:</TD>
+   "<TR><TD>&nbsp;&nbsp;</TD>
+   "    <TD><INPUT TYPE="radio" NAME="name_type" VALUE="userid">
+   "        <B>a userid</B>, or</TD>
+   "<TR><TD></TD>
+   "    <TD><INPUT TYPE="radio" NAME="name_type" VALUE="name" CHECKED> 
+   "        <B>part</B> of a person's real name.</TD>
+   "</TABLE>
+"</TD>
+
+"</TABLE>
+
+"<P><TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 width="90%">
+"<TR><TD COLSPAN=2 BGCOLOR=#BBBBBB><B>
+"How should the results be displayed?</B></TD></TR> 
+"<TR><TD $(body_fg) width="15%">&nbsp;</TD>
+"    <TD $(body_fg)>&nbsp;Show up to 
+"    <INPUT TYPE="text"  NAME="hits"  VALUE="30" SIZE=3> hits at a time.</TD>
+"<TR><TD $(body_fg)>&nbsp;</TD>
+"    <TD $(body_fg)><INPUT TYPE=CHECKBOX NAME="show_text" VALUE="1" CHECKED>
+"      Display part of the response text with each hit.</TD>
+"</TABLE>
+
+"<P>
+"<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 width="90%">
+"<TR><TD COLSPAN=2 BGCOLOR="#BBBBBB">
+"    <B>Where do you want to search?</B></TD>
+
+if $equal($arg(3) x)
+   set query  \
+      SELECT c.name, c.cnum cnm, h.hidden FROM (confs c, groups g) \
+        LEFT JOIN confhidden h \
+          ON (h.userid = '$userid()'  AND  g.name = h.cnum) \
+       WHERE  g.userid = '$userid()'  AND  g.active > 0  AND g.access >= $priv(minimum) \
+         AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+         AND  c.deleted = 0 \
+       ORDER BY c.name
+   set h $sql_query_open ($(query))
+   set show_choose_text 1
+   "<TR><TD $(body_fg) ALIGN=CENTER width="15%">&nbsp;</TD>
+
+   while $sql_query_row  ($(h))
+      if 0$(hidden)
+         continue
+      end
+      if $(show_choose_text)
+         "<TD $(body_fg)>
+         "Choose a conference or conferences to search:
+         "<P><SELECT NAME="conference" MULTIPLE SIZE=5>
+         set show_choose_text 0
+      end
+
+      set cname $replace(_ 32 $(name))
+      "<OPTION VALUE="$(cnm)">$(cname)</OPTION> 
+   end
+   eval $sql_query_close($(h))
+
+   if $(show_choose_text)
+      "<TD>
+      "<B><span class="bigger">You will need to open a conference or add some
+      "conferences to your personal conference list before you will have
+      "anything that you can search.</span></B><P>
+      "</TD>
+   end
+   else
+      "</SELECT>
+      "</TD>
+   end
+end
+else
+   "<INPUT TYPE=HIDDEN NAME="conference" VALUE="$arg(3)">
+end
+
+set ikey all
+"<TR><TD $(body_fg) width="15%">&nbsp;</TD>
+"    <TD $(body_fg)>
+      "<TABLE CELLSPACING=0 CELLPADDING=0 $(body_fg)>
+         include $(main)/iselect.i Search
+      "  <TD>&nbsp;&nbsp;<INPUT TYPE="submit" NAME="submit" VALUE="Begin"></TD>
+      "</TABLE>
+"    </TD>
+"</TABLE>
+"</CENTER>
+
+"</form>
+
+#include $(main)/trailer.i  search Search Items
+set pagename
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#-------------------------------------------------------------------------

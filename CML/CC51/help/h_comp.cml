@@ -1,0 +1,66 @@
+#
+#---H_COMP.CML.   Help about Caucus Compass Bar
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_comp.cml $quote(Help on Compass Bar)
+"<P>
+
+"<B>What Is It?</B><BR>
+"Near the top (and bottom) of every Caucus page, you will see 
+"the <B>Compass Bar</B>,
+"which tells you exactly where you are in relation to the
+"$(center_name).&nbsp;
+"For example, if you were in the middle of a long item in the
+"<B>Demonstration</B> conference, you might see:<BR>
+
+"<A NAME="wheream">
+"<IMG SRC="$(icon)/clearpix.gif" WIDTH=1 HEIGHT=8></A><BR>
+"<TABLE CELLSPACING=0 CELLPADDING=0>
+"<TR VALIGN=top>
+"<TD><IMG $(src_compass)></TD>
+"<TD>&nbsp;</TD>
+"<TD><NOBR><IMG SRC="$(img)/clearpix.gif" WIDTH=1 HEIGHT=$(dropline) 
+   "ALT=""><FONT COLOR=blue><U>$(center_name)</U></FONT></NOBR>
+"</TD>
+
+"<TD ALIGN=right>
+"  <IMG SRC="$(img)/clearpix.gif" WIDTH=1 HEIGHT=$(dropline) ALT="">
+   "$(compass_arrow)
+   "<FONT COLOR=blue><U>Demonstration</U></FONT>
+   "$(compass_arrow) <FONT COLOR=blue><U>
+   "Item 3: Add A Response Yourself</U></FONT>
+   "<NOBR>$(compass_arrow) <FONT COLOR=blue><U>Resp 27</U></FONT></NOBR>
+"</TD>
+"</TABLE>
+
+"<P>
+"This shows that you are inside the <B>Demonstration</B>
+"conference, looking at <B>item 3</B>, titled
+""Add A Response Yourself".&nbsp;
+"You are on a page that starts with <B>response 27</B> to that item.&nbsp;
+
+"<P>
+"<B>What Is Its Purpose?</B><BR>
+"The Compass Bar not only tells you where you are, but provides
+"a convenient way to go to any of the intermediate pages.&nbsp;
+"In the example, you could click on (and go directly to) the $(center_name),
+"the Demonstration conference Home Page, or the beginning
+"(first page) of Item 3.
+
+"<P>
+"Note that the Compass Bar doesn't tell you exactly how you <B>got</B>
+"to the current page.&nbsp;
+"(To see the path you took to get here, you can just click on
+"your browser's <B>Go</B> button.)&nbsp;
+"The Compass Bar just shows where you are in the 
+"<A HREF="$(helpurl)/h_tutor2.cml?x+x">Caucus structure diagram</A>,
+"and the names of the pages between here and the $(center_name).
+
+
+"<P>
+include $(help)/hb.i

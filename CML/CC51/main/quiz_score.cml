@@ -1,0 +1,192 @@
+#
+#---quiz_score.cml.   View all scores for a given quiz.
+#
+#   arg(4)   item id
+#   arg(9)   sorting: (name, points, submitted) x (ascending, descending),
+#              represented as na, nd, pa, pd, sa, sd
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/16/06 New file.
+#: CR 02/02/06 Add column sorting.
+#: CR 09/18/07 Add option to reset selected students' scores.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_score.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal ($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+
+set title
+set query SELECT userid, title, visible0, visible1, onepage \
+            FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+set nxt   $page_save (1 quiz_score.cml \
+                  $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                  # Quiz:&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote(Quiz: $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+include $(main)/header.i      quiz  </A><a href="#top">Scores
+
+if $(isQuiz)
+   set popupText "This will delete the selected users' scores and answers,\n\
+                   so that they may retake the quiz."
+end
+else
+   set popupText "This will delete the selected users' results,\n\
+                   so that they may retake the survey."
+end
+"<script type="text/javascript" language="javascript">
+"   function verify() {
+"      return confirm($(popupText));
+"   }
+"</script>
+
+#---Figure out sorting orders...
+set order   $if ($equal ($arg(9) x) nd $arg(9))
+set order0  $str_sub(0 1 $(order))
+set order1  $str_sub(1 1 $(order))
+set ascdesc $if ($equal ($(order1) a) ASC DESC)
+if   $equal ($(order0) n)
+   set orderby u.lname $(ascdesc), u.fname $(ascdesc), u.userid $(ascdesc)
+end
+elif $equal ($(order0) p)
+   set orderby stotal $(ascdesc), u.lname, u.fname, u.userid
+end
+else
+   set orderby submitmax $(ascdesc)
+end
+
+"<p/>
+"<ul>
+"<div style="width: 80%;">
+if $(isQuiz)
+   "List of total scores for the entire quiz, for students who have
+   "submitted their answers.&nbsp;
+   "Check "reset" and click on Submit to clear a person's score,
+   "so that they may retake the quiz.
+end
+else
+   "Results for the entire survey, for members who have
+   "submitted their answers.&nbsp;
+   "Check "reset" and click on Submit to clear a person's record,
+   "so that they may retake the survey.
+end
+"</div>
+"<p/>
+
+"<form name="scores" method="post" onSubmit="return verify();"
+"      action="quiz_score.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$arg(9)">
+
+if $not_empty ($form(clearIds))
+   set ids ''
+   for u in $form(clearIds)
+      set ids $(ids), '$(u)'
+   end
+   set query DELETE FROM quizscore WHERE userid IN ($(ids)) AND qkey=$(qkey)
+#  "clearIds=$form(clearIds)<br>
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+end
+
+
+set empty 1
+"<table cellspacing=0 cellpadding=0 border=0>
+set q1 SELECT SUM(p.totalpoints) FROM quizproblems p, quizmap m \
+        WHERE m.qkey=$(qkey) AND m.pkey = p.pkey AND p.deleted=0
+set maxtotal $sql_query_select($(q1))
+
+set updown $if ($equal ($(order) nd) na nd)
+"<tr><td></td>
+"<td><b><a href="quiz_score.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(updown)"
+"   >Name</a></b></td> <td>&nbsp;&nbsp;</td>
+"<td></td> <td>&nbsp;&nbsp;</td> 
+
+set updown $if ($equal ($(order) pd) pa pd)
+if $(isQuiz)
+   "<td align=right><b><a 
+   "     href="quiz_score.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(updown)"
+   "   >Points: $(maxtotal)</a></b></td>
+   "<td>&nbsp;&nbsp;&nbsp;</td> 
+end
+
+set updown $if ($equal ($(order) sd) sa sd)
+"<td><b><a href="quiz_score.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(updown)"
+"   >Date Submitted</a></b></td>
+"<td>&nbsp;&nbsp;</td>
+"<td><b>Reset</b></td>
+
+set q2 SELECT u.fname, u.lname, u.userid, SUM(s.points) stotal, \
+              MAX(s.submitted) submitmax \
+         FROM user_info u, quizscore s \
+        WHERE u.userid = s.userid AND s.qkey=$(qkey)  AND s.status > 1 \
+        GROUP BY u.userid \
+        ORDER BY $(orderby)
+set h2 $sql_query_open ($(q2))
+set counter 0
+set parity  1
+while  $sql_query_row  ($(h2))
+   set counter $plus (1 $(counter))
+   set parity  $minus( 1 $(parity))
+   "<tr class="peoplelist$(parity)"><td align=right>&nbsp;$(counter).&nbsp;</td>
+   "<td><a href="javascript: pop_up('person', '$(userid)');" \%help(h_name)
+   "   >$(lname), $(fname)</a></td>  <td></td>
+   "<td>($(userid))</td><td></td>
+   if $(isQuiz)
+      "<td align=right>$(stotal)</td><td></td>
+   end
+   "<td>%monthDayYearHour($(submitmax))</td>
+   "<td>&nbsp;&nbsp;&nbsp;</td>
+   "<td><input type="checkbox" name="clearIds" value="$(userid)">&nbsp;</td>
+end
+eval   $sql_query_close($(h2))
+
+if $(counter)
+   "<tr><td>&nbsp;</td>
+   "<tr>
+   "<td colspan=5></td>
+   "<td colspan=5 align=right>
+   if $(isQuiz)
+      "  <input type="Submit" value="Reset selected students' scores">
+   end
+   else
+      "  <input type="Submit" value="Reset selected members' results">
+   end
+   "</td>
+end
+"</table>
+"</form>
+
+"</ul>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

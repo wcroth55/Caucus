@@ -1,0 +1,83 @@
+#
+#---NOUSERID.CML.   Web server did not supply a userid.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------------
+
+eval $goodbye()
+
+set reg     $word (1 $config(reg)  reg)
+set sweb    $word (1 $replace(/ 32 $request_uri()))
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>No userid!</TITLE>
+"</HEAD>
+"
+"<BODY $(body_bg)>
+
+"<CENTER>
+"<H2>No Caucus Userid Supplied</H2>
+"</CENTER>
+
+"<blockquote>
+"<P>
+
+#---If we're using cookie-based logins, and the server does not believe
+#   we have a userid, then warn and offer a link to the start page.
+if $equal (0$(sweb) 0$(reg))
+
+   #---Compute the most likely location of the start page.
+   #   Interface directory setting for quiturl gets first precedence.
+   set goodbye_url $site_data (0 - if_$(iface)_quiturl)
+   
+   #---Then all-interfaces setting from "Caucus switches".
+   if $empty ($(goodbye_url))
+      set goodbye_url $site_data (0 - SWgoodbye_url)
+   end
+   if $empty ($(goodbye_url))
+      set goodbye_url $host()/~$caucus_id()/caucus.html
+   end
+
+   #---Make sure it's got an "http"!
+   if $not_equal ($str_index (http $(goodbye_url)) 0)
+      set goodbye_url http://$(goodbye_url)
+   end
+
+   "<center>
+   "<b>Error:</b>&nbsp; You are not logged in.&nbsp;
+   "Please proceed to the Caucus <a href="$(goodbye_url)">login page</a>.
+   "</center>
+end
+else
+   "<B>Warning!</B>&nbsp;
+   "No userid was supplied.&nbsp;
+   "You must enter your personal userid and password in the
+   ""pop-up" dialog box when it appears.
+   
+   "<P>
+   "If you did not see such a dialog box, then it probably
+   "means that your web server software is not asking
+   "for an "access authorization" userid.&nbsp;
+   "The most likely cause of this is an incomplete configuration
+   "of your web server software.&nbsp;
+   "Please inform your Caucus manager or system administrator;
+   "they should check the appropriate Caucus installation guide for
+   "more detail.&nbsp;
+   "<P>
+   "(Click on <A 
+   "HREF="http://caucuscare.com/TLIB">caucuscare.com/TLIB</A>
+   "to find the installation guides.)
+   
+   "<P>
+   "<HR>
+end
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

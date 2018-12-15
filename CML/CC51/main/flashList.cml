@@ -1,0 +1,89 @@
+#
+#---flashList.cml.   List all flash chatlogs for a specific conference (room).
+#
+#   Argument usage:
+#     $arg(9)       room (0=current conf, n=conf# n)
+#
+#: CR 09/29/09 New script.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i flashList.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 flashList.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Chat&nbsp;Logs )
+
+#---Determine room name
+if $equal ($arg(9) 0)
+   set room $cl_name ($arg(3))
+   set roomNum $arg(3)
+end
+elif $numeric ($arg(9))
+   set room $cl_name ($arg(9))
+   set roomNum $arg(9)
+end
+
+include $(main)/head.i $arg(3)  $quote(Chat Logs: $upper1($(room)))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  chatlogs  Chat Logs: $upper1($(room))
+
+#---set parameters
+set deltaTime   $word (1 $config(chatDeltaTime) 0)
+set quantumTime 3600
+
+"<P>
+"<blockquote>
+"This is the archived history for chat room 
+"<b>$upper1($(room))</b>.&nbsp;
+"Click on the time a particular chat started, to see 
+"the complete log of the conversation.
+"<p>
+
+#CREATE TABLE `flashcoms_chat_history` (
+#  `id` int(9) unsigned NOT NULL auto_increment,
+#  `roomId` varchar(255) NOT NULL default '',
+#  `sender` varchar(255) NOT NULL default '',
+#  `receiver` varchar(255) NOT NULL default '', 
+#  `time` datetime NOT NULL default '0000-00-00 00:00:00',
+#  `body` text NOT NULL, 
+#  `ip` varchar(255) NOT NULL default '',
+#  `whisper` enum('true','false') NOT NULL default 'true',
+#  PRIMARY KEY  (`id`)
+#) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+
+"<table cellspacing=2 cellpadding=0 border=0>
+"<tr>
+"<td><b>Time&nbsp;chat&nbsp;started</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td><b>Convener and first comment</b></td>
+
+set lastTime 0
+set quantumTime 3600
+set qChat SELECT id, unix_timestamp(time) unixTime, sender, body \
+            FROM flashcoms_chat_history \
+           WHERE roomId=$(roomNum)
+
+set hChat $sql_query_open($(qChat))
+while     $sql_query_row ($(hChat))
+   if $greater ($minus($(unixTime) $(lastTime)) $(quantumTime))
+      "<tr valign=top>
+      "<td><a href="$(mainurl)/flashLog.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+           $arg(6)+$arg(7)+$(id)+$(roomNum)">$dateof($plus($(unixTime) $(deltaTime)))</a></td>
+      "<td><b>$(sender):</b> $(body)</td>
+   end
+   set lastTime $(unixTime)
+end
+eval $sql_query_close($(hChat))
+"</table>
+
+"</BODY>
+"</HTML>
+#-----------------------------------------------------------------------

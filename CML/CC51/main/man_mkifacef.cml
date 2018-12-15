@@ -1,0 +1,42 @@
+#
+#---man_mkifacef.cml.    Handles form submission 'make interface' page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/02/03 New file.
+#: CR 12/12/05 Duplicate user_iface elements from current interface.
+#-------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_cc.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+
+set nch $unique()
+
+set rc $xshell (1 1 1 $caucus_path()/mkiface $caucus_path() $form(newface))
+if $equal ($(rc) 1)
+   set error Directory '$form(newface)' already exists.
+end
+elif $equal ($(rc) 2)
+   set error Please specify interface name.
+end
+elif $equal ($(rc) 3)
+   set error Unknown system error 3.
+end
+else
+   set query \
+     INSERT INTO user_iface (name, iface, format, width, choices,  \
+        required, position, label, on_reg, on_public, on_self, on_mgr, macro) \
+     SELECT name, '$form(newface)', format, width, choices,  \
+        required, position, label, on_reg, on_public, on_self, on_mgr, macro \
+       FROM user_iface WHERE iface='$(iface)'
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+end
+
+"%location($(mainurl)/man_mkiface.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+#------------------------------------------------------

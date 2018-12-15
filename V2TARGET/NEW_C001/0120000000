@@ -1,0 +1,191 @@
+#0 tmandel 0 04-JUL-96 11:40 Tom Mandel
++3 11 539
++4 2
+ Sample Apps: Using Caucus for group document review
+ <b><i>Caucus</b></i> is a key groupware solution for the Web.&nbsp;   It meets a
+ core business need by providing Web-based discussion centers where groups
+ of all sizes can easily exchange information.
+ <p> Because <b><i>Caucus</b></i> discussions can include rich text
+ formatting, live
+ links, file libraries,
+ images, A/V clips, and other Web information, they quickly become a focal
+ point for effective teamwork.
+ <p>
+ <b><i>Caucus</b></i> is easy to use for collaborative applications.&nbsp;  
+ Here's an example of a document being reviewed by a workgroup.
+#0001 tmandel 0 04-JUL-96 11:42 Tom Mandel
++3 12 460
++4 2
+ Gang -- in the response following this one, I've placed the summary of
+ conferencing and its applications, written by Joe.
+ <p>
+ Marked in <font color=red>Red</font> are the
+ passages I think are key; please comment on these, or give me an improved
+ version if you like.
+ <p>
+ I've put in a couple of comments in <font color=green>Green</font>,
+ asking for specific feedback.
+ <p>
+ Because of our schedule,I'm going to freeze this item on friday, so now
+ is your chance!
+#0002 tmandel 0 04-JUL-96 11:42 Tom Mandel
++3 93 3264
++4 2
+ <blockquote>
+ <center><font size=+2>Summary Document: What is Caucus
+ Conferencing</font></center><p>
+ <b></b><i></i><p>
+ <i></i><p>
+ Organizations thrive on information.&nbsp;   The group and team projects that
+ determine
+ organizational success work best when people can easily exchange
+ information.
+ <p>
+ <p>
+ <b><i>Caucus</i></b> discussion conferences provide a "virtual space"
+ where
+ people can do just that - easily share information and create new
+ information.&nbsp;  
+ We call such a virtual space a Conference Center. <p>
+ <p>
+ <font color=red>A conference is an online discussion among a group of
+ people about some
+ project, issue, or process.&nbsp;   In such a discussion, participants present and
+ share information, and they collaborate to create new information.&nbsp;</font>
+ The
+ conference does not occur in "real time;" instead, participants
+ contribute to
+ "meetings" on conference topics whenever they visit their Web site's
+ Conference
+ Center.<p>
+ <p>
+ A conference may be used for: <p>
+ <font color=green>(Let me know whether you think this is a helpful
+ list)</font><p>
+ ·	policy discussions and decision-making, <br>
+ ·	managing a project, department or team, <br>
+ ·	providing technical support, <br>
+ ·	building community through feedback, <br>
+ ·	distance education,
+ <p>
+ among many applications.&nbsp;   The participants in such a conference may be:<p>
+ <p>
+ ·	an executive committee, <br>
+ ·	a project team, <br>
+ ·	the employees of one department of an enterprise <br>
+ ·	all enterprise employees, <br>
+ ·	the citizens of a community,
+ <p>
+ or any other group. <p>
+ <p>
+ Because <b><i>Caucus</i></b> allows conference participants to attend
+ conference "meetings" at their own convenience, a conference can
+ supplement or
+ replace traditional meetings.&nbsp;   Conference members can be scattered across a
+ building or around the world. <p>
+ <p>
+ A <b><i>Caucus</i></b> conference center can host what for all practical
+ purposes is an unlimited number of conferences, providing secure
+ inclusion in,
+ or exclusion from, a given conference for the many individuals and groups
+ using
+ the center.&nbsp;   Each conference will typically be devoted to a particular
+ application, such as:<p>
+ <p>
+ ·	locating an appropriate new home for our international
+ headquarters, <br>
+ ·	managing a sales team, <br>
+ ·	coordinating a just-in-time inventory system between your company
+ and
+ mine, <br>
+ ·	seeking agreement on a new health plan provider<br>
+ ·	discussing issues regarding zoning laws in our community, <br>
+ ·	editing and reviewing graphic design of our new marketing
+ brochure,
+ <p>
+ and so forth.&nbsp;   <font color=green>
+ <p>(Please suggest additional examples,
+ John)</font>
+ <p>
+ <b><i>Caucus</i></b> allows conference participants to enter not only
+ text, but
+ also graphics, HTML links to files of information, audio, video - any
+ information compatible with the Web.&nbsp;   Conference participants, in other
+ words,
+ are able to show and make use of a wide variety of informational,
+ documentary,
+ analytical and illustrative materials.<p>
+ <p>
+ <b><i>Caucus</i></b> keeps a complete record of everything that takes
+ place in
+ the conference.&nbsp;   It also keeps a personal record of what you have seen,
+ and what
+ you are interested in following closely.<p>
+ <font color=green>(We need a concluding paragraph for this document --
+ anyone care to take a stab?)</font>
+ </blockquote>
+#0003 rogerc 0 04-JUL-96 14:25 Roger Caldwell
++4 2
+ <font color=green>(And, here's a response that helps the author edit the
+ document)</font>
+ <p>
+ Tom, your stuff is below.&nbsp;   I comment in <font color=red>CAPS</font>.
+ <p>
+ A conference may be used for
+ <font color=red>PROVIDING SPECIFIC REFERENCE INFORMATION AND ALLOWING
+ DISCUSSIONS SUCH
+ AS</font>:
+ <p>
+ <UL>
+ <li>policy discussions and decision-making,</li>
+ <li>managing a project, department or team,</li>
+ <li>providing technical support,</li>
+ <li>building community through feedback,</li>
+ <li>distance education, (USE LEARNING RATHER THAN EDUCATION)</li>
+ </UL>
+ <p>
+      among many applications.&nbsp;   The participants in such a conference may
+ be:
+ <p>
+ <UL>
+ <li>an executive committee,</li>
+ <li>a project team,</li>
+ <li>the employees of one department of an enterprise</li>
+ <li>all enterprise employees,</li>
+ <li>the citizens of a community,</li>
+ <li><font color=red>LEARNERS IN A CLASSROOM (WITH OR WITHOUT
+ WALLS)</font></li>
+ </UL>
+ <p>
+ or any other group.
+ <p>
+ <font color=green>(Thanks to Roger Caldwell for his helpful participation
+ here.)</font>
+#0004 rogerc 0 04-JUL-96 14:34 Roger Caldwell
++4 2
+ <font color=green>(Another helpful suggestion from Roger)</font>
+ <p>
+ Re: <i>"We need a concluding paragraph for this document..."</i>
+ <p>
+ <blockquote>
+ Somewhere i would make reference to email vs conferencing.
+ <p>
+ Note that
+ email comes chronologically and interlaced with other mail.&nbsp;   Even filters
+ or groupware that puts it in folders requires you to go into each and
+ read.
+ <p>
+ Maybe a paragraph could include some of these thoughts:
+ <P>
+ Conferencing allows you to set your own schedule.&nbsp;   When you "are in the
+ mood" to work on a particular project you can move to that conference
+ area and everything is there, organized for your ease of use.&nbsp;   Or, you
+ might have some conference areas that are the type you must keep up with.
+ Those could be reviewed more frequently.&nbsp;   Not only does conferencing supply
+ the organization to help you work more effectively and with less stress,
+ it keeps a running transcript of everything that occurred (and date
+ stamped!).&nbsp; You can therefore reconstruct events and review past actions
+ to learn how to better perform in the future.
+ </blockquote>
+#0005 tmandel 0 24-JUL-96 12:48 Tom Mandel
+ Thanks to all for your %b(excellent) input!

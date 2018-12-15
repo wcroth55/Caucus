@@ -1,0 +1,773 @@
+#!/bin/sh
+#
+#---- install.  Caucus 5.1 installation script: Unix
+#
+#   Invoked as:
+#      ./install
+#
+#   Parameters:
+#
+#   Purpose:
+#      The typical Unix Caucus 5.1 installation is accomplished by:
+#         1) untarring the distribution file
+#         2) running this 'install' installation procedure
+#         3) configuring the local web server to work with Caucus.
+#
+#   How it works:
+#
+#   Known bugs:
+#      See +++ sections
+#
+#   History of revisions:
+#: CR 10/12/05 C5 changes.
+#: CR 11/06/05 Get ODBCINI parameter from swebd.conf if possible.
+#: CR 11/08/05 Make echo w/o newline work on SunOS.
+#: CR 01/27/05 For Darwin, check /Users/caucus_mail rather than /etc/passwd.
+#: CR 02/19/06 Add link for favicon.ico.
+#: CR 02/15/10 Add OPENID authentication.
+#: CR 04/10/11 Add XUpload stuff (upload w progress meter)
+#============================================================================
+
+#---Determine how to echo a line w/o a newline.
+nn=""
+os=`uname -s`
+if test "x$os" != "xSunOS"; then
+   nn="-e"
+fi
+
+#===Section I: gather information from person installing Caucus.-------------
+
+echo
+echo "**************************************************************"
+echo "*                 Caucus 5.1 Installation                    *"
+echo "**************************************************************"
+echo
+
+echo "Welcome to the Caucus 5.1 installation procedure.  You may "
+echo "use this procedure to install a new Caucus license, or to "
+echo "upgrade an existing Caucus site to version 5.1.  In the latter"
+echo "case, any existing conferences and data will remain unharmed."
+echo
+
+echo "This procedure will prompt you for some information, and "
+echo "then proceed to complete the installation.  A log file of "
+echo "its actions will be written in the file install.log."
+
+#---Make sure we're not running as root.
+echo hi >superuser.j1
+if ls -l superuser.j1 | grep root >/dev/null ; then
+   echo
+   echo "Do not run the Caucus install script as root or superuser."
+   echo "Each Caucus site must be installed in its own, dedicated,"
+   echo "unix userid."
+   echo
+   exit  0
+fi
+rm -f superuser.j1
+
+#---Determine this userid.
+userid=$LOGNAME
+if test "x$userid" = "x"; then
+   userid=`whoami`
+fi
+if test "x$userid" = "x"; then
+   echo
+   echo "The installation script needs to know what *this* userid is,"
+   echo "and for some unknown reason cannot determine it automatically."
+   echo 
+   echo $nn "What is this userid? \c"
+   read userid
+fi
+
+#---Length of name of installation directory must be < 85 chars,
+#   due to Unix/linux socket pathname length limits.
+length=`pwd | wc | (read a b c; echo $c)`
+if test $length -gt 85; then
+   echo "ERROR: directory too long!"
+   echo
+   echo "You are attempting to install Caucus in the directory: "
+   echo "   `pwd`"
+   echo
+   echo "Unfortunately, this pathname is too long for some versions of"
+   echo "Unix to handle.  (Specifically, the socket file that Caucus uses"
+   echo "cannot be longer than 108 characters.)"
+   echo
+   echo "Please try installing Caucus in a directory whose full pathname "
+   echo "is shorter than 85 characters in length."
+   echo 
+   exit
+fi
+
+
+#---Try to get the MySQL parameters from a previously existing swebd.conf file.
+if test -f SWEB/swebd.conf; then
+   cs=`grep "^ConnectString" SWEB/swebd.conf 2>/dev/null`
+   cs=`echo "$cs" | tr ";" " "`
+   for x in $cs; do
+      param=`echo $x | tr "=" " " | (read a b; echo $a)`
+      value=`echo $x | tr "=" " " | (read a b; echo $b)`
+      if test "$param" = "DB"; then
+         db=$value
+      elif test "$param" = "UID"; then
+         uid=$value
+      elif test "$param" = "PWD"; then
+         pwd=$value
+      fi
+   done
+fi
+
+#---If no previous parameters, prompt for them.  Offer to create
+#   the database if necessary.
+if test "x$db" = "x"; then
+   tmp=tmp$$
+
+   mysql -V >$tmp 2>/dev/null
+   if test -s $tmp; then
+      if   grep 4.1 $tmp >/dev/null 2>/dev/null; then
+         :
+      elif grep 5.0 $tmp >/dev/null 2>/dev/null; then
+         :
+      else
+         echo
+         echo "Caucus requires MySQL version 4.1 or higher.  The currently"
+         echo "installed version appears to be:"
+         cat $tmp
+         echo
+         echo $nn "Continue installing Caucus anyway? (no) \c"
+         read answer
+         if test "x$answer" != "xyes"  -a  "x$answer" != "xy"; then
+            exit
+         fi
+      fi
+   else
+      echo
+      echo "MySQL does not appear to be installed, or else the 'mysql' "
+      echo "command is not available (not in this user's search path). "
+      echo
+      echo $nn "Continue installing Caucus anyway? (no) \c"
+      read answer
+      if test "x$answer" != "xyes"  -a  "x$answer" != "xy"; then
+         exit
+      fi
+   fi
+
+   echo
+   echo "Each installation of Caucus 5 requires its own, dedicated MySQL"
+   echo "database.  Please choose a database name, userid, and password"
+   echo "for this database.  (You can accept the recommendations shown"
+   echo "in parenthesis by just pressing Enter.)"
+
+   echo
+   echo $nn "Database name? (caucus_$userid) \c"
+   read answer
+   if test "x$answer" = "x"; then
+      answer=caucus_$userid
+   fi
+   db=$answer
+
+   echo
+   echo $nn "Database userid? ($userid) \c"
+   read answer
+   if test "x$answer" = "x"; then
+      answer=$userid
+   fi
+   uid=$answer
+
+   while test "x$pwd" = "x"; do
+      echo
+      echo $nn "Database userid password? \c"
+      read pwd
+   done
+
+   created=0
+   if test -s $tmp; then
+      echo
+      echo "Shall I create the database for you?  You'll need the "
+      echo "mysql root password to do this."
+      echo
+      echo $nn "Create database? (yes) \c"
+      read answer
+      if test "x$answer" = "xyes" -o "x$answer" = "xy" -o "x$answer" = "x"; then
+         echo "create database $db;" >$tmp
+         quote="'"
+         echo "grant all on $db.* to $quote$uid$quote@${quote}localhost$quote identified by '$pwd';" \
+                 >>$tmp
+         echo
+         echo "Enter the MySQL root password at the prompt."
+         mysql -u root -p -e "source $tmp"
+         mysql -u $uid --password=$pwd -e "select now();" >$tmp
+         if grep now $tmp >/dev/null 2>/dev/null; then
+            created=1
+         else
+            echo
+            echo "The database create failed for some reason."
+            echo
+         fi
+      fi
+   fi
+   if test "$created" = "0"; then
+      echo
+      echo "Please create the database manually.  The recommended"
+      echo "MySQL commands are:"
+      echo "   create database $db;"
+      echo "   grant all on $db.* to $uid@localhost identified by '$pwd';"
+      echo
+      echo "Once this has been accomplished, press Enter."
+      read answer
+   fi
+      
+   rm -f $tmp
+fi
+#echo "db=$db"
+#echo "uid=$uid"
+#echo "pwd=$pwd"
+
+
+#---Determine the WWW hostname.
+if test -f www_hostname; then
+   defhost=`cat www_hostname`
+else
+   defhost=`hostname`
+fi
+
+echo
+echo "HOSTNAME: What is the world-wide-web hostname for your "
+echo "caucus site?  Include the site name and port number, if needed."
+echo " "
+echo "Examples: www.xyz.com"
+echo "          hal.state_univ.edu:8000"
+echo " "
+while true; do
+   echo
+   echo $nn "Your hostname? ($defhost) \c"
+   read hostname
+   if test "x$hostname" = "x"; then
+      hostname=$defhost
+   fi
+   if test "x$hostname" != "x"; then
+      break;
+   fi
+done
+echo $hostname >www_hostname
+
+echo
+echo "PROTOCOL: Which web protocol should be the default for this site?"
+echo "Choose either 'http' or 'https'."
+echo
+if grep "Config *http" SWEB/sweb.conf >/dev/null 2>/dev/null; then
+   http=`grep "Config *http" SWEB/sweb.conf | head -1 | (read a b c; echo $c)`
+fi
+
+if test "x$http" = "x"; then
+   http=http
+fi
+echo $nn "Protocol? ($http) \c"
+read myhttp
+if test "x$myhttp" = "x"; then
+   myhttp=$http
+fi
+
+echo
+echo "SWEB and REG: Caucus requires two web server aliases that point"
+echo "to the CGI directories SWEB and REG.  Please enter the names of"
+echo "the aliases (the names, not what they point to)."
+echo ""
+
+if grep "Config *sweb" SWEB/swebd.conf >/dev/null 2>/dev/null; then
+   sweb=`grep "Config *sweb" SWEB/swebd.conf | head -1 | (read a b c; echo $c)`
+fi
+
+if test x$sweb = x; then
+   sweb=sweb
+fi
+
+if grep "Config *reg" SWEB/swebd.conf >/dev/null 2>/dev/null; then
+   reg=`grep "Config *reg" SWEB/swebd.conf | head -1 | (read a b c; echo $c)`
+fi
+
+if test x$reg = x; then
+   reg=reg
+fi
+
+echo $nn "Value of sweb? ($sweb) \c"
+read mysweb
+if test x$mysweb = x; then
+   mysweb=$sweb
+fi
+echo $nn "Value of  reg? ($reg)  \c"
+read myreg
+if test x$myreg = x; then
+   myreg=$reg
+fi
+
+#--- +++ --- should only ask this question on 1st install.
+if test ! -f MISC/managers; then
+   echo
+   echo "CAUCUS MANAGER: One person should be in charge of administering"
+   echo "Caucus on your system.  That person is given full Caucus "
+   echo "management capabilities. "
+   echo
+   echo $nn "What will the manager's userid be inside Caucus? \c"
+   read admin_userid
+fi
+
+#========================================================
+echo
+echo "Caucus e-mail participation userid.  Please enter the name"
+echo "of the second userid that was created for Caucus, for the"
+echo "e-mail participation feature."
+echo ""
+umail=_mail
+caucus_mail=$userid$umail
+sysname=`uname -s`
+darwin=
+if test "x$sysname" = "xDarwin"; then
+   darwin=1
+fi
+while true; do
+   default=
+
+   if test "$darwin"; then
+      if test -d /Users/$caucus_mail; then
+         default="($caucus_mail)"
+      fi
+   else
+      if grep "^$caucus_mail:" /etc/passwd >/dev/null 2>/dev/null; then
+         default="($caucus_mail)"
+      fi
+   fi
+
+   echo $nn "Caucus e-mail participation id: $default \c"
+   read cm
+   if test "x$cm" = "x"; then
+      cm=$caucus_mail
+   fi
+
+   if test "$darwin"; then
+      if test -d /Users/$cm; then
+         break
+      fi
+   else
+      if grep "^$cm:" /etc/passwd >/dev/null 2>/dev/null; then
+         break
+      fi
+   fi
+done
+caucus_mail=$cm
+
+#========================================================
+#---Display all values and confirm.
+echo
+echo
+echo "Your hostname is             $hostname"
+echo "     protocol is             $myhttp"
+echo "     sweb alias is           $mysweb"
+echo "     reg  alias is           $myreg"
+echo "     email participation id: $caucus_mail"
+if test ! -f MISC/managers; then
+   echo "     manager userid is:      $admin_userid"
+fi
+echo
+echo $nn "Are these values correct? (y/n) \c"
+read answer
+if test "x$answer" != "xy" -a "x$answer" != "xyes"; then
+   echo
+   echo "Please rerun ./install with the correct values."
+   echo
+   exit
+fi
+
+#---If this is the first install of the Caucus 5.1 email participation
+#   module, find out where python is.  If successfull, assemble the
+#   detacher.py script properly, and turn on the email crontab.
+if head -n 1 $HOME/SCRIPTS/detacher.py | \
+   grep python >/dev/null 2>/dev/null; then
+   :
+else
+   python=`which python 2>/dev/null`
+   if test "x$python" = "x"; then
+      echo
+      echo "The e-mail participation feature requires Python.  Please enter"
+      echo $nn "the full pathname of the python interpreter: (none) \c"
+      read python
+   fi
+
+   if test "x$python" != "x"; then
+      (echo "#!$python"; cat $HOME/SCRIPTS/detacher.py) >$HOME/SCRIPTS/d.py
+      mv $HOME/SCRIPTS/d.py  $HOME/SCRIPTS/detacher.py
+      chmod 755              $HOME/SCRIPTS/detacher.py
+   fi
+
+   #---Add email participation module.
+   cm=/tmp/cm$$
+   echo "Enter password for $caucus_mail at the prompt:"
+   echo "25 0 * * * $HOME/SCRIPTS/import_export.sh" >$cm
+   chmod 755 $cm
+   su $caucus_mail -c "crontab $cm"
+   rm -f $cm
+   echo 
+fi
+
+echo "Proceeding with installation... please wait."
+echo
+
+#---Inform caucuscare.com of installation.
+(echo "Caucus 5 installed"; uname -a; echo $userid; \
+      cat www_hostname) | mail actkey@caucuscare.com >/dev/null 2>/dev/null
+
+#---Stop any running sweb... processes.
+echo "Stopping any running Caucus processes..."
+echo
+chmod 700 stopcaucus
+./stopcaucus 0 0 .
+
+
+#===Section II: install new files in their proper places.--------------------
+
+mkdir USER001  2>/dev/null
+mkdir ARCHIVE5 2>/dev/null
+
+cwd=`pwd`
+under=_
+OLD=`date | tr ":" " " | (read a b c d e f; echo $b$c$under$d$e)`
+
+#---Rename old binaries (in case they are in use at the moment!)
+#   and rename "activated" binaries to proper names.
+mv SWEB/swebd        SWEB/swebd.$OLD        >/dev/null  2>/dev/null
+mv SWEB/swebs        SWEB/swebs.$OLD        >/dev/null  2>/dev/null
+mv SWEB/sweba        SWEB/sweba.$OLD        >/dev/null  2>/dev/null
+mv SWEB/swebsock     SWEB/swebsock.$OLD     >/dev/null  2>/dev/null
+mv SWEB/new_sweba    SWEB/sweba             >/dev/null  2>/dev/null
+mv SWEB/new_swebd    SWEB/swebd             >/dev/null  2>/dev/null
+mv SWEB/new_swebs    SWEB/swebs             >/dev/null  2>/dev/null
+mv SWEB/new_swebsock SWEB/swebsock          >/dev/null  2>/dev/null
+
+#---Upload library directory and "FILES" directory.
+mkdir public_html/LIB                       >/dev/null  2>/dev/null
+mkdir public_html/LIB/QUIZ                  >/dev/null  2>/dev/null
+mkdir public_html/FILES                     >/dev/null  2>/dev/null
+mkdir public_html/TEMP                      >/dev/null  2>/dev/null
+chmod 711 public_html/FILES
+chmod 777 public_html/TEMP
+mkdir BIN2                                  >/dev/null
+if test ! -f BIN2/unzip; then
+   cd BIN2
+   ln -s `which unzip` unzip
+   cd ..
+fi
+
+#---If this is a new installation, set up the directories MISC, USER001.
+#   Otherwise, throw them away.
+if test -d $cwd/MISC
+then
+   fast=fast
+#  cp     NEW_MISC/confsmsk MISC
+else
+   fast=
+   mv NEW_MISC MISC
+   mkdir TEXT001
+   chmod 777 TEXT001  TEXT001/* 2>/dev/null
+#  cd $cwd/public_html/LIB
+#  tar xf $cwd/C0001/lib.t
+#  rm -f  $cwd/C0001/lib.t
+fi
+
+#+++
+#---If new installation, set up initial primary manager.
+cd $cwd
+if test ! -f MISC/managers; then
+   echo "$admin_userid" >MISC/managers
+   echo " -1"          >>MISC/managers
+fi
+
+mkdir MISC/ARRAYS >/dev/null 2>/dev/null
+mkdir MISC/ONNOW  >/dev/null 2>/dev/null
+
+# Set file permissions.
+chmod 700 csetperm
+./csetperm nocheck $fast                >/dev/null  2>/dev/null
+
+
+#===Section IV: make web-interface files.------------------------------------
+
+#---Build a script for running csnap.
+echo "$cwd/SWEB/sweba $cwd/SWEB/swebd.conf CSNAP51/main/csnap.cml \
+      $cwd/public_html/GIF50 \$@" >$cwd/csnap
+chmod 700 $cwd/csnap
+
+#---Build a script for running user reports
+echo "$cwd/SWEB/sweba $cwd/SWEB/swebd.conf REPORT/ureport.cml \$1 \$2 \$3\
+                     \$4 ">$cwd/ureport
+chmod 700 $cwd/ureport
+
+#---Determine location of sendmail and mailx.
+if grep "Config *sendmail" SWEB/swebd.conf >/dev/null 2>/dev/null; then
+   sendmail=`grep "Config *sendmail" SWEB/swebd.conf | head -1 | 
+         (read a b c; echo $c)`
+fi
+if test x$sendmail = x; then
+   if which sendmail >/dev/null 2>/dev/null; then
+      sendmail=`which sendmail | (read a b; echo $a)`;
+   fi
+fi
+if test x$sendmail = x -o x$sendmail = xno; then
+   sendmail=/usr/sbin/sendmail
+   if test ! -f $sendmail; then
+      chksendmail=yes
+   fi
+fi
+if grep "Config *mailx" SWEB/swebd.conf >/dev/null 2>/dev/null; then
+   mailx=`grep "Config *mailx" SWEB/swebd.conf | head -1 | 
+         (read a b c; echo $c)`
+fi
+if test x$mailx = x; then
+   if which mailx >/dev/null 2>/dev/null; then
+      mailx=`which mailx | (read a b; echo $a)`;
+   fi
+fi
+if test x$mailx = x -o x$sendmail = xno; then
+   if which mail >/dev/null 2>/dev/null; then
+      mailx=`which mail | (read a b; echo $a)`;
+   fi
+fi
+if test x$mailx = x -o x$sendmail = xno; then
+   mailx=/bin/mail
+   chkmailx=yes
+fi
+
+#---Build a reasonable default swebd.conf file.
+chmod 755 SWEB REG
+chmod 700 mkswebconf 
+
+./mkswebconf $hostname $userid $cwd $mysweb $myreg \
+             $sendmail $mailx  $myhttp $db $uid $pwd >SWEB/swebd.conf.new
+
+if test ! -f SWEB/swebd.conf; then
+   mv SWEB/swebd.conf.new SWEB/swebd.conf
+fi
+chmod 700 SWEB/swebd.conf SWEB/swebd.conf.new >/dev/null 2>/dev/null
+
+#---Create ARCHIVE directory.
+mkdir ARCHIVE >/dev/null 2>/dev/null
+chmod 700 ARCHIVE
+
+#---Build a reasonable default caucus.html file.
+chmod 700 mkcauhtml1 mkcauhtml2 mkcauhtml3
+mv public_html/caucus.html public_html/caucus.html.$OLD   >/dev/null 2>/dev/null
+mv public_html/caucuswsl.html public_html/caucus.wslhtml.$OLD   >/dev/null 2>/dev/null
+./mkcauhtml1 $hostname $userid $mysweb $myreg $myhttp >public_html/caucuswsl.html
+./mkcauhtml2 $hostname $userid $mysweb $myreg $myhttp >public_html/caucus.html
+./mkcauhtml3 $hostname $userid $mysweb $myreg $myhttp >public_html/openid.html
+if test ! -f public_html/local.css; then
+   echo "/* Put local CSS class changes here.  Do not edit caucus.css. */" \
+            >public_html/local.css
+   chmod 755 public_html/local.css
+fi
+if test ! -f public_html/index.html; then
+   (cd public_html; ln -s caucus.html index.html)
+fi
+
+if test -f favicon.ico -o -h favicon.ico ; then
+   :
+else
+   (cd public_html; ln -s caucus.ico favicon.ico)
+fi
+
+#---Set up REG directory.
+rm -f REG/swebsock
+ln -s $cwd/SWEB/swebsock  REG/swebsock
+
+#---Install Xupload scripts.
+(cd REG; tar xf ../xupload.tar)
+mkdir     REG/temp    2>/dev/null
+mkdir     REG/uploads 2>/dev/null
+touch     REG/logs.txt
+chmod 777 REG/temp REG/uploads REG/logs.txt
+sed      <REG/XUploadConfig.pm "s^/home/work/REG^$cwd/REG^" >j
+cp j      REG/XUploadConfig.pm
+rm -f j
+chmod 755 REG/XUploadConfig.pm
+
+#---Set up OPENID directory
+#=================
+mkdir OPENID >/dev/null
+rm -f OPENID/swebsock
+ln -s $cwd/SWEB/swebsock OPENID/swebsock
+if test ! -f OPENID/start.cgi; then
+  (echo "#!/bin/sh"
+   startpath="openid/swebsock/0/0/CC51/main/caucus.cml?/\$PATH_INFO+0+x+x+x+x+x+x"
+   echo "echo \"Location: $myhttp://$hostname/$startpath\""
+   echo "echo \"\"" ) >OPENID/start.cgi
+fi
+chmod 755 OPENID/start.cgi
+
+#---CML files.  Under 5.1, new files just slide into same directories;
+#   up to site admin to put changed stuff in main.1, etc.
+cd   $cwd
+
+#---REPORT files
+if test -d CML/REPORT; then
+   mv    CML/REPORT CML/REPORT$OLD
+fi
+cd    CML
+mv    NEW_REPORT REPORT
+cd   $cwd
+mkdir CML/TMP  >/dev/null  2>/dev/null
+chmod 777 CML/TMP
+
+#---GIF files.  Save old ones, install new ones.
+mv public_html/GIF50       public_html/GIF50$OLD   >/dev/null  2>/dev/null
+mv public_html/NEW_GIF50   public_html/GIF50
+mv public_html/CB51        public_html/CB51$OLD    >/dev/null  2>/dev/null
+mv public_html/NEW_CB51    public_html/CB51
+cp public_html/GIF50/login.gif     public_html
+cp public_html/GIF50/logo_only.gif public_html
+cp public_html/GIF50/clearpix.gif  public_html
+chmod 644 public_html/*.gif
+
+#---New 'start.cgi' entry files: old method, then new (cookie) method.
+if test ! -f SWEB/start.cgi; then
+  (echo "#!/bin/sh"
+   startpath="$mysweb/swebsock/0/0/CC51/main/caucus.cml?/\$PATH_INFO+0+x+x+x+x+x+x"
+   echo "echo \"Location: $myhttp://$hostname/$startpath\""
+   echo "echo \"\"" ) >SWEB/start.cgi
+fi
+chmod 755 SWEB/start.cgi
+
+(echo "#!/bin/sh" 
+ echo "echo \"Location: $myhttp://$hostname/~$userid/caucus.html?location=\$PATH_INFO\"" 
+ echo "echo \"\"" ) >REG/start.cgi
+chmod 755 REG/start.cgi
+
+#---Misc file permissions.
+chmod 4711 SWEB/swebd SWEB/swebsock
+chmod 4711 SWEB/swebs
+chmod 4710 SWEB/sweba
+chmod  700 mkiface
+chmod  700 proclist archiver stopcaucus 
+chmod  755 public_html
+chmod  755 public_html/GIF50
+chmod  644 public_html/GIF50/*
+
+#---Recursive change (but silent in case this unix doesn't support -R).
+chmod -R 755 public_html  >/dev/null 2>/dev/null
+chmod    777 public_html/TEMP
+
+#---Password file
+if test ! -f caucus_passwd; then
+   >caucus_passwd
+   chmod 644 caucus_passwd
+fi
+
+#---Set up .htaccess file (for NCSA-style httpd servers)
+#   Turn it off for public_html/LIB, since it would prevent cookie
+#   login based access.
+if test ! -f SWEB/.htaccess; then
+   chmod 700 mkhtaccess
+   ./mkhtaccess $cwd >SWEB/.htaccess
+   chmod 644 SWEB/.htaccess
+fi
+
+#---SOCKET directory.
+mkdir     SOCKET  >/dev/null   2>/dev/null
+chmod 700 SOCKET
+
+#---Set up 'cron' execution of e-mail notifier, autocsnap, cleantemp.
+echo "$cwd/SWEB/sweba $cwd/SWEB/swebd.conf ENOTIFY51/main/enotify.cml \
+        /tmp /usr/sbin/sendmail CC51 sweb caucus" >enotify
+chmod 711 enotify
+temp=/tmp/en$$
+crontab -l >$temp 2>/dev/null
+if grep $cwd/enotify $temp >/dev/null; then
+   :
+else
+   echo "1 * * * * $cwd/enotify" >>crontab_file
+   crontab crontab_file
+fi
+if grep autocsnap $temp >/dev/null; then
+   :
+else
+   echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * $cwd/autocsnap" \
+         >>crontab_file
+   crontab crontab_file
+fi
+if grep cleantemp $temp >/dev/null; then
+   :
+else
+   echo "cd \$HOME/public_html/TEMP"                    >cleantemp
+   echo "find . -type f -mmin +30 -exec rm -f \{\} \;" >>cleantemp
+   chmod 700 cleantemp
+   echo "0,30 * * * * $cwd/cleantemp" >>crontab_file
+   crontab crontab_file
+fi
+
+#+++
+#---Create special group "file_managers" who can manage all filesafes.
+#if test ! -f GROUPS/file_managers; then
+#   echo "# These people can manage ANY filesafe." >GROUPS/file_managers
+#fi
+
+#+++
+#---Add filesafe "everyone" if it doesn't exist.
+#if grep "^FN_everyone" MISC/variable >/dev/null 2>/dev/null; then
+#   :
+#else
+#   echo "FN_everyone"  >>MISC/variable
+#   echo " everyone"    >>MISC/variable
+#   echo "#"            >>GROUPS/everyone
+#   echo "*"            >>GROUPS/everyone
+#fi
+
+if test "x$chksendmail" != "x"; then
+   echo 
+   echo "Could not find the location of sendmail."
+   echo "The value in SWEB/swebd.conf is a guess!"
+fi
+if test "x$chkmailx" != "x"; then
+   echo 
+   echo "Could not find the location of mailx."
+   echo "The value in SWEB/swebd.conf is a guess!"
+fi
+
+#---Add CHATLOGS directory for babylon.
+cd $cwd
+if test ! -d CHATLOGS; then
+   mkdir CHATLOGS
+   chmod 700 CHATLOGS
+fi
+
+#---Define email participation variable automatically.
+#+++
+#if grep "^SWmail_out" $HOME/MISC/variable >/dev/null 2>/dev/null; then
+#   :
+#else
+#   echo "SWmail_out"     >>$HOME/MISC/variable
+#   echo " $caucus_mail"  >>$HOME/MISC/variable
+#fi
+
+#---Initial population of tables for C5.
+echo $HOME/SWEB/sweba $HOME/SWEB/swebd.conf updateDatabase.cml $admin_userid >$HOME/initc5
+if $HOME/SWEB/sweba $HOME/SWEB/swebd.conf updateDatabase.cml $admin_userid >>install.log; then
+   now=`date`
+   echo                                    >>install.log
+   echo "Caucus 5.1 installed on $now."    >>install.log
+   
+   echo
+   echo "Caucus 5.1 installation is complete.  Now proceed to "
+   echo "configure your web server to work with Caucus."
+   echo
+   echo "The entry URLs for Caucus are:"
+   echo "    $myhttp://$hostname/~$userid/caucus.html"
+   echo "or"
+   echo "    $myhttp://$hostname/~$userid/caucuswsl.html"
+   echo "    (for users who have cookies disabled)"
+else
+   echo
+   echo "Correct SWEB/swebd.conf DSN parameters, and then run './initc5'."
+   echo "When this runs without error, the installation is complete,"
+   echo "and you can continue with the web server configuration as "
+   echo "described in the install guide."
+   echo
+fi
+
+#----------------------------------------------------------------------------

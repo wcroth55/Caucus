@@ -1,0 +1,158 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.6: Mathematics</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.6:&nbsp; Mathematics</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref405.html">PREV</A>]
+   [<A HREF="ref407.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+<B>Note on real numbers:</B>&nbsp; 
+In version 4.23, many math functions were upgraded to handle both
+integers and real numbers.&nbsp;
+Where it makes sense, if integers are operated on, the result is
+an integer.&nbsp; If reals, or a mixture of reals and integers are
+operated on, the result is a real.&nbsp;
+In the latter case, unless additional precision results from
+the operation (such as in division), the precision of the result
+is the same as the most precise argument.
+<P>
+<TABLE CELLSPACING=0 CELLPADDING=0>
+<TR>
+<TD COLSPAN=2>For example:</TD>
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD> <TD>$plus (2 5)</TD> <TD>is</TD> 
+    <TD ALIGN=right>7</TD>
+<TR>
+<TD></TD> <TD>$plus (2.1 5.23)&nbsp;&nbsp;</TD> <TD>is</TD> 
+<TD ALIGN=right>7.34</TD>
+<TR>
+<TD></TD> <TD>$plus (2 3.14159)&nbsp;</TD> <TD>is&nbsp;</TD> <TD ALIGN=right>5.14159</TD>
+</TABLE>
+
+<P>
+<DL>
+<P><DT><A NAME="plus">$plus(a b [c...])</A>
+<DD>
+Evaluates to the sum of all of its arguments.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="plusmod">$plusmod(a b x)</A>
+<DD>
+Evaluates to sum of <I>a</I> and <I>b</I>, modulo <I>x</I>.&nbsp;
+<I>A</I>, <I>b</I>, and <I>x</I> are truncated to integers first.
+
+<P><DT><A NAME="minus">$minus(a b)</A>
+<DD>
+Evaluates to the difference, <I>a</I> - <I>b</I>.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="mult">$mult(a b [c...])</A>
+<DD>
+Evaluates to the product of all of its arguments.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="divide">$divide(a b)</A>
+<DD>
+Truncates <I>a</I> and <I>b</I> to integers, and
+evaluates to the integer quotient of <I>a</I> / <I>b</I>.
+
+<P><DT><A NAME="quotient">$quotient(a b [r])</A>
+<DD>
+Evaluates to the real quotient of <I>a</I> / <I>b</I>.&nbsp;
+If <I>r</I> is supplied, rounded to that many digits to
+the right of the decimal point.
+
+<P><DT><A NAME="round">$round(a r)</A>
+<DD>
+If <I>a</I> is an integer, evaluates to <I>a</I>.&nbsp;
+Otherwise, it rounds <I>a</I> to <I>r</I> digits to
+the right of the decimal point.
+
+<P><DT><A NAME="greater">$greater(a b)</A>
+<DD>
+Evaluates to &quot;1&quot; if <I>a</I> is greater than <I>b</I>.&nbsp;
+Otherwise &quot;0&quot;.&nbsp;
+Handles integers and reals.
+
+
+<P><DT><A NAME="gt_equal">$gt_equal(a b)</A>
+<DD>
+Evaluates to &quot;1&quot; if <I>a</I> is greater than or equal
+to <I>b</I>.&nbsp;  Otherwise &quot;0&quot;.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="less">$less(a b)</A>
+<DD>
+Evaluates to &quot;1&quot; if <I>a</I> is less than <I>b</I>.&nbsp;
+Otherwise &quot;0&quot;.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="between">$between(a x b)</A>
+<DD>
+Evaluates to &quot;1&quot; if <I>x</I> is between <I>a</I> and
+<I>b</I> (<I>a</I> &lt;= <I>x</I> &lt;= <I>b</I>).&nbsp;  Otherwise
+&quot;0&quot;.&nbsp;  Very useful for processing the result of server-side
+image maps.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="max">$max(a b [c...])</A>
+<DD>
+Evalutes to the larger of its arguments.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="min">$min(a b [c...])</A>
+<DD>
+Evaluates to the smaller of its arguments.&nbsp;
+Handles integers and reals.
+
+<P><DT><A NAME="bit_and">$bit_and(a b ...)</A>
+<DD>
+Evaluates to bitwise logical AND of <I>a</I>, <I>b</I>, etc.
+
+<P><DT><A NAME="bit_or">$bit_or(a b ...)</A>
+<DD>
+Evaluates to bitwise logical OR of <I>a</I>, <I>b</I>, etc.
+
+<P><DT><A NAME="bit_not">$bit_not(a)</A>
+<DD>
+Evaluates to the first 16 bits of the bitwise logical negation
+of <I>a</I>.
+
+<P><DT><A NAME="hex2dec">$hex2dec(a)</A>
+<DD>
+Evaluates to the (decimal) number with hexadecimal value <I>a</I>.&nbsp;
+E.g., $hex2dec(f) is 15.
+
+<P><DT><A NAME="dec2hex">$dec2hex(a)</A>
+<DD>
+Evaluates to the (hexadecimal) number with decimal value <I>a</I>.&nbsp;
+E.g., $dec2hex(15) is "f".
+
+<P><DT><A NAME="random">$random(max)</A>
+<DD>
+Evaluates to a random number from 0 to <I>max</I>-1, inclusive.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="UNARCHIVER" default="Main build" basedir=".">
+	<property name="bin" location="temp" />
+	<property name="src" location="src/main/java" />
+	<property name="jardir" location="." />
+	<property name="clientjar" location="${jardir}/CaucusUnarchiver.jar" />
+	
+	<target name="Main build" depends="Initialize, Compile, Jar" >
+		<echo message="Working" />
+	</target>
+	
+	<target name="Initialize">
+		<delete dir="${bin}" />
+		<mkdir  dir="${bin}" />
+	</target>
+	
+	<target name="Compile" depends="Initialize">
+		<javac srcdir="${src}" destdir="${bin}" classpath="lib/jdom.jar" />
+	</target>
+	
+	<target name="Jar">
+		<jar destfile="${clientjar}" basedir="${bin}">
+			<zipfileset src="lib/jdom.jar" />
+			<zipfileset src="lib/mysql-connector-java-3.1.8-bin.jar" />
+			<manifest>
+				<attribute name="Main-Class" value="com.caucus.unarchiver.CaucusUnarchiver" />
+			</manifest>
+		</jar>
+	</target>
+	
+</project>

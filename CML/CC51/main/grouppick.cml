@@ -1,0 +1,146 @@
+#
+#---grouppick.   Pick a C5 group for editing.
+#
+#  arg(6)   owner: CONF, MGR, Caucus4, Filesafe, or a specific userid
+#  arg(7)   range:
+#  arg(8)   name:  name of group  (conference number for conference groups)
+#
+#  Notes: eventually do a left-join with user_info to sort by lastname,
+#         where entries *have* a lastname.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 11/29/05 New file, hacked from original groupedit.cml
+#: CR 01/19/06 Fix creation of new System ("Caucus4") groups.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#-------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i grouppick.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+#---Create new group?  Have to process name (blanks -> _'s) before going on.
+if $not_empty ($form(create))
+   set arg8  $replace (32 _ $form(egName))
+   set newowner $if ($not_equal ($form(egRange) 0) $form(egRange) $form(egType))
+   set q1 INSERT INTO grouprules (grkey, owner, name, access) \
+            VALUES (NULL, '$(newowner)', '$escsingle($(arg8))', -999)
+   set h $sql_query_open ($(q1))
+   eval  $sql_query_close($(h))
+  
+   "Location: groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                 $form(egType)+$form(egRange)+$(arg8)
+   "
+   quit
+end
+set egType  $word (1 $form(egType)  $arg(6))
+set egName  $word (1 $form(egName)  $arg(8))
+
+if $and ($not_equal ($(egName) _)  $not_equal ($(egName) 0))
+#  "Content-type: text/plain
+#  "
+   "Location: groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                 $(egType)+$form(egRange)+$(egName)
+   "
+   quit
+end
+   
+
+set pagename Select&nbsp;Group
+
+set nxt   $page_save (1 grouppick.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(pagename))
+
+include $(main)/head.i $arg(3)  $quote($(pagename))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i  grouppick </A><a href="#top">Select&nbsp;Group
+"<script src="/~$caucus_id()/popover.js"></script>
+
+"<blockquote>
+"Use this page to select a group (of users) to view or edit.&nbsp;
+#"(You will only see a group if you're a member or a manager.)&nbsp;
+"There are several types of groups:
+"<ul>
+"<li class="liTight">Conference groups control access to conferences.
+"<li class="liTight">Filesafe groups control access to filesafes.
+"<li class="liTight">Manager groups control who has which manager privileges.
+"<li class="liTight">System groups are are used for
+"  a variety of purposes and are controlled by Managers.
+"<li class="liTight">User groups are individuals' own private collections of people.
+"</ul>
+"You will only see groups that you belong to (or have Manager privilege for).
+
+#---Determine full name of group we may be about to change (during
+#   the form processing from a previous instance of this page).
+set owner   $(egType)
+set name    $(egName)
+if $equal ($(egType) USER)
+   set owner $(egRange)
+end
+"<p/>
+
+"<form name="eg" method="POST" action="grouppick.cml?$(nch)+$(nxt)+$arg(3)+\
+                 $arg(4)+$arg(5)+_+_+_">
+#"<input type="hidden" name="deleteKey">
+#"<input type="hidden" name="optinKey">
+#"<input type="hidden" name="optinValue">
+#"<input type="hidden" name="chgAccessPreKey">
+#"<input type="hidden" name="chgAccessKey">
+#"<input type="hidden" name="chgAccessValue">
+
+"<script type="text/javascript" language="javascript">
+"   function submitMe() {  document.eg.submit(); }
+"</script>
+
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top><td colspan=2
+"  ><b>Select&nbsp;a&nbsp;group:&nbsp;</b></td>
+
+include $(main)/groupselector.i eg eg $arg(6) $arg(7) $arg(8) 1
+
+
+#"egType='$(egType)'<br>
+#"egRange='$(egRange)'<br>
+#"egName='$(egName)'<br>
+
+#---If no actual group was selected yet, we're done.
+if $equal ($(egName) _)
+   "</table>
+   "</form>
+   "</blockquote>
+   "</div>
+"</body>
+   "</html>
+   quit
+end
+
+#---If we're creating a new group, add Create button and stop.
+if $equal (x$(egName) x0)
+   "<td>&nbsp;&nbsp;<input type="submit" name="create" value="Create"></td>
+   "</table>
+   "</form>
+   "</blockquote>
+   "</div>
+"</body>
+   "</html>
+   quit
+end
+
+
+"</form>
+"$errors()
+"</div>
+"</body>
+"</html>
+#-------------------------------------------------------------

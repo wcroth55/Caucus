@@ -1,0 +1,63 @@
+#
+#---H_CUSTOMC.I    Help about "Customize: Colors" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_customc.cml $quote(Help on Customize Colors)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize Colors page provide a conference 
+"organizer with control over the appearance of the conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name), and
+"then on <U>Colors</U>.
+
+"<P>
+"<B>What is on the Customize Colors Page?</B><P>
+
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+"<P>
+
+"<FONT SIZE=+2><B>Colors </B></FONT><BR>
+"Each conference in Caucus can have its own color scheme
+"as a way of providing a visual change of context as 
+"readers move from one conference to another.
+"<P>
+"If your web browser supports Java, you'll see a color palette
+"in this section which you can use to choose colors and see how
+"they work together. Click the button corresponding to the element
+"(Background, Link, etc.) that you want to change, and then click
+"on the color palette to see how your choices look.  When you've
+"found a color scheme that you like, copy the hexadecimal values 
+"into the input fields.
+"<P>
+"If your browser doesn't support Java, you can choose the <u>Color Palette</u>
+"link to see a chart that will help you pick colors.
+"<P>
+"You'll also find a text field where you can enter the URL of an image file.
+"The image that you enter here will be "tiled" to fill the background of 
+"your pages.  Remember, busy background images can make text hard to read!
+"<P>
+"<P>
+"<B>Clear button:</B>&nbsp;
+"If you want your conference to use the standard color scheme (the same
+"one that's used in the Caucus Center), click the Clear button to empty all
+"of the fields in this section.
+"<P>
+"<P>
+"<B>Make These Changes button:</B>&nbsp;
+"Once you have made changes to the Colors,
+"you <B>must press this button</B>
+"to save them.&nbsp;
+include $(help)/hb.i
+

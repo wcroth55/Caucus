@@ -1,0 +1,824 @@
+#
+#---groupedit.cml.   Edit an explicitly specified C5 group.
+#
+#  arg(6)   owner: CONF, MGR, Caucus4, Filesafe, or a specific userid
+#  arg(7)   range:
+#  arg(8)   name:  name of group  (conference number for conference groups)
+#
+#  Notes: eventually do a left-join with user_info to sort by lastname,
+#         where entries *have* a lastname.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/20/05 New page.
+#: CR 10/19/05 Skip bySelf rules on display.
+#: CR 10/31/05 Show bySelf rules that are exclude access.
+#: CR 11/16/05 Remove group-picking process to grouppick.cml.
+#: CR 12/06/05 Add "list of userids" via a textbox.
+#: CR 12/22/05 Rename Caucus4 -> System groups.  Add edit entire access *level*.
+#: CR 01/05/06 Let groupedit mgrs add Primary role for CONF groups.
+#: CR 01/06/06 Fix: edit icons for access levels only if "editable" is true!
+#: CR 01/10/06 Let instructors change access level, but not add/del.
+#: CR 01/11/06 If opt-in is not editable, show/don't show static check image.
+#: CR 01/11/06 Show proper owner for group to be deleted.
+#: CR 01/19/06 Escape all quotes in deleteRule pop-up.
+#: CR 02/06/06 Add quiz groups.
+#: CR 02/06/06 Add "return to quiz" link for quizzes only.
+#: CR 02/13/06 Turn off opt-in checkbox for quizzes.
+#: CR 02/17/06 Fix trashcan pop-up for ids with no names.
+#: CR 06/25/07 Move popover boxes inside <form>.
+#: CR 10/09/08 Add Item group type.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 01/15/09 No rules autocreates Inherit-from-conf rule.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#-------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i groupedit.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+
+set pagename Edit&nbsp;Group
+if $equal ($arg(6) CONF)
+   set cnum  $arg(3)
+   set pagename Access&nbsp;Control
+end
+if $equal ($arg(6) Item)
+   set pagename Edit&nbsp;Item&nbsp;Access
+end
+
+set nxt   $page_save (1 groupedit.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(pagename))
+
+include $(main)/head.i $arg(3)  $quote($(pagename))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+
+if $equal ($arg(6) CONF)
+   include $(main)/header.i  groupedit </A><A HREF="custom.cml?\
+     $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+     </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">$(pagename)
+end
+elif $equal ($arg(6) Filesafe)
+   set filesafe_title $upper1($replace(_ 32 $arg(8)))
+   include $(main)/header.i  groupedit </A><A HREF="man_safe.cml?\
+     $arg(1)+$(nxt)+$arg(3)+x+x+x+x+x+$arg(8)">$(filesafe_title)\
+     </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Access&nbsp;Control
+end
+else
+   include $(main)/header.i  groupedit </A><a href="#top">$(pagename)
+end
+"<script src="/~$caucus_id()/popover.js"></script>
+
+"<script type="text/javascript" language="javascript">
+"   function editGroup (type, range, name) {
+"      if (document.eg.egType.selectedIndex == 0)  return;
+"      if (range == 0)  document.eg.egRange.selectedIndex = 0;
+"      if (name  == 0)  document.eg.egName.selectedIndex = 0;
+"      document.eg.submit();
+"   }
+
+"   function deleteRule (grkey, text) {
+"      if (! confirm ("Delete the rule for " + text + "?"))  return false;
+"      document.eg.deleteKey.value = grkey;
+"      document.eg.submit();
+"      return false;
+"   }
+
+"   function optinChange (grkey, me) {
+"      if (! confirm ("Change rule to " +
+"                      (me.checked ? "Opt-in? " : "Member? "))) {
+"         me.checked = ! me.checked;
+"         return;
+"      }
+"      document.eg.optinKey.value = grkey;
+"      document.eg.optinValue.value = (me.checked ? '1' : '0');
+"      document.eg.submit();
+"   }
+
+"   function chgAccessStart (grkey) {
+"      document.eg.chgAccessPreKey.value = grkey;
+"      popOver('editacc', true);
+"      return false;
+"   }
+"   function chgAccessFinish() {
+"      var deg = document.eg;
+"      deg.chgAccessKey.value   = deg.chgAccessPreKey.value;
+"      deg.chgAccessValue.value =
+"             deg.chgAccess.options[deg.chgAccess.selectedIndex].value;
+"      deg.submit();
+"   }
+
+"   function chgLevelStart (access) {
+"      document.eg.chgLevelOld.value = access;
+"      popOver('editlvl', true);
+"      return false;
+"   }
+
+"   function chgLevelFinish() {
+"      var deg = document.eg;
+"      deg.chgLevelNew.value =
+"             deg.chgLevel.options[deg.chgLevel.selectedIndex].value;
+"      deg.submit();
+"   }
+"</script>
+
+"<blockquote>
+
+#---Determine full name of group we may be about to change (during
+#   the form processing from a previous instance of this page).
+set egType  $word (1 $form(egType)  $arg(6))
+set egName  $word (1 $form(egName)  $arg(8))
+set owner   $(egType)
+set name    $(egName)
+if $equal ($(egType) USER)
+   set owner $(egRange)
+end
+"<p/>
+
+#---If this was a delete (trash can) press, delete the relevant group rule.
+if $not_empty ($form(deleteKey))
+   set query SELECT userid, subowner, subname \
+               FROM grouprules WHERE grkey=$form(deleteKey)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_row  ($(h))
+   eval  $sql_query_close($(h))
+   set changer $word (1 $(userid) $quote($(subowner) $(subname)))
+
+   set query DELETE FROM grouprules WHERE grkey=$form(deleteKey)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   eval  $group_update_rule ($(changer) $quote($(owner) $(name)))
+end
+
+#---If this was a change of an optin checkbox, set the new value for
+#   that rule.
+if $not_empty ($form(optinKey))
+   set query UPDATE grouprules SET optional='$form(optinValue)' \
+              WHERE grkey = $form(optinKey)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   eval  $group_update_rule ($quote(key $form(optinKey)) \
+                             $quote($(owner) $(name)))
+end
+
+#---If this was a change of an access level, set the new value for that rule.
+if $not_empty ($form(chgAccessKey))
+   set query UPDATE grouprules SET access=$form(chgAccessValue) \
+              WHERE grkey = $form(chgAccessKey) \
+                AND (subowner != '' OR $form(chgAccessValue) >= 0)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   eval  $group_update_rule ($quote(key $form(chgAccessKey)) \
+                             $quote($(owner) $(name)))
+end
+
+#---If this was a change of a level (everyone in that level)... get
+#   all the userids/wildcards to change, then all the groups to change.
+#   UPDATE all of the rules.  Then apply group_update_rule over each
+#   rule saved in userids/groups.
+if $not_empty ($form(chgLevelOld))
+   set query SELECT userid FROM grouprules g \
+              WHERE g.owner='$(owner)' AND g.name='$(name)' \
+                AND subowner IS NULL \
+                AND g.access = $form(chgLevelOld)
+   set userids $sql_query_select($(query))
+
+   set query SELECT subowner, subname FROM grouprules g \
+              WHERE g.owner='$(owner)' AND g.name='$(name)' \
+                AND subowner IS NOT NULL \
+                AND g.access = $form(chgLevelOld)
+   set groups $sql_query_select($(query))
+
+   set query UPDATE grouprules SET access=$form(chgLevelNew) \
+              WHERE owner='$(owner)' AND name='$(name)' \
+                AND access = $form(chgLevelOld)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+
+   for userid in $(userids)
+      eval $group_update_rule ($(userid) $quote($(owner) $(name)))
+   end
+   for subowner subname in $(groups)
+      eval $group_update_rule ($quote($(subowner) $(subname)) \
+                               $quote($(owner) $(name)))
+   end
+end
+
+#---If this was an insert (with access...), add a new rule.
+if $not_empty ($form(add))
+#  set accessPos $tablefind ($form(add) Inherit Exclude Readonly Include \
+#                                       Instructor Organizer Primary)
+#  set accessVal $word ($(accessPos) -1 0 10 20 30 40 100)
+   set accessVal $priv($form(add))
+#  "add=$form(add), owner=$(owner), name=$(name), accessVal=$(accessVal)<br>
+#  "choose=$form(choose)<br>
+   set q1 INSERT INTO grouprules (grkey, owner, name, userid, wildcard,  \
+                         subowner, subname, access, optional, bySelf)
+   if $and ($equal($form(choose) userid) $equal(x$form(by) xuserids))
+      for userid in $form(userids)
+         set q2 NULL, '$(owner)', '$(name)', '$(userid)', 0, NULL, NULL, \
+                $(accessVal), 0$form(optional), 0
+         set h $sql_query_open ($(q1) VALUES ($(q2)))
+         eval  $sql_query_close($(h))
+         eval  $group_update_rule ($(userid) $quote($(owner) $(name)))
+      end
+   end
+   elif $equal ($form(choose) userid)
+      set q2 NULL, '$(owner)', '$(name)', '$form(name)', 0, NULL, NULL, \
+              $(accessVal), 0$form(optional), 0
+      set changer $form(name)
+#     "name=$form(name)
+      set h $sql_query_open ($(q1) VALUES ($(q2)))
+      eval  $sql_query_close($(h))
+      eval  $group_update_rule ($(changer) $quote($(owner) $(name)))
+   end
+   elif $equal ($form(choose) userids)
+      for userid in $form(userids)
+         set q2 NULL, '$(owner)', '$(name)', '$(userid)', 0, NULL, NULL, \
+                $(accessVal), 0$form(optional), 0
+         set h $sql_query_open ($(q1) VALUES ($(q2)))
+         eval  $sql_query_close($(h))
+         "userid=$(userid), h=$(h), query='$(q1) VALUES ($(q2))' <p/>
+         eval  $group_update_rule ($(userid) $quote($(owner) $(name)))
+      end
+   end
+   elif $equal ($form(choose) group)
+      set addOwner $(agType)
+      if $equal ($(agType) USER)
+         set addOwner $(agRange)
+      end
+      set addName  $(agName)
+#     "agType=$(agType), agRange=$(agRange), agName=$(agName)<br>
+      set q2 NULL, '$(owner)', '$(name)', NULL, 0, \
+             '$(addOwner)', '$(addName)', $(accessVal), 0$form(optional), 0
+      set changer $quote($(addOwner) $(addName))
+      set h $sql_query_open ($(q1) VALUES ($(q2)))
+      eval  $sql_query_close($(h))
+      eval  $group_update_rule ($(changer) $quote($(owner) $(name)))
+   end
+   elif $equal ($form(choose) wildcard)
+#     "wildcard=$form(wildcard)<br>
+      set q2 NULL, '$(owner)', '$(name)', '$form(wildcard)', 1, \
+             NULL, NULL, $(accessVal), 0$form(optional), 0
+      set changer $form(wildcard)
+      set h $sql_query_open ($(q1) VALUES ($(q2)))
+      eval  $sql_query_close($(h))
+      eval  $group_update_rule ($(changer) $quote($(owner) $(name)))
+   end
+end
+
+"<form name="eg" method="POST" action="groupedit.cml?$(nch)+$(nxt)+$arg(3)+\
+                 $arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+"<input type="hidden" name="deleteKey">
+"<input type="hidden" name="optinKey">
+"<input type="hidden" name="optinValue">
+"<input type="hidden" name="chgAccessPreKey">
+"<input type="hidden" name="chgAccessKey">
+"<input type="hidden" name="chgAccessValue">
+"<input type="hidden" name="chgLevelOld">
+"<input type="hidden" name="chgLevelNew">
+"<script type="text/javascript" language="javascript">
+"   function submitMe() {  document.eg.submit(); }
+"</script>
+
+#"chgLevelOld=$form(chgLevelOld)<br>
+#"chgLevelNew=$form(chgLevelNew)<br>
+
+set egType  $arg(6)
+set egRange $arg(7)
+set egName  $arg(8)
+
+#---User can edit this group if:
+#      they can edit any group, or have All system privs
+#      this is non-manager group and they have groupEditNonManager
+#      they have organizer access to the group itself
+#      this is a user group for their userid
+set my_access $group_access ($userid() $(egType) $(egName))
+set groupEditable $or ( \
+       $mgr_in_group ($userid() groupEditAll systemAllPrivileges) \
+       $and ($not_equal ($(egType) MGR) \
+             $mgr_in_group ($userid() groupEditNonManager)) \
+       $gt_equal ($group_access ($userid() $(egType) $(egName)) $priv(organizer))  \
+       $gt_equal ($(my_access) $priv(organizer))  \
+       $and ($equal ($(egType) USER)  $equal ($(egRange) $userid())) \
+    )
+set instructor $gt_equal ($(my_access) $priv(instructor))
+
+set verb $if ($(groupEditable) editing viewing)
+
+set set_primary 0
+
+if $equal ($arg(6) Item)
+   set query \
+       SELECT COUNT(*) FROM grouprules g \
+        WHERE g.owner='$(owner)' AND g.name='$(name)' AND g.access >= -1 \
+          AND (g.bySelf=0 OR g.access=0)
+   set count $sql_query_select($(query))
+#  "<hr>item rules=$(count)<hr>
+   if $equal ($(count) 0)
+      set q1 INSERT INTO grouprules (grkey, owner, name, userid, wildcard,  \
+                            subowner, subname, access, optional, bySelf)
+      set q2 NULL, '$(owner)', '$(name)', NULL, 0, \
+             'CONF', '$arg(3)', $priv(inherit), 0$form(optional), 0
+      set changer $quote(CONF $arg(3))
+      set h $sql_query_open ($(q1) VALUES ($(q2)))
+      eval  $sql_query_close($(h))
+      eval  $group_update_rule ($(changer) $quote($(owner) $(name)))
+   end
+end
+
+if $equal ($arg(6) CONF)
+   set set_primary $mgr_in_group ($userid() groupEditAll groupEditNonManager \
+                                            systemAllPrivileges)
+   "You are $(verb) the group (i.e. access) rules for
+   "conference <b>%displayed_conf_name($arg(8))</b>.&nbsp;
+   "These rules control who can enter this
+   "conference, and what they can do there.&nbsp;
+#  "<br>
+end
+elif $equal ($arg(6) MGR)
+   "You are $(verb) the access rules for
+   "the manager group <b>$arg(8)</b>.&nbsp;
+   "If you're in that group, you have that privilege.&nbsp;
+   "If you're an organizer of the group,
+   "you can also edit the
+   "group, and thus give the privilege to others.
+   "<br>
+end
+elif $equal ($arg(6) Caucus4)
+   "You are $(verb) the system-wide group <b>$arg(8)</b>.&nbsp;
+end
+elif $equal ($arg(6) Filesafe)
+end
+elif $equal ($arg(6) Quiz)
+   set qdata $sql_query_select(SELECT userid, title FROM quiz \
+                                WHERE qkey=$arg(8) AND deleted=0)
+   "You are $(verb) %person($word(1 $(qdata)))'s Quiz group
+   "<b>$unquote($rest(2 $(qdata)))</b>.
+end
+elif $equal ($arg(6) Item)
+   "You are $(verb) the access rules for this item.&nbsp; 
+   "By default, the item "inherits" its access rules from the
+   "conference.&nbsp;
+   "In fact, you'll see the rule
+   "<nobr><span class="userface1">Inherit: Conf -&gt; $cl_name($arg(3))</span></nobr>
+   " at the bottom of this page (unless you've already changed it).
+   "<p/>
+   "Any rules you add or change here will <b>override</b>
+   "the normal rules for the conference.&nbsp;
+   "You can change the default "inherit" rule to something else --
+   "for example, if you click on the edit <img $(src_iedit)> icon to its
+   "right, you could give everyone "readonly" access instead, or even exclude them entirely.&nbsp;
+   "<p/>
+   "You can add other rules to create special effects.&nbsp;
+   "For example, you could change the "inherit" rule to exclude everyone,
+   "and then add rule(s) to "include" just a subset of people, perhaps a temporary
+   "working group.&nbsp;
+   "Later, when they are finished, you could re-open the item to everyone
+   "by changing the "exclude" back to "inherit".&nbsp;
+   "The possibilities are endless.
+   "<p/>
+   "Finally, you can revert the item back to normal by simply deleting all the rules.
+   "<p/>
+end
+else
+   "You are $(verb) the access rules for
+   "%person($arg(7))'s group <b>$arg(8)</b>.&nbsp;
+   "Individual users may create their own groups (lists of people)
+   "for a variety of purposes, such as including in specific conferences,
+   "sending email, etc.&nbsp;
+   "If you're an organizer of the group,
+   "you can also edit the
+   "group, and add people to it.
+   "<br>
+end
+"You can:
+"<ul>
+if $(groupEditable)
+   "<li class="liTight">Add rules (people) with the pull-down menu below.
+   "<li class="liTight">Delete rules by clicking on the garbage can
+   "   <img $(src_trash)> icons.&nbsp;
+end
+if $or ($(groupEditable) $(instructor))
+   "<li class="liTight">Change the kind of access for a single person or rule
+   "(click on edit <img $(src_iedit)> icons on the right).
+   "<li class="liTight">Change the access for <b>everyone</b> with
+   "a particular access (click on edit
+   " <img $(src_iedit)> icons on the left).
+end
+
+if $and ($(groupEditable) \
+               $tablematch ($(egType) USER Caucus4)  \
+         $not ($tablefind  ($(egName) _ 0)))
+   set deltext OK to delete $(egRange) -&gt; $(egName) ?
+   if $equal ($(egRange) 0)
+      set deltext OK to delete System -&gt; $(egName) ?
+   end
+   "<li class="liTight"><a
+   " href="groupdel.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+         $(egType)+$(egRange)+$(egName)"
+#  " onClick="return confirm('OK to delete $(egRange) -&gt; $(egName) ?');"
+   " onClick="return confirm('$(deltext)');"
+   " >Delete this entire group</a>.
+end
+
+if $not_equal ($(egType) Item)
+   "<li class="liTight"><a
+   "  href="grouppick.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$(egType)+_+_"
+   " >Select a different group</a>.
+end
+
+if $equal ($arg(6) Quiz)
+   "<li class="liTight"><a href="quiz.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+                           $arg(5)+$arg(6)+$arg(8)+x">Return to quiz</a>
+end
+
+"</ul>
+
+"<table cellspacing=0 cellpadding=0 border=0>
+
+
+#========================================================================
+#  Step 1: "Add a..."
+
+#<tr><td colspan=8>egType=$(egType), egName=$(egName)</td>
+#<tr><td colspan=8>groupEditable=$(groupEditable)</td>
+
+
+set showStep2 0
+
+if $(groupEditable)
+   eval $mac_define (isChoose \$ifthen (\$equal (x\$form(choose) x@1) selected))
+   "<tr valign=top><td><b>You&nbsp;may&nbsp;add&nbsp;a&nbsp;</b></td>
+   "<td><nobr>&nbsp;&nbsp;<select name="choose" onChange="document.eg.submit();">
+   "    <option value="_"                            >(choose)
+   "    <option value="userid"   %isChoose(userid)   >User
+   "    <option value="wildcard" %isChoose(wildcard) >Wildcard
+   "    <option value="group"    %isChoose(group)    >Group
+   "    </select>&nbsp;&nbsp;</nobr></td>
+  
+   if $equal (x$form(choose) xgroup)
+      include $(main)/groupselector.i ag eg
+      set showStep2 $not_equal ($word (1 $form(agName) _) _)
+   end
+  
+   elif $equal (x$form(choose) xwildcard)
+      "<td><nobr>&nbsp;&nbsp;<input type=text name="wildcard" size=10></nobr></td>
+      "<td>&nbsp;&nbsp;</td>
+      "<td colspan=4>(Match a userid.&nbsp;The wildcard character is "%",
+      "  e.g. <b>r%</b> matches any userid starting with <b>r</b>.)</td>
+      set showStep2 1
+   end
+  
+   elif $equal (x$form(choose) xuserid)
+      eval $mac_define (isBy \$ifthen (\$equal (x\$form(by) x@1) selected))
+      "<td><nobr>&nbsp;&nbsp;by&nbsp;<select name="by" onChange="document.eg.submit();">
+      "    <option value="_"                      >(choose)
+      "    <option value="fname"   %isBy(fname)   >First name
+      "    <option value="lname"   %isBy(lname)   >Last name
+      "    <option value="userid"  %isBy(userid)  >Userid
+      "    <option value="userids" %isBy(userids) >Userid List
+      "    </select></nobr></td>
+  
+      set by $word (1 $form(by) _)
+      if $equal($(by) userids)
+         "<td>&nbsp;&nbsp;</td>
+         "<td><textarea name="userids" cols="20" rows="7"></textarea></td>
+         "<td>&nbsp;&nbsp;</td>
+         "<td>Type your list of <b>userids</b> in the box to the left,
+         "  separated by spaces or on separate lines.&nbsp;
+         "  Then click the desired access button.
+         "<script type="text/javascript" language="javascript">
+         "  document.eg.userids.focus();
+         "</script>
+         "</td>
+         set showStep2 1
+      end
+      elif $not_equal ($(by) _)
+         eval $mac_define (byRange \
+                           \$ifthen (\$equal (x\$form(\$(by)) x@1) selected))
+         "<td align=right><nobr>&nbsp;&nbsp;<select name="$(by)"
+         "                    onChange="document.eg.submit();">
+         "<option value="_">(choose)
+         set xprev
+         for x in $(nameCascade$(by))
+            if $not_empty ($(xprev))
+               "<option value="$(xprev)" %byRange($(xprev))
+               set opt0 $(xprev)
+               if $equal ($(opt0) !)
+                  set opt0 ...
+               end
+               set opt1 $(x)
+               if $equal ($(opt1) ~~~~~)
+                  set opt1 ...
+               end
+               "  >$upper1($lower($unquote($(opt0)))) -
+               "   $upper1($lower($unquote($(opt1))))
+            end
+            set xprev $(x)
+         end
+         "</select></nobr></td>
+  
+         set byPart $word (1 $form($(by)) _)
+         if $not_equal ($(byPart) _)
+            set showStep2 1
+            set uRangeOptions $(nameCascade$(by))
+            set uRangePos  $tablecompare ($form($(by)) $(uRangeOptions))
+            set uRangeLow  $word (       $(uRangePos)    $(uRangeOptions))
+            set uRangeHigh $word ($plus ($(uRangePos) 1) $(uRangeOptions)  ~~~~~~~)
+            set uRangeHigh $word ($plus ($(uRangePos) 1) $(uRangeOptions))
+  
+            set query SELECT lname, fname, userid FROM user_info  \
+                       WHERE $(by) >= '$(uRangeLow)' AND $(by) < '$(uRangeHigh)' \
+                    AND active >= 10 ORDER BY $(by)
+  
+            "<td><nobr>&nbsp;&nbsp;<select name="name">
+            set h $sql_query_open ($(query))
+            while $sql_query_row  ($(h))
+               if   $equal ($(by) userid)
+                  set display $(userid) - $(fname) $(lname)
+               end
+               elif $equal ($(by) lname)
+                  set display $(lname), $(fname) ($(userid))
+               end
+               else
+                  set display $(fname) $(lname) ($(userid))
+               end
+               "   <option value="$(userid)">$(display)
+            end
+            eval  $sql_query_close($(h))
+            "</select></td>
+         end
+         else
+            "<td>&nbsp;&nbsp;</td>
+            set npos $tablefind ($form(by) fname lname userid)
+            set what $word ($(npos) first&nbsp;names last&nbsp;names userids)
+            "<td>(Narrow the choice to a range of $(what))</td>
+         end
+  
+      end
+  
+      else
+         "<td>&nbsp;&nbsp;</td><td>How do you want to choose that user(s)?</td>
+      end
+  
+   end
+   else
+      "<td>What do you want to add -- a user (or users), a wildcard that
+      "matches many users, or an entire pre-existing group of users?</td>
+   end
+  
+   if $(showStep2)
+      "<tr><td>&nbsp;</td>
+      "<tr>
+      "<td colspan=1><b>With access:</b>&nbsp;&nbsp;</td>
+      "<td colspan=7><nobr>&nbsp;&nbsp;<input
+      "       type="submit" name="add" value="Organizer">&nbsp;&nbsp;
+      "<input type="submit" name="add" value="Instructor">&nbsp;&nbsp;
+      "<input type="submit" name="add" value="Include">&nbsp;&nbsp;
+      "<input type="submit" name="add" value="Readonly">&nbsp;&nbsp;
+      if $equal ($arg(6) Item)
+         "<input type="submit" name="add" value="Writeonly">&nbsp;&nbsp;
+      end
+      "<input type="submit" name="add" value="Exclude">&nbsp;&nbsp;
+      if $equal (x$form(choose) xgroup)
+         "<input type="submit" name="add" value="Inherit">&nbsp;&nbsp;
+      end
+      elif $tablefind (x$form(choose) xuserid xwildcard)
+         "as Member <input type="radio" name="optional" value="0" checked>
+         "&nbsp;&nbsp;
+         if $not ($tablefind ($(egType) Quix Item))
+#        if $not_equal ($(egType) Quiz)
+            "or Opt-in <input type="radio" name="optional" value="1">
+         end
+      end
+      "</nobr></td>
+   end
+end
+"</table>
+  
+#set query \
+#    SELECT g.grkey, g.userid, g.wildcard, g.subowner, g.subname, g.access, \
+#           g.optional, u.fname, u.lname \
+#      FROM grouprules g LEFT JOIN user_info u \
+#        ON (g.userid = u.userid) \
+#     WHERE g.owner='$(owner)' AND g.name='$(name)' AND g.access >= -1 \
+#       AND (g.bySelf=0 OR g.access=0) \
+#     ORDER BY g.access DESC, u.lname, u.fname, g.userid, g.subowner, g.subname
+set query \
+    SELECT g.grkey, g.userid, g.wildcard, g.subowner, g.subname, g.access, \
+           g.optional, u.fname, u.lname \
+      FROM grouprules g LEFT JOIN user_info u \
+        ON (g.userid = u.userid) \
+     WHERE g.owner='$(owner)' AND g.name='$(name)' AND g.access >= -1 \
+     ORDER BY g.access DESC, u.lname, u.fname, g.userid, g.subowner, g.subname
+set h $sql_query_open ($(query))
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top><td><table cellspacing=0 cellpadding=0 border=0>
+"<tr><td>&nbsp;</td><td colspan=3
+"   ><nobr><b>The rules are now:</b></nobr>&nbsp;&nbsp;&nbsp;</td>
+if $tablefind ($(egType) Quiz Item)
+   "<td></td>
+end
+else
+   "<td><b>&nbsp;Opt-in</b>&nbsp;</td>
+end
+
+set prevAccess _
+set parity 0
+while $sql_query_row ($(h))
+   set parity $minus (1 $(parity))
+   "<tr class="userface$(parity)" valign=top><td></td>
+   if $not_equal ($(access) $(prevAccess))
+      set accessName $upper1($privName($(access)))
+      if $and ($less ($(access) $priv(primary)) $or ($(groupEditable) $(instructor)))
+         "<td><nobr>&nbsp;<a href="#" onClick="return chgLevelStart('$(access)');"
+         "   ><img $(src_iedit) border=0></a>&nbsp;</nobr></td>
+      end
+      else
+         "<td></td>
+      end
+      "<td>$(accessName):&nbsp;</td>
+      set prevAccess $(access)
+   end
+   else
+      "<td colspan=2></td>
+   end
+
+   if $not_empty ($(userid))
+      if $(wildcard)
+         set objectText $(userid)
+         "<td>$(userid)</td>
+      end
+      elif $not_empty ($(lname)$(fname))
+         set objectText $(lname), $(fname)
+         "<td><nobr><a href="javascript: pop_up('person', '$(userid)');"
+         "   >$(objectText)</a> ($(userid))</nobr></td>
+      end
+      else
+         set objectText ($(userid))
+         "<td>($(userid))</td>
+      end
+   end
+
+   else
+      set objectText $(subowner) -&gt; $(subname)
+      if $equal ($(subowner) CONF)
+         set objectText   Conf -&gt; $replace(_ 32 $cl_name($(subname)))
+      end
+      elif $equal ($(subowner) Caucus4)
+         set objectText System -&gt; $(subname)
+      end
+ 
+      set gtype $if (%hasUpper($(subowner)) $(subowner) USER)
+#     "<td><a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#             USER+$(subowner)+$(subname)">$(objectText)</a></td>
+#     "<td><a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#             $(gtype)+$(subowner)+$(subname)">$(objectText)</a></td>
+      "<td><a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+              $(gtype)+_+$(subname)">$(objectText)</a></td>
+   end
+
+   if $less ($(access) $priv(primary))
+#     "<td align=center
+#     "   ><input type="checkbox" name="optin$(grkey)"
+#     "     $ifthen ($(optional) checked)
+#     if $(groupEditable)
+#        "  onChange="optinChange('$(grkey)', document.eg.optin$(grkey));"
+#     end
+#     "></td>
+
+      "<td align=center
+      if $tablefind ($(egType) Quiz Item)
+      end
+      elif $(groupEditable)
+         "><input type="checkbox" name="optin$(grkey)"
+         "  $ifthen ($(optional) checked)
+         "  onChange="optinChange('$(grkey)', document.eg.optin$(grkey));"
+      end
+      else
+         "$ifthen ($(optional) ><img $(src_check))
+      end
+      "></td>
+  
+      if $or ($(groupEditable) $(instructor))
+         "<td><nobr>&nbsp;<a href="#" onClick="return chgAccessStart('$(grkey)');"
+         "   ><img $(src_iedit) border=0></a>&nbsp;</nobr></td>
+      end
+      if $(groupEditable)
+         "<td><nobr>&nbsp;<a href="#"
+         "            onClick="return deleteRule('$(grkey)', '$escquote($escsingle($(objectText)))');"
+         "   ><img $(src_trash2) border=0></a>&nbsp;</nobr></td>
+      end
+   end
+   else
+      "<td colspan=3>&nbsp;</td>
+   end
+end
+eval $sql_query_close($(h))
+"</table></td>
+if $not ($tablefind ($(egType) Quiz Item))
+   "<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   "<td>&nbsp;<br>
+   "  <div style="border-width: 1px;  border-style: solid;  padding: 0.5em;">
+   "  <b>About the opt-in checkbox:</b><br>
+   "  Normally, when you add someone to a group, they automatically
+   "  become a member of that group.&nbsp;
+   "  For example, adding someone to a conference group makes them
+   "  a member of the conference.
+   "<p/>
+   "  Checking "opt-in" gives the person the option to join the group --
+   "  but doesn't immediately make them a member.&nbsp;
+   "  Opt-in is recommended for wildcards (like '%') or groups
+   "  (where you include another group <b>in</b> this group) that
+   "  would match a <b>lot</b> of people.
+   "</div>
+   "</td>
+end
+"</table>
+
+"<div id="editacc" style="POSITION: absolute; visibility: hidden;">
+   "<table border="0" cellspacing="1" cellpadding="4"
+   "   bgcolor="#006B91">
+   "<tr><td bgcolor="#CEEAF5"><table cellspacing=0 cellpadding=0 border=0>
+   "    <tr>
+   "    <td>Change access to:&nbsp;</td>
+   "    <td><select name="chgAccess" onChange="chgAccessFinish();"
+           "<option value="" selected >(choose)
+           if $(set_primary)
+              "<option value="$priv(primary)"  >Primary
+           end
+           if $(groupEditable)
+              "<option value="$priv(organizer)">Organizer
+           end
+           "<option value="$priv(instructor)"  >Instructor
+           "<option value="$priv(include)"     >Include
+           "<option value="$priv(readonly)"    >Readonly
+           if $equal ($arg(6) Item)
+              "<option value="$priv(writeonly)"    >Writeonly
+           end
+           if $(groupEditable)
+              "<option value="$priv(exclude)"  >Exclude
+              "<option value="$priv(inherit)"  >Inherit
+           end
+        "</select></td>
+   "    <tr><td><img $(src_clear) width=1 height=7></td>
+   "    <tr>
+   "    <td></td>
+   "    <td><input type="button" value="Close"
+   "          onClick="popOver('editacc', false);"></td>
+   "    </table>
+   "</td>
+   "</table>
+"</div>
+
+"<div id="editlvl" style="POSITION: absolute; visibility: hidden;">
+   "<table border="0" cellspacing="1" cellpadding="4"
+   "   bgcolor="#006B91">
+   "<tr><td bgcolor="#CEEAF5"><table cellspacing=0 cellpadding=0>
+   "    <tr>
+   "    <td>Change <b>everyone</b> with this access level to:&nbsp;</td>
+   "    <td><select name="chgLevel" onChange="chgLevelFinish();"
+           "<option value="" selected >(choose)
+           if $(groupEditable)
+              "<option value="$priv(organizer)">Organizer
+           end
+           "<option value="$priv(instructor)"  >Instructor
+           "<option value="$priv(include)"     >Include
+           "<option value="$priv(readonly)"    >Readonly
+           if $equal ($arg(6) Item)
+              "<option value="$priv(writeonly)"    >Writeonly
+           end
+           if $(groupEditable)
+              "<option value="$priv(exclude)"  >Exclude
+              "<option value="$priv(inherit)"  >Inherit
+           end
+        "</select></td>
+   "    <tr><td><img $(src_clear) width=1 height=7></td>
+   "    <tr>
+   "    <td></td>
+   "    <td><input type="button" value="Close"
+   "          onClick="popOver('editlvl', false);"></td>
+   "    </table>
+   "</td>
+   "</table>
+"</div>
+"</form>
+"$errors()
+"</div>
+
+
+"</body>
+"</html>

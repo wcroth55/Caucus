@@ -1,0 +1,119 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.20: Manager Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.20:&nbsp; Manager Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref419.html">PREV</A>]
+   [<A HREF="ref421.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus defines &quot;managers&quot; as specific
+users who have managerial capabilities not granted to the regular
+Caucus user.&nbsp;  When Caucus is installed, one such userid is designated
+the &quot;primary manager&quot;; this person has all capabilities
+at all times, and cannot be removed.
+
+<P>
+The primary manager may then add other managers with more restricted
+capabilities.&nbsp;  
+
+<p/>
+<ol type="I">
+<li><b>Caucus 5.x</b><br>
+Manager capabilities are controlled by a special set of "manager"
+groups, such as "conferenceCreate".&nbsp;
+This completely replaces the bit-mask approach from Caucus 4.
+<p/>
+Which users are in which manager groups may be determined directly
+by querying the 'groups' table, or through the service functions
+defined below.
+
+<p/>
+<dl>
+<dt>$mgr_groups (userid)
+<dd>Evaluates to a list of the manager groups that <i>userid</i>
+is a member of, and the permission in each.&nbsp;
+The result appears as space separated "pairs" of group name and
+(numeric) group access, e.g. "conferenceCreate 10 interfaceManage 40 ...".
+
+<p/>
+<dt>$mgr_in_group (userid group1 [group2 ...])
+<dd>Is <i>userid</i> in any one of the listed manager groups?&nbsp;
+Evaluates to the access level of the first such group matched, or else 0.&nbsp;
+(This is really just another way of getting at the same data
+returned by $mgr_groups().)
+</dl>
+
+<p/>
+<li><b>All versions (5.x and 4.x)</b><br>
+<dl>
+<DT><A NAME="admin_mail">$admin_mail()</A>
+<DD>
+Evaluates to the e-mail address of the Caucus administrator
+(as defined in <B>swebd.conf</B>).
+</dl>
+
+<p/>
+<li><b>Caucus 4.x</b><br>
+Each manager capability corresponds to a single bit in
+a bit mask: the capabilities, and their values and names are shown
+below:
+
+<P>
+<PRE>
+ MGR_SET    0x001  modify list of managers
+ MGR_CRCONF 0x002  create new conferences
+ MGR_RMCONF 0x004  remove conferences
+ MGR_BEORG  0x008  become an organizer of any conference
+</PRE>
+
+<P>
+There are two CML functions that work with the list of managers
+and their capabilities:
+
+<P>
+<DL>
+
+<P><DT><A NAME="mgr_list">$mgr_list()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to the complete list of managers, in the form &quot;manager1
+mask1 manager2 mask2...&quot;.&nbsp;  Each mask is the numeric sum
+of that manager's capabilities.
+
+<P><DT><A NAME="mgr_list">$mgr_list(userid)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to &quot;userid mask&quot;, where mask is the sum of
+that specific manager's capabilities.
+
+</DL>
+
+<p/>
+
+</ol>
+
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

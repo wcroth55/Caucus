@@ -1,0 +1,102 @@
+#
+#---announce.cml
+#
+#   Show announcement inc(1) as a "pop-over" psuedo-window.
+#
+#   inc(1)   item number (from System_Announcements conference)
+#   inc(2)   position number
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#:CR  05/16/03 New file.
+#:CR  12/10/04 Include css.i.
+#:CR  10/24/05 Make pop-over (DHTML) rather than pop-up.
+#-----------------------------------------------------------------
+
+set ann_cnum $word (1 $cl_list (system_announcements))
+set ann_str $site_data ($(ann_cnum) - ann$inc(1))
+
+set m_cnum $(ann_cnum)
+set m_inum $inc(1)
+set m_rnum 0
+
+"<div id='ann$inc(2)' class="announcement" 
+"     style="z-index: $inc(2); \
+      top: $mult(30 $inc(2))px;  left: $mult(30 $inc(2))px;">
+
+"<input type="hidden" name="inum" value="$inc(1)"></td>
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+if $word (4 $(ann_str))
+   "<td></td>
+end
+else
+   "<td><input type="button" name="noshow" value="Don't Show Again"
+   "  onClick="window.open('announcef.cml?$inc(1)','','width=100,height=100'); \
+              document.getElementById('ann$inc(2)').style.visibility='hidden';"
+   "   >&nbsp;&nbsp;&nbsp;&nbsp;</td>
+end
+"<td align=right><input type="button" value="Close" 
+"   onClick="document.getElementById('ann$inc(2)').style.visibility='hidden';"
+"></td>
+"</table>
+
+set qAnn SELECT text, prop, userid owner FROM resps \
+          WHERE items_id=$inc(1) AND rnum=0 AND version=0
+set ha $sql_query_open ($(qAnn))
+eval   $sql_query_row  ($(ha))
+eval   $sql_query_close($(ha))
+
+set date0 $replace (- 32 %datetz ($dateof($word (2 $(ann_str)))))
+set date1 $replace (- 32 %datetz ($dateof($word (3 $(ann_str)))))
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr>
+"<td><b>Announcement:</b><br>
+"   &nbsp;&nbsp;&nbsp;%person($(owner))</td>
+"<td align=right>
+"   <table cellspacing=0 cellpadding=0 border=0>
+"   <tr><td></td>
+"       <td>$word(1 $(date0))&nbsp;</td> 
+"       <td>$upper1($lower($word(2 $(date0))))&nbsp;</td>
+"       <td>$word(3 $(date0))</td>
+"   <tr><td>thru&nbsp;</td>
+"       <td>$word(1 $(date1))&nbsp;</td> 
+"       <td>$upper1($lower($word(2 $(date1))))&nbsp;</td>
+"       <td>$word(3 $(date1))</td>
+"   </table>
+"</td>
+"</table>
+
+"<blockquote>
+
+      #---CML response text
+      if $equal ($(prop) 3)
+         "$cleanhtml(prohibited \
+               $protect($mac_expand($reval($cleanhtml(_empty $(text)))) ))
+         "<BR CLEAR=ALL>
+      end
+
+      #---HTML response text
+      elif $equal ($(prop) 2)
+         "$cleanhtml(prohibited \
+               $protect($mac_expand($cleanhtml(_empty $(text)))))
+         "<BR CLEAR=ALL>
+      end
+
+      #---"Literal" response text
+      elif $equal ($(prop) 1)
+         "<PRE>
+         "$cleanhtml (prohibited $protect($mac_expand($t2html($(text)))))
+         "</PRE>
+      end
+
+      #---Word-wrapped response text
+      else
+         "$cleanhtml (prohibited $protect($mac_expand($wrap2html($(text)))))
+      end
+  
+"</blockquote>
+"</div>
+#==========================================================================

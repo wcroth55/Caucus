@@ -1,0 +1,218 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.17: Variables</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.17:&nbsp; User, Conference, Item, Site Variables</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref416.html">PREV</A>]
+   [<A HREF="ref418.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+The &quot;regular&quot; CML variables (e.g., &quot;set var xyz&quot;
+or &quot;$(var)&quot;) are ephemeral: once the dedicated swebs
+server has exited, the values of those variables are lost.
+
+<P>
+CML also provides a set of variables that are persistent across
+sessions, and tied to a particular user, conference, item, or 
+to the site as a whole.&nbsp;
+Such variables may contain any amount of text, including newlines.&nbsp;
+They provide a convenient way to extend a Caucus interface, and
+to customize how the interface appears to a particular user or
+in a particular conference or item.
+
+<P>
+Note that evaluating a variable is a fairly fast process.&nbsp;  (All
+variables for a particular user, conference, item or site, are loaded
+when needed, and cached.)&nbsp;  Setting a variable is much slower,
+since the values must be written to disk.
+
+<P>
+<DL>
+
+<P><DT><A NAME="user_var">$user_var(user vname)</A>
+<DD>
+Evaluates to the value of userid <I>user</I>'s variable called
+<I>vname</I>.
+
+<P><DT><A NAME="set_user_var">$set_user_var(user vname value)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets userid <I>user</I>'s variable <I>vname</I> to <I>value</I>.
+
+<P><DT><A NAME="clear_user_var">$clear_user_var()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Clears the user variable cache.
+
+<P><DT><A NAME="list_user_var">$list_user_var(user str)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to a blank-separated list of <I>user</I>'s variable
+names that begin with <I>str</I>.&nbsp;  
+If <I>str</I> is not supplied, lists all of <I>user</I>'s variables.
+
+
+<P>&nbsp;
+<P><DT><A NAME="conf_var">$conf_var(cnum vname)</A>
+<DD>
+Evaluates to the value of conference <I>cnum</I>'s variable called
+<I>vname</I>.
+
+<P><DT><A NAME="set_conf_var">$set_conf_var(cnum vname value)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets conference <I>cnum</I>'s variable <I>vname</I> to <I>value</I>.
+
+<P><DT><A NAME="clear_conf_var">$clear_conf_var()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Clears the conference  variable cache.
+
+<P><DT><A NAME="list_conf_var">$list_conf_var(cnum str)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to a blank-separated list of conference <I>cnum</I>'s variable
+names that begin with <I>str</I>.&nbsp;  
+If <I>str</I> is not supplied, lists all of <I>cnum</I>'s variables.
+
+
+<P>&nbsp;
+<P><DT><A NAME="item_var">$item_var(cnum inum vname)</A>
+<DD>
+Evaluates to the value of conference <I>cnum</I>, item <I>inum</I>'s
+variable called <I>vname</I>.
+
+<P><DT><A NAME="set_item_var">$set_item_var(cnum inum vname value)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets conference <I>cnum</I>, item <I>inum</I>'s variable <I>vname</I>
+to <I>value</I>.
+
+<P><DT><A NAME="clear_item_var">$clear_item_var()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Clears the item variable cache.
+
+<P><DT><A NAME="list_item_var">$list_item_var(cnum inum str)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to a blank-separated list of conference <I>cnum</I>,
+item <I>inum</I>'s variable names that begin with <I>str</I>.&nbsp;  
+If <I>str</I> is not supplied, lists all of item <I>inum</I>'s variables.
+
+
+<P>&nbsp;
+<P><DT><A NAME="site_var">$site_var(vname)</A>
+<DD>
+Evaluates to the value of the site variable called
+<I>vname</I>.&nbsp;
+Site variables are "global" across an entire installation of Caucus
+and are available to all users.
+
+<P><DT><A NAME="set_site_var">$set_site_var(vname value)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Sets site variable <I>vname</I> to <I>value</I>.
+
+<P><DT><A NAME="clear_site_var">$clear_site_var()</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Clears the site variable cache.
+
+<P><DT><A NAME="list_site_var">$list_site_var(x&nbsp; str)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Evaluates to a blank-separated list of the site variable
+names that begin with <I>str</I>.&nbsp;  
+If <I>str</I> is not supplied, lists all of the site variables.&nbsp;
+<i>X</i> is ignored but required (yes, it's a bug).
+</DL>
+
+<P>&nbsp;<P>
+It is important to remember that all of these variables are
+<B>cached</B> for each user.&nbsp;  This makes getting the
+value of a variable very fast; but it also means that if
+someone else changes a variable, your copy of the variable
+may be out of date.
+
+<P>
+In most cases this doesn't matter.&nbsp;
+But if you need to be sure that the value of a variable is
+up-to-date, call the appropriate $clear_... function immediately
+before using the variable.&nbsp;
+For example, the code below:
+
+<P>
+<PRE>
+     eval $clear_conf_var()
+     set quote $conf_var($(cnum) daily_quote)
+</PRE>
+
+<P>
+ensures that the user has the most up-to-date value of the
+conference variable &quot;daily_quote&quot.
+
+<P>
+If you have several processes that may intertwine reading and <B>writing</B>
+the same variables, you may need a locking mechanism to ensure that
+one process does not trash the work of another process.&nbsp;
+Caucus provides a very simple set of locks:
+
+<DL>
+<P><DT><A NAME="lock">$lock (number timeout)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Attempts to secure an exclusive lock on <I>number</I> (a decimal
+value between 0 and 9,999,999 inclusive), within <I>timeout</I>
+seconds.&nbsp;
+If the lock is granted within <I>timeout</I> seconds, the
+function returns and evaluates to 1.&nbsp;
+Otherwise, if <I>timeout</I> seconds have elapsed and the lock
+can still not be granted (presumably because it is being held
+by another session), $lock() returns 0.
+<P>
+If either <I>number</I> or <I>timeout</I> are not supplied, 
+$lock() fails immediately.&nbsp;
+If <I>timeout</I> is zero, $lock() succeeds if and only if the lock
+can be granted immediately.
+<P>
+
+<P><DT><A NAME="unlock">$unlock (number)</A>
+<DD>Unlocks (releases) a lock on <I>number</I> that was previously
+granted by $lock().
+</DL>
+
+<P>
+</BLOCKQUOTE>
+<HR>
+</BODY>
+</HTML>

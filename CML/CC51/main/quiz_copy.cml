@@ -1,0 +1,160 @@
+#
+#---quiz_copy.cml.   Make a copy of a quiz.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/01/06 New file.
+#: CR 11/24/07 Also copy 'reference' field.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 10/06/09 Remove $sql_sequence(quiz)
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_copy.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal ($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+set title
+set query SELECT userid, title, visible0, visible1, onepage \
+            FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+#---Form submission: copy a quiz, incl problems, quizmap, and answers.
+if $not_empty ($form(submit))
+#  "Content-type: text/plain
+#  "
+
+# newquiz  title of (copied) quiz
+# itemLocation   breakout / new
+# parentLabel    parent item label  (if breakout)
+# sconf          conf num to copy to
+
+#   inc(1)   source item id
+#   inc(2)   conf number of target conf
+#   inc(3)   title to assign to newly copied quiz
+#   inc(4)   'breakout' or 'new'
+#   inc(5)   label of (parent) target item, if inc(3)=breakout
+
+   set targetItemId 0
+   if $equal ($form(itemLocation) breakout)
+      set targetItemId $item_id($form(sconf) $form(parentLabel))
+   end
+   include $(main)/copyItemRecursively.i $(cnum) $form(sconf) $arg(4) \
+                                         $(targetItemId) 1 1 $quote($form(newquiz))
+
+#  include $(main)/quiz_copy.i $arg(4) $form(sconf) $quote($form(newquiz)) \
+                               $form(itemLocation) $form(parentLabel)
+
+   "%location($(mainurl)/confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x)
+   quit
+end
+
+
+
+set nxt   $page_save (1 quiz_copy.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $upper1($(type)):&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote($upper1($(type)): $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i      $(type)  </A><a href="#top">Copy&nbsp;$(type)
+
+"<script type="text/javascript" language="javascript">
+"function validate() {
+"   if (! document.copy.itemLocation[0].checked &&
+"       ! document.copy.itemLocation[1].checked) {
+"      confirm ("Please choose an item to copy it to.");
+"      return false;
+"   }
+"   if (document.copy.itemLocation[1].checked  &&
+"       document.copy.parentLabel.value == '') {
+"      confirm ("Please enter an item number.");
+"      return false;
+"   }
+"   if (document.copy.newquiz.value == '') {
+"      confirm ("Please enter a name for the new $(type).");
+"      return false;
+"   }
+"   return true;
+"}
+"</script>
+
+"<p/>
+"<blockquote>
+"<form name="copy" method="post" onSubmit="return validate();"
+"      action="quiz_copy.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)">
+
+"<table border=0>
+"<tr><td colspan=3>Make a copy of this entire $(type), 
+"    including all of its $(problemName)s.</td>
+
+"<tr>
+"<td>Copy it into:</td>
+   set query  \
+      SELECT a.name, a.cnum cnm, a.access, o.alpha FROM \
+         (SELECT c.name, c.cnum, g.access FROM (confs c, groups g, site_data d) \
+            LEFT JOIN confhidden h \
+              ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+           WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(instructor) \
+             AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+             AND  c.deleted = 0 \
+             AND  d.cnum  = c.cnum  AND  d.name='addQuiz'  AND d.value='1' \
+             AND  h.hidden IS NULL) a \
+        LEFT JOIN conforder o \
+          ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+       ORDER BY ifnull(o.alpha, a.name)
+   
+   set h $sql_query_open ($(query))
+   "<td><SELECT NAME=sconf>
+      while $sql_query_row  ($(h))
+         "<OPTION VALUE="$(cnm)"
+         "   $if ($equal($(cnm) $arg(3)) SELECTED)>$replace(_ 32 $(name))</OPTION>
+      end
+      "</SELECT>
+   "</td>
+   eval $sql_query_close($(h))
+
+"<tr>
+"<td>Make it a:</td>
+"<td><input type="radio" name="itemLocation" value="new"> new item
+"   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"   <input type="radio" name="itemLocation" value="breakout"> breakout to item #
+"   <input type="text"  name="parentLabel" size="6"></td>
+
+"<tr>
+"<td>New $(type) title:&nbsp;</td>
+"<td><input type="text" name="newquiz" size=40>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td><input type="submit" name="submit" value="Copy"></td>
+
+"</table>
+
+"</form>
+"</blockquote>
+
+"</div>
+"</body>
+"</HTML>

@@ -1,0 +1,89 @@
+#
+#---MANAGE_ARCHIVE.CML.   Manager archiving conferences
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_archive.cml
+end
+
+include $(main)/secure.i manage conferenceArchive conferenceRestore \
+                                conferenceAllPrivileges
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_archive.cml \
+                      $arg(2)+$arg(3)+x+x+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Archive a Conference)
+
+include $(main)/head.i $arg(3)  $quote(Manager Options: Archive a Conference)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_archive  </A><A HREF="manage.cml?\
+  $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+  Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+  Archive a Conference
+
+
+if   $equal ($arg(4) 2)
+   "<BLINK><B>Error:</B> no such conference.</BLINK>
+end
+elif $equal ($arg(4) 3)
+   "<BLINK><B>Error:</B></BLINK> there is already an archive
+   "called <B>$arg(5)</B>.&nbsp;
+   "Consider adding a version number to the archive name, such as
+   "<B>$arg(5).1</B>, or a date, such as <B>$arg(5)_990228</B>.
+end
+elif $equal ($arg(4) 4)
+   "<BLINK><B>Error:</B></BLINK> Archive "$arg(5)"
+   "could not be created because the archive name contains illegal
+   "characters. Archive names may only contain letters, numbers, "_",
+   ""-", and "."
+end
+
+include $(main)/mac_bug.i
+
+"<P>
+"<FORM METHOD=POST ACTION="man_archivef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+"<TABLE>
+"<TR ALIGN=center>
+"<TD>Conference to Archive:</TD>
+"<TD>&nbsp;&nbsp;</TD>
+"<TD>Archive Name:</TD>
+
+"<TR>
+"<TD>
+"<SELECT NAME=cnum SIZE=1
+"onChange="form.archive.value=form.cnum.options[form.cnum.selectedIndex].text;">
+"<OPTION VALUE=0>(Select a conference)</OPTION>
+
+for cnum in $cl_list()
+  "<OPTION VALUE=$(cnum)>%displayed_conf_name ($(cnum))
+  "</OPTION>
+
+end
+"</SELECT>
+"</TD>
+
+"<TD></TD>
+"<TD><INPUT TYPE=TEXT NAME=archive SIZE=30 VALUE=""></TD>
+
+"<TD>&nbsp;&nbsp;</TD>
+"<TD><INPUT TYPE="submit" VALUE="Archive It!"></TD>
+"</TABLE>
+
+"</FORM>
+
+"</div>
+"</body>
+"</HTML>

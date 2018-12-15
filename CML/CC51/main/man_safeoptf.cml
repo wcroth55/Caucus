@@ -1,0 +1,30 @@
+#
+#---man_safeoptf.cml.    Handles form submission from Frames layout page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/23/01 From old man_safef.cml
+#: CR 04/23/02 Add filesafe.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_safeoptf.cml
+end
+
+include $(main)/secure.i manage filesafeManage
+
+set nch $unique()
+
+eval $set_site_data(0 - fsTitleSize  $form(fsTitleSize))
+eval $set_site_data(0 - fsTitleColor $form(fsTitleColor))
+eval $set_site_data(0 - fsTitleFont  $form(fsTitleFont))
+eval $set_site_data(0 - fsRowColor1  $form(fsRowColor1))
+eval $set_site_data(0 - fsRowColor2  $form(fsRowColor2))
+eval $set_site_data(0 - fsSepColor   $form(fsSepColor))
+eval $set_site_data(0 - fsSepHeight  $form(fsSepHeight))
+
+"%location(man_safe.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                  $arg(7)+$arg(8)+$arg(9))
+#------------------------------------------------------

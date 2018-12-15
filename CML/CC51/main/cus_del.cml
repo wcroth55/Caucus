@@ -1,0 +1,26 @@
+#
+#---cus_del.cml.    Organizer deleting conference.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/07/01 14:00 New file: Add MGR_RMCOORG bit.
+#---------------------------------------------------------------
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+include $(main)/conf_delete.i $arg(3)
+
+if $empty($(result))
+   "%location($(mainurl)/center.cml?$(nch)+$(nxt)+x+x+x+x+x+x)
+end
+else
+   "%location ($(mainurl)/custom.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                                     $arg(6)+$arg(7)+$arg(8))
+end 
+
+#------------------------------------------------------

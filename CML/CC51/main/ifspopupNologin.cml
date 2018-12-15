@@ -1,0 +1,68 @@
+#
+#---ifspopupNologin.com   Interface storage page pop-up, does not need login.
+#
+#   Display a response from the Interface_Storage_$(iface) conference
+#   as a stand-alone page, with no other (Caucus) interface elements.
+#
+#   arg 7    item number
+#   arg 8    response number
+#
+# Copyright (C) 1995-2006 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/20/06 New file, for "accept" registration option.
+#: CR 06/19/09 Use item *id* !
+#============================================================================
+
+set nch   $unique()
+
+eval        $cl_list (interface_storage_$(iface))
+set  ifsnum $cl_num  (interface_storage_$(iface))
+
+# assign the arguments to variables that we can get to later
+set ifs_item $item_id ($(ifsnum) $arg(7))
+set ifs_resp $arg(8)
+
+#---Make sure %liburl2(), %libimg2() etc know where to find this item.
+set  m_cnum $(ifsnum)
+set  m_inum $arg(7)
+set  m_rnum $arg(8)
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+include $(main)/css.i 1
+"</head>
+
+"<body>
+
+set qIFS SELECT r.text, r.prop FROM resps r \
+          WHERE r.items_id = $(ifs_item) AND r.rnum=$(ifs_resp) AND r.deleted=0 AND r.version = \
+              (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum)
+set hi $sql_query_open ($(qIFS))
+eval   $sql_query_row  ($(hi))
+eval   $sql_query_close($(hi))
+
+#---If desired response does not exist, return to calling page.
+if $empty($(prop))
+  "<p/>
+  "This item does not exist.
+  quit
+end
+
+
+include $(main)/showResponseText.i $(prop)
+
+"<p/>
+"<center>
+"<form>
+"<input type="button" onClick="self.close();" value="Close">
+"</form>
+"</center>
+
+"</div>
+"</body>
+"</html>
+

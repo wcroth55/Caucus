@@ -1,0 +1,32 @@
+#
+#---man_urptf.cml.    Handles manager user report creation
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/25/01 16:00 Add REG$cml_dir() arg to make report registration-specific
+#: CR 03/23/03 Match changes in man_ureport; make sure only one choice selected
+#: CR 01/12/06 Modify for C5.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_urptf.cml
+end
+
+include $(main)/secure.i manage userReports
+
+#"everyone=$form(everyone)
+#"type=$form(type)
+#"name=$form(name)
+
+set type $if ($form(everyone) E $form(type))
+set name $word (1 $form(name) _)
+
+eval $xshell (0 0 1 $caucus_path()/SWEB/sweba $caucus_path()/SWEB/swebd.conf \
+                      $(iface)/main/ureport.cml \
+                      $(type) $(name) $user_info ($userid() email) $(iface))
+
+"%location($(mainurl)/$page_return (\
+                   $arg(2) # manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+#------------------------------------------------------

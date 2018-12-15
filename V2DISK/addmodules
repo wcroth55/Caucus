@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+#---addmodules   Install any/all Caucus "add-on" modules.
+#
+#   Invoked as:
+#      addmodules   (from the Caucus home directory)
+#
+#   Parameters:
+#
+#   Purpose:
+#      Automatically install all Caucus "add-on" modules present
+#      in the Caucus home directory.
+#
+#      Add-on modules are always "mod_xxxx.tar".
+#
+#: CR 07/22/03 New script.
+#: CR 10/12/05 C5 changes.
+#--------------------------------------------------------------------------
+
+for module in mod*.tar; do
+   tar xvf $module >/dev/null
+
+   base=`basename $module .tar`
+   ins=_installer
+   if test  -f  $base$ins; then
+      chmod 700 $base$ins
+      ./$base$ins
+   fi
+done
+
+echo " "
+echo "Add-on modules are customarily placed in the main.1 'override'"
+echo "directory in $HOME/CML/CC50.  If you prefer a different placement,"
+echo "such as main or main.2, please enter that now:"
+echo " "
+echo -n "Add-on modules go in (main.1) ? "
+read dir
+echo " "
+
+if test "x$dir" = "x"; then
+   dir=main.1
+fi
+
+if test ! -d CML/CC50/$dir; then
+   mkdir     CML/CC50/$dir
+fi
+
+cd CML/CC50
+for module in mod_*; do
+   echo "Installing $module..."
+   cp $module/* $dir
+done
+echo " "
+echo "Installation complete."
+echo " "
+#--------------------------------------------------------------------------

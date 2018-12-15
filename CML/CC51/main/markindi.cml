@@ -1,0 +1,310 @@
+#
+#---MARKINDI.CML.   Mark individual items as NEW, SEEN, FORGOTTEN, or HIDDEN.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  8/20/04 Handle "hidden" attribute.
+#: CR 10/13/04 Use CSS class(es).
+#: CR 08/01/05 Add retired.
+#: CR 03/20/08 Check for is_org for all org-functions (delete, hide, etc.)
+#---------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i markindi.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+set nch $unique()
+
+#---Here if we're handling marking checked items.
+if $not_empty ($form(button))
+   set items
+   for ilabel in $form(ibox)
+      set items $(items) $item_id ($arg(3) $(ilabel))
+   end
+
+   if $equal ($form(button) Mark_New)
+      for inum in $(items)
+         eval $item_set_seen ($arg(3) $(inum) $userid() -1)
+      end
+   end
+      
+   elif $equal ($form(button) Mark_Seen)
+      set q SELECT id, lastresp FROM items \
+             WHERE id in ($commaList (string $(items)))
+      set h $sql_query_open ($(q))
+      while $sql_query_row  ($(h))
+         set lastresp $if ($empty($(qkey)) $(lastresp) 0)
+         eval $item_set_seen ($arg(3) $(id) $userid() $(lastresp))
+      end
+      eval  $sql_query_close($(h))
+   end
+      
+   elif $equal ($form(button) Forget)
+      for inum in $(items)
+         eval $item_set_seen ($arg(3) $(inum) $userid() -2)
+      end
+   end
+      
+   elif $equal ($form(button) Remember)
+      for inum in $(items)
+         eval $item_set_seen ($arg(3) $(inum) $userid() -1)
+      end
+   end
+   
+   elif $equal ($form(button) Delete)
+      if $and ($(is_org) $equal ($form(reallydel) 1))
+         for inum in $(items)
+             include $(main)/deleteItem.i $arg(3) $(inum)
+#            include $(main)/rlibdel.i $arg(3) $(inum) 0
+#            eval    $item_del ($arg(3) $(inum))
+         end
+      end
+   end
+
+   elif $equal ($form(button) Copy)
+      for inum in $(items)
+         set checklist
+#        include $(main)/itemCopy.i $form(sconf) new $quote( ) \
+#                  0$form(anonly) all $arg(3) $(inum) 0$form(datenow)
+         include $(main)/copyItemRecursively.i $arg(3) $form(sconf) $(inum) 0 0$form(anonly) 0$form(datenow)
+      end
+   end
+
+   elif $equal ($form(button) Freeze)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) frozen 1)
+         end
+      end
+   end
+
+   elif $equal ($form(button) Thaw)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) frozen 0)
+         end
+      end
+   end
+
+   elif $equal ($form(button) Hide)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) hidden 1)
+         end
+      end
+   end
+
+   elif $equal ($form(button) Unhide)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) hidden 0)
+         end
+      end
+   end
+
+   elif $equal ($form(button) Retire)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) retired 1)
+         end
+      end
+   end
+
+   elif $equal ($form(button) Unretire)
+      if $(is_org)
+         for inum in $(items)
+            eval $item_set ($arg(3) $(inum) retired 0)
+         end
+      end
+   end
+
+   "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+   "
+   return
+end
+
+#---The rest of the page displays (or redisplays, with a new sort order)
+#   the list of items, with their checkboxes, and the "Mark" buttons.
+set cname %displayed_conf_name ($arg(3))
+set nxt   $page_save (1 markindi.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Mark Individual Items in $(cname))
+
+include $(main)/head.i $arg(3)  $quote(Mark Individual Items in $(cname)) 
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+   
+"<script language="javascript">
+
+   include $(main)/setsort.js
+   include $(main)/checkall.js
+
+   "function mbutton(what) {
+   "   document.isort.button.value = what;
+   "   document.isort.submit();
+   "   return false;
+   "}
+
+   "  function delconf() {
+   "     if (confirm ("Permanently delete all checked items?")) 
+   "        return mbutton("Delete");
+   "     document.isort.reallydel.value="0";
+   "     return false;
+   "  }
+"</script>
+
+include $(main)/header.i    markindi  Mark Individual Items
+include $(main)/checkItemVis.i $arg(3)
+
+"Use this page to:
+"<UL>
+"<LI>Mark individual items as <B>New</B>, <B>Seen</B>, <b>Forgotten</b>,
+   if $(is_org)
+"     <b>Hidden</b> <img $(src_cloud)>,
+   end
+"  <b>Retired</b> <img $(src_retired)>,
+"  or <b>Frozen</b> <img $(src_ice)>
+"<LI><B>Remember</B> items shown in <I>italics</I>, 
+"      which were previously forgotten.
+"<LI><B>Copy</B> sets of items.
+"<LI><B>Delete</B> sets of items.
+"<LI>Note: items controlled by a <b>date range</b> 
+"    are shown with the calendar icon <img $(src_calendar) hspace="2">
+"</UL>
+
+set vi_markseen 1
+
+include $(main)/itemListOf.i $arg(3) $userid() all 1 $(is_org) 1
+set indilist $(itemList)
+
+"<P>
+"Click on the check boxes to select individual items.&nbsp;
+"Or <A HREF="#" onClick="return checkall(document.isort);"
+"   >check all boxes</A>.&nbsp;
+"Then press one of the buttons at the bottom:
+
+"<form METHOD=POST NAME="isort" 
+"      ACTION="markindi.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x">
+
+set isort $word (1 $form(code) 0)
+"<table class="itemlist_table">
+set chk
+include $(main)/columns.i
+include $(main)/ilist.i indilist 1 $(isort) $quote(number title author frozen last)
+"</table>
+
+"<input TYPE=HIDDEN NAME=reallydel VALUE="1">
+"<input TYPE=HIDDEN NAME=button    VALUE="" >
+"<input TYPE=HIDDEN NAME=LAST      VALUE="LAST">
+#"</form>
+
+
+#"<form>
+"<p/>
+"<ul>
+"<table border=0>
+"<tr>
+"<td><input TYPE="button" VALUE="Mark New"  
+"           onClick="return mbutton('Mark_New');"></td>
+"<td><input TYPE="button" VALUE="Forget"    
+"           onClick="return mbutton('Forget');"></td>
+"<td><input TYPE="button" VALUE="Freeze" 
+"           onClick="return mbutton('Freeze');">&nbsp;&nbsp;&nbsp;</td>
+if $(is_org)
+   "<td><input TYPE="button" VALUE="Hide"   
+   "           onClick="return mbutton('Hide');"></td>
+   "<td><input TYPE="button" VALUE="Retire" 
+   "           onClick="return mbutton('Retire');"></td>
+end
+"<td><input TYPE="button" VALUE="Delete" onClick="return delconf();"></td>
+
+"<tr>
+"<td><input TYPE="button" VALUE="Mark Seen" 
+"           onClick="return mbutton('Mark_Seen');">&nbsp;&nbsp;&nbsp;</td>
+"<td><input TYPE="button" VALUE="Remember"  
+"           onClick="return mbutton('Remember');">&nbsp;&nbsp;&nbsp;</td>
+"<td><input TYPE="button" VALUE="Thaw"   onClick="return mbutton('Thaw');"></td>
+
+if $(is_org)
+   "<td><input TYPE="button" VALUE="Un-hide" 
+   "           onClick="return mbutton('Unhide');">&nbsp;&nbsp;&nbsp;</td>
+   "<td><input TYPE="button" VALUE="Un-retire" 
+   "           onClick="return mbutton('Unretire');">&nbsp;&nbsp;&nbsp;</td>
+end
+
+#--------------------------------------------------------------------
+"<tr><td>&nbsp;</td>
+
+   "<TR>
+   "<td><input TYPE="button" VALUE="Copy" onClick="return mbutton('Copy');"></td>
+#  "<TD>
+#  if $(can_manage)
+#     "<nobr>or&nbsp;&nbsp; <input TYPE=submit NAME="button" VALUE="Move"></nobr>
+#  end
+#  "</TD>
+   "<TD COLSPAN=4>these items and their responses to conference
+
+      set query  \
+         SELECT a.name, a.cnum cnm, a.access, o.alpha FROM \
+            (SELECT c.name, c.cnum, g.access FROM (confs c, groups g) \
+               LEFT JOIN confhidden h \
+                 ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+              WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+                AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+                AND  c.deleted = 0 \
+                AND  h.hidden IS NULL) a \
+           LEFT JOIN conforder o \
+             ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+          ORDER BY ifnull(o.alpha, a.name)
+   
+      set h $sql_query_open ($(query))
+   
+      "   <SELECT NAME=sconf>
+          while $sql_query_row  ($(h))
+            "<OPTION VALUE="$(cnm)"
+            "   $if ($equal($(cnm) $arg(3)) SELECTED)
+            "     >$replace(_ 32 $(name))</OPTION>
+          end
+          eval  $sql_query_close($(h))
+      "   </SELECT>
+   "<TD>
+
+   "<TR><TD></TD>
+
+   "<tr><td></td>
+   "<td colspan="5">
+   "   (<b>Note:</b>&nbsp; Copying an item <b>also</b> copies all of its breakouts.&nbsp;
+   "   So in that case, don't check the breakouts, too!)
+   "</td>
+
+   if $(is_org)
+      "<TR><TD></TD>
+      "<TD COLSPAN=3><input TYPE=CHECKBOX NAME="anonly" VALUE="1">
+      "Suppress "copied by" text (if you are an organizer)</TD>
+      "<TR><TD></TD>
+      "<TD COLSPAN=3><input TYPE=CHECKBOX NAME="datenow" VALUE="1">
+      "Do not preserve original dates</td>
+   end
+#--------------------------------------------------------------------
+
+"</table>
+"</ul>
+
+"</form>
+
+if $(trailerbar)
+   include $(main)/trailer.i  confhome
+end
+
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------

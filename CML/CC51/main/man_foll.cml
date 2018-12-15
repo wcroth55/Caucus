@@ -1,0 +1,99 @@
+#
+#---MAN_FOLL.CML.   New-user registration "followup" page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/06/00 11:32 New page.
+#: CR 05/11/00 10:33 Many small usability improvements.
+#: CR 02/05/01 09:53 Changes for interface-based new user registration.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_foll.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_foll.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: New User Follow-up )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : New User Follow-up)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_org  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">New&nbsp;User&nbsp;Follow-up
+
+#---Determine urcbase and urtbase depending on arg(8).
+set urcbase REG_$arg(8)_
+set urtbase REG_$arg(8)_t_
+
+"<BLOCKQUOTE>
+"Use this page to control the "follow-up" actions that happen
+"when a new user self-registers:
+
+"<P>
+"<FORM METHOD=POST
+"      ACTION="man_follf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+$arg(8)">
+"<OL>
+"<B><LI>Report that the user registered.</B><br>
+"Send an e-mail with the new user's information to the address
+"in the box below.&nbsp;
+"If no address, don't send an e-mail.<BR>
+"<INPUT TYPE=TEXT NAME="sendto" VALUE="$site_data(0 - $(urcbase)sendto)" SIZE=30>
+
+"<P>
+"<B><LI>Add user to mailing list?</B><br>
+"Add the user's e-mail address to the mailing list file
+"shown in the box below.&nbsp;
+"If no file name, don't add to mailing list.<BR>
+"<INPUT TYPE=TEXT NAME="maillist" VALUE="$site_data(0 - $(urcbase)maillist)" SIZE=30>
+
+"<P>
+"<B><LI>Send a welcome e-mail to the new user.</B><br>
+"Send the "welcome" text below to the new user.&nbsp;
+"You must specify a "from" address; the user may reply to this
+"person.&nbsp;
+"(If no from address, an e-mail is not sent.)&nbsp;
+"Note that "<B>\%id()</B>" and "<B>\%pw()</B>" are special
+"macros that <I>automatically</I> get replaced with the new user's 
+"userid and password, respectively.
+"<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+"<TR><TD>From: </TD>
+"<TD><INPUT TYPE=TEXT NAME="welfrom" VALUE="$site_data(0 - $(urcbase)welfrom)" SIZE=30></TD>
+"<TR><TD>Subject:&nbsp;</TD>
+"<TD><INPUT TYPE=TEXT NAME="welsubj" VALUE="$site_data(0 - $(urcbase)welsubj)" SIZE=30></TD>
+
+set weltext $site_data (0 - $(urcbase)weltext)
+if $empty ($(weltext))
+   set weltext \
+      Thank-you for registering for the (name of event)!$newline()$newline()\
+      The event (is open now) (will open on DATE) at http://someurl.$newline()\
+      $newline()\
+      Just as a reminder, your userid is "\%id()" and your password \
+      is "\%pw()".
+end
+"<TR VALIGN=top><TD>&nbsp;<BR>Text:</TD>
+"<TD><TEXTAREA WRAP=virtual NAME="weltext" ROWS="8" COLS="60"
+"  >$t2esc($(weltext))</TEXTAREA></TD>
+"</TABLE>
+
+"</OL>
+"<INPUT TYPE=SUBMIT VALUE="Make All Changes">
+"</FORM>
+
+"</BLOCKQUOTE>
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,60 @@
+#
+#---readNewFromQuery.cml  Reall all new material in all confs from query.
+#
+#   arg(2)  page_save index of page to return to.
+#   arg(3)  name of variable containing query that creates list of cnum's.
+#
+# Copyright (C) 1995-2006 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/29/06 New script.
+#: CR 07/05/07 Make it work with Caucus 5.1!
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i readNewFromQuery.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+set vi_markseen 1
+
+#---Come up with an ILIST var for the list of all new stuff.
+set ilist $plusmod ($(ilist) 1 $(ilistmax))
+
+#---For each qualifying conference, add the entries to the ilist.
+set ilist$(ilist)   
+
+set query $($arg(3))
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+
+   include $(main)/confpartic.i $(cnum)
+#  set ilist$(ilist) $(ilist$(ilist)) \
+#                    $it_listrnew($(cnum)) \
+#                    $it_listiunseen($(cnum)) $it_listinew($(cnum))
+   include $(main)/itemListOf.i $(cnum) $userid() new 0 0 0 
+
+   set ilist$(ilist) $(ilist$(ilist)) $(itemList)
+end
+eval $sql_query_close($(h))
+set ilist$(ilist) $(ilist$(ilist))  $arg(2)
+
+
+if $empty ($word (2 $(ilist$(ilist))))
+   "%location($(mainurl)/center.cml?$(nch)+x+x+x+x+x+x)
+   "
+   return
+end
+
+set cn $word (1 $(ilist$(ilist)))
+set in $word (2 $(ilist$(ilist)))
+set rn $word (3 $(ilist$(ilist)))
+
+"%location($(mainurl)/viewitem.cml?$(nch)+$arg(2)+\
+           $(cn)+$(in)+$(rn)+x+1+ilist$(ilist)#here)
+#---------------------------------------------------------------

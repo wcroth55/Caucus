@@ -1,0 +1,55 @@
+#
+#---note_catf.cml.  Handle edit notebook category forms, then back to the list
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+#"Content-type: text/html
+#"
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i note_cat.cml 
+end
+
+include $(main)/secure.i open
+
+if $empty($form(cancel))
+
+   set nch $unique()
+
+   set name $replace(32 _ $form(name))
+   set center $equal($form(center) on)
+   set catlist
+   set count 0 
+   for cat cent in $user_data($userid() mark_categories)
+      set count $plus($(count) 1)
+      if $not_equal($(count) $arg(6))
+         set catlist $(catlist) $(cat) $(cent)
+      end
+      else
+      #---If this is a delete, don't write the category, and remove the entries
+         if $not_empty($form(delete))
+            eval $set_user_data($userid() mark_$(cat) )
+         end
+         else
+      #---Write the changes to the category list
+            set catlist $(catlist) $(name) $(center)
+            #---and change the name of the entry list, if appropriate.
+            if $not_equal($(cat) $(name))
+               eval $set_user_data($userid() mark_$(name) \
+                        $user_data($userid() mark_$(cat)) )
+               eval $set_user_data($userid() mark_$(cat) )
+            end
+         end 
+      end
+   end
+   eval $set_user_data($userid() mark_categories $(catlist))
+
+end
+
+set caller $page_caller (1 $arg(2))
+"%location($page_return ($arg(2) # notebook.cml?$(nch)+$(caller)+\
+           $arg(3)+$arg(4)+$arg(5)+x+$arg(7)+$arg(8)#here))
+#--------------------------------------------------------

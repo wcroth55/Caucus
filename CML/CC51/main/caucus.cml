@@ -1,0 +1,107 @@
+#
+#---CAUCUS.CML.   Entry point for URLs of the forms:
+#
+#   http://hostname/caucus
+#   http://hostname/caucus/@XYZ
+#
+#   http://hostname/caucus/conference_name
+#   http://hostname/caucus/@XYZ/conference_name
+#
+#   http://hostname/caucus/conference_name/item_num
+#   http://hostname/caucus/@XYZ/conference_name/item_num
+#           (if item_num = 'new', starts reading all new material)
+#
+#   http://hostname/caucus/conference_name/item_num/resp_num
+#   http://hostname/caucus/@XYZ/conference_name/item_num/resp_num
+#
+#   The optional "@XYZ" part of the URL means, go to the
+#   appropriate page, using interface directory "XYZ".
+#
+#   The path_info part is passed (via our start.cgi script) as
+#   $arg(1).
+#
+#   Notes:
+#      1. If XYZ does not exist, generates nasty message on user's browser.
+#   
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/13/01 allow "resp_num" to be 'last'.  Based on Gabor's work.
+#: CR 02/17/02 Add @XYZ option.
+#: CR 02/22/02 adapted to overrideable interface directories.
+#: CR 06/25/02 rewrite to allow webserver or cookie authentication.
+#: CR 12/29/03 Allow "http://hostname/caucus/conference_name/new" syntax.
+#: CR 05/31/04 Set $co_priv() via include file.
+#-------------------------------------------------------------------------
+
+#---Pluck 'sweb' definition out of current page URL.
+set sweb $word (1 $replace(/ 32 $request_uri()))
+set nch  $unique()
+
+#---Replace path_info /'s and :'s with spaces, so we can parse pieces of URL.
+set path_info $replace (/ 32 $arg(1))
+set path_info $replace (: 32 $(path_info))
+
+#---Look for the "@interface" keyword, remove it from the path, and set
+#   the interface.  (Otherwise use $cml_dir() to get the default interface.)
+set iface $cml_dir()
+if $equal (@  $str_sub (0 1 $(path_info)))
+   set iface  $str_sub (1 1000 $word (1 $(path_info)))/main
+   set path_info $rest (2 $(path_info))
+end
+
+#---Build root of URLs we'll use to enter proper page with proper interface
+set url_root /$(sweb)/swebsock/$pid()
+
+#---No conference name ==> Caucus Center.
+set cname $word (1 $(path_info))
+if $or ($empty ($(cname))  $equal (x$arg(1) x0) )
+   set location $(url_root)/$(iface)/center.cml?$(nch)+0+x+x+x+x+x+x
+end
+
+#---Figure out conference number.  If not accessible, ==> Caucus Center.
+if $empty ($(location))
+   set cnum $word (1 $cl_list ($(cname)))
+   if $empty ($(cnum))
+      set location $(url_root)/$(iface)/center.cml?$(nch)+0+x+x+x+x+x+x
+   end
+end
+
+#---Figure out item number.  If none ==> conference home page.
+if $empty ($(location))
+   set inum   $word (2 $(path_info))
+   if $equal (x$(inum) xnew)
+      set location $(url_root)/$(iface)/anew.cml?$(nch)+0+$(cnum)+x+x+x+x+x
+   end
+   elif $empty ($(inum))
+      set location $(url_root)/$(iface)/confhome.cml?$(nch)+0+$(cnum)+x+x+x+x+x
+   end
+end
+
+#---Figure out response number.  If none, treat it as zero (start of item).
+if $empty ($(location))
+   set id   $item_id ($(cnum) $(inum))
+   set rnum $word (3 $(path_info))
+   set rnum $if ($empty($(rnum)) 0 $(rnum))
+   
+   #---Handle special case of "last" response.
+   if $equal($(rnum) last)
+      set rnum %item_lastresp($(id))
+   end
+
+   #---...and view the item.
+   set location $(url_root)/$(iface)/viewitem.cml?$(nch)+0+\
+                $(cnum)+$(id)+$(rnum)+x+x+x
+end
+
+#---Make sure we have a userid.  If not, try login.cml for cookie-based logins.
+if $empty ($userid())
+   "Location: $(url_root)/$(iface)/login.cml?$unique()
+   "
+end
+else
+   "Location: $(location)
+   "
+end
+#-----------------------------------------------------------------------

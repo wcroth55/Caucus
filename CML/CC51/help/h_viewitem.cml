@@ -1,0 +1,187 @@
+#
+#---H_VIEWITEM.I    Help about the "Item Page"
+#
+include $(help)/ht.i h_viewitem.cml $quote(Help on the Item Page)
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Item Page is the heart of the conference.&nbsp;
+"All the items of discussion, and all responses within
+"those items, appear on Item pages.&nbsp;  
+"Here too, you'll find a place to add your
+"own contributions to the ongoing discussion.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Then click on the title of the desired item.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"At the Item Page you can read all or part of an item, 
+"and the record of discussion contained in the responses to the item.&nbsp;
+"And here also you have the opportunity to enter your own response 
+"(or more than one)&#151;to add to the discussion, in other words.
+
+"<P>
+"The rest of this help page describes the different parts of
+"the Item Page in detail.
+
+"<OL>
+include $(help)/h_pagetop.i
+
+
+"<P><LI>
+   "<B>Navigation Buttons</B>:&nbsp;
+   "Below your name you may see a set of 
+   "navigation buttons.&nbsp;
+   "Caucus breaks up large items into separate pages of about
+   "25 responses; this makes the individual pages
+   "load much faster.
+   "<P>
+   "Use these buttons to move between the pages of
+   "a single item.&nbsp;
+   "See <A HREF="h_nav.cml">About the Navigation Buttons</A> 
+   "for more information.
+
+"<P><LI>
+   "<B>Item Text</B>:&nbsp;
+   "The actual content of the item and responses begins just below
+   "the conference information and navigation buttons.&nbsp;
+   "The item begins with some initial text, which usually describes
+   "the purpose of the item.&nbsp;
+   "It is followed by the individual responses from different people.
+   "<P>
+   "Here's an example response, from the <B>Demonstration</B> conference,
+   "item 4, response 1:
+
+   "<P><FORM NAME=helpform>
+   "<HR>
+   "<IMG $(src_edit) ALIGN=right>
+   "<B><INPUT TYPE=CHECKBOX> 4:1) <FONT COLOR=blue><U>$(old_tag)</U></FONT>
+   "07-MAR-99 8:22 <FONT COLOR=blue><U>Lisa Kimball</U></FONT></B>
+   "<BR CLEAR=all>
+   "I don't know the why's, mark, but it's true that different browsers
+   "interpret things slightly differently the same way that different
+   "computer screen types and other things make windows look 
+   "different...&nbsp;
+   "It's fun to look at the same page with different browsers to get
+   "a sense of how it will look to various people ...
+   "<HR></FORM>
+
+   "<P>
+   "Each response begins with an <B>header line</B>, which contains:
+   "<UL>
+      "<LI>a checkbox that you can use to perform a variety of actions
+      "    on this response.
+      "<LI>the item & response number, colored red if this response is 
+      "     new to you, green if you have already seen it
+      "    (See <A HREF="$(helpurl)/h_seenvs.cml">Seen vs. New</A> for
+      "    more information.)
+      "<LI>the date & time of the response
+      "<LI>the author's name (click on it for more information
+      "    about that person).
+      "<LI><B>Edit</B> button&#151;if you wrote this response, 
+      "    (or are an organizer) you can press <B>Edit</B>
+      "    to change the response.
+   "</UL>
+
+   "<P>
+   "Below the header line is the actual text of the response&#151;which
+   "may include much more than just plain text.&nbsp;
+   "In fact it can include any object or data that is compatible
+   "with the World-Wide-Web.
+
+   "<P>
+   "More responses follow in your window, one after another, 
+   "until you get to the
+   "bottom of the current page.&nbsp;
+   "If you see <IMG $(src_nextpg) ALIGN=middle>, 
+   "press it to go on to the next page's worth of responses.
+
+"<P><LI>
+   "<B>Act on checked responses</B>:&nbsp;
+   "At the end of each page of responses, you'll see the <A HREF=
+   ""$(helpurl)/h_acton.cml?x+x">Act on checked
+   "responses</A> link, which you can use to perform a variety of actions
+   "on responses that you have checked.
+
+"<P><LI>
+   "<B>Pass Button</B>:&nbsp;
+   "Immediately after the last response (i.e., the bottom of the
+   "last page of the item), you'll see something like:
+
+   "<CENTER>
+   "<B>On to Demonstration Home Page:</B>
+   "<IMG $(src_pass) ALIGN=absmiddle>
+   "</CENTER>
+
+   "<P>
+   "Press <B>Pass</B> if you have nothing to say or to add, i.e.
+   "if you wish to "pass".&nbsp;
+   "(You can always come back later and add a response, whenever
+   "you wish.)
+
+"<P><LI>
+   "<B>Response Box</B>:&nbsp;
+   "Unless an item has been <A HREF="$(helpurl)/h_frozen.cml">frozen</A>,
+   "you may add a response of your own.&nbsp; 
+   "Click in the big response box and start typing.&nbsp
+   "Caucus will automatically "wrap" the lines for you.&nbsp;
+   "You can edit your text with the Backspace or Delete keys,
+   "or use the mouse and the <B>Edit</B> menu at the top of your
+   "browser window.&nbsp;
+   "<P>
+   "See <A HREF="$(helpurl)/i_resp.cml">More about the Response Box</A>, which
+   "also describes the 'macros' you can use to write 
+   "responses with text formatting (bold, italics, etc.) and
+   "links (to other items, to images, and so on).
+   "<P>
+   "Write and edit your text until you are satisfied,
+   "and then press one of the <B>Post</B> buttons (see below).&nbsp;
+   "Start learning how to create responses by writing
+   "simple text responses.&nbsp;  
+   "Once you've mastered that, you'll find that there's lots
+   "<A HREF="$(helpurl)/h_itemcont.cml">More You Can Do</a> in your
+   "Caucus responses.&nbsp;  
+   "A Caucus response can include 
+   "absolutely anything that can be on a Web page.
+
+"<P><LI>
+   "<B>Post Buttons</B>:&nbsp;
+   "Once you are satisfied with what you've written,
+   "press one of the <B>Post</B> buttons to add your response to the item.
+   "<UL>
+   "<LI><B>Post + Go</B> goes on to the next item or Caucus page.
+   "<P>
+   "<LI><B>Post + View</B> displays your new response.&nbsp;
+   "If it doesn't look quite right, press the 
+   "<A HREF="$(helpurl)/h_edit.cml"><B>Edit</B> Button</A>, 
+   "and work in the text box again.
+   "</UL>
+
+"<P><LI>
+   "<B>Other Choices</B>:&nbsp;
+   "Below the text box are a few options which are useful
+   "from time to time. 
+   "<P>
+   "Box width arrows: Use these to widen or narrow the text box in which you 
+   "create your response.
+   "<P>
+   "Forget this item?: Click in the checkbox if this item is of no interest 
+   "to you, and it will be <A HREF="$(helpurl)/h_forget.cml">forgotten</A>&#151;
+   "you will not see it on item lists or be notified at the 
+   "$(center_name) or
+   "the $(cname) Home Page of new responses to the item.
+   "<P>
+   "<U>Who has seen this item?</U>: 
+   "Click on this link to find out which conference
+   "participants have seen the current Item, and how much of it
+   "they've read.
+"</OL>
+include $(help)/hb.i

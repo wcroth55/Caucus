@@ -1,0 +1,170 @@
+#
+#---PROFILES.CML.   Display Profiles
+#
+#   Display profile information, one row per person, about everyone on 
+#   the site.  Requires that the user_info field "noshow" be created
+#   (make it a checkbox, default is unchecked is "show me in the profiles").
+#
+#: CR 10/13/01 21:30 Adapted Gabor Por's mods to show time last on & last in
+#: CR 01/25/02 21:35 Added e-mail display
+#: CR 10/09/02 Use src_bullet.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: ER  5/20/03: New Profile Format
+#: CR 01/13/06: Rewrite for C5.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i profiles.cml
+end
+
+if $not_equal ($arg(3) x)
+   include $(main)/secure.i member $arg(3)
+end
+
+set nch   $unique()
+#set cnum  $arg(3)
+set cnum 0
+#set cname %displayed_conf_name ($(cnum))
+set cname Profiles
+
+set nxt   $page_save (1 profiles.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Profiles)
+
+include $(main)/head.i $arg(3)  $quote($(cname) Membership List)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#include $(main)/header.i  members   Members
+#include $(main)/header.i     profiles Profiles 
+
+"<a NAME="top"><img $(src_clear) width=1 height=1></a>
+ include $(main)/headtool.i $inc(1)
+
+   "<TABLE CELLSPACING=0 CELLPADDING=0 width="100%">
+   "<TR><TD ALIGN=left>
+   "<TABLE CELLSPACING=0 CELLPADDING=0>
+   "<TR><TD><IMG $(src_compass)>&nbsp;</TD>
+   "<TD>
+   "<FONT SIZE=-1><NOBR>
+   "<A HREF="center.cml?$(nch)+$(nxt)+x+x+x+x+x+x" %help(h_location)>
+   "$(center_name)</A> => Profiles
+   "</FONT></TD>
+   "</TABLE></TD>
+   "<TD>&nbsp;</TD>
+   "<TD width="30%" ALIGN=right VALIGN="middle">
+#   include $(main)/youare.i
+   "</TD>
+   "</TABLE>
+
+"<FORM METHOD=POST ACTION="rmpeople.cml?$(nch)+$(nxt)+\
+                  $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$(uid)">
+set access  %access($(cnum))
+set is_org  $and (  $(cnum)   $gt_equal($(access) $priv(organizer)) )
+
+
+"<h4>Click on a name for more information.&nbsp;
+"  %onnow_link(Click here to see who is online now.)&nbsp;
+"  Click on your name to update your profile.</h4>
+"<TABLE border=1 cellpadding=5 cellspacing=0 bordercolor=black>
+"<TR><td bgcolor="#714F69"></td>
+
+"    <TD bgcolor="#714F69"><font face=arial><b>Name</b> <br><small><i>(UserID)</i></small></TD>          
+"   <TD bgcolor="#714F69"><font face=arial><b>City, State</b></td>
+"    <TD bgcolor="#714F69"><font face=arial><b>E-mail</b></td>
+" <td bgcolor="#714F69"><font face=arial><b>Course Schedule</b></td>
+"   <TD bgcolor="#714F69"><font face=arial><b>Photo</b></font></td>    
+"   <TD bgcolor="#714F69"><font face=arial><b>Last On</b></font></td>    
+"</TR>
+
+set query SELECT userid uid, fname, lname, email, picture, laston \
+            FROM user_info WHERE active >= 10 \
+             AND (noshow IS NULL OR noshow!=1) \
+           ORDER BY lname, fname
+set h $sql_query_open ($(query))
+set count 0
+while $sql_query_row  ($(h))
+      "<tr>
+      "<TD>
+      if $(is_org)
+         "<INPUT TYPE=CHECKBOX NAME=rmpeople VALUE="$(uid)">&nbsp;
+      end
+      else
+         "<IMG $(src_bullet)>
+      end
+      "</TD>
+
+      "<TD><small><A HREF="javascript: pop_up('person', '$(uid)');" \%help(h_name)
+      "   >$(fname) $(lname)</a> ($(uid))</small></td>
+
+      # - display city/state
+      set city $user_info ($(uid) ur_city)
+      if $not_empty ($(city))
+         "<td><small> $(city)</small></td>
+      end
+      else
+         "<td>&nbsp; </td>
+      end
+
+      # - display email address
+      if $not_empty ($(email))
+         "<td><small><a href="mailto:$(email)">$(email)</a></small></td>
+      end
+      else
+         "<td>&nbsp;</td>
+      end
+
+      # - display course schedule
+      set schedule $user_info ($(uid) schedule)
+      if $not_empty ($(schedule))
+         "<td><small> $(schedule)</small></td>
+      end
+      else
+         "<td>&nbsp; </td>
+      end
+
+
+      #- display Photo
+      if $not_empty ($(picture))
+#        "<td><img src="$(http)://%strip_http($(picture))" alt="$(uid)" height=60></td> 
+         "<td><img src="/~$caucus_id()/LIB/PICTURES/$(picture)" 
+         "         alt="$(uid)" height=60></td>
+      end
+      else
+         "<td>&nbsp;</td>
+      end
+
+      #- display when last on
+      "<td><small>$(laston)</small></td>
+
+      set count $plus($(count) 1)
+
+end
+
+"</TABLE>
+
+" <blockquote>Total Members: $(count)</blockquote>
+
+
+
+if $(is_org)
+   "<P>
+   "<INPUT TYPE=SUBMIT NAME=submit VALUE="Remove">
+   " the checked
+   " people from the conference.
+   "<P>
+   "<UL>
+   " (Note: if you wish to prevent removed user(s) from re-joining,
+   "  you must specifically exclude them, from the
+   " <A HREF="custom_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                                       $arg(6)+$arg(7)+$arg(8)">Customize
+   " Users</A> page.)
+   "</UL>
+end
+"</FORM>
+
+include $(main)/trailer.i profiles Profiles
+
+"</BODY>
+"</HTML>

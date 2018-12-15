@@ -1,0 +1,83 @@
+#
+#---MAN_REGS.CML.   Show look of new user registration page 
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/21/00 14:06 Changes for toolbar field type "tb".
+#: CR 05/11/00 10:33 Many small usability improvements.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#---------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_regs.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_regs.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Show New User Registration)
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Show New User Registration)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_reg </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+   Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   Show New User Registration</A>
+
+
+"<P>
+"<BLOCKQUOTE>
+"This page displays approximately what your new user registration
+"page will look like.&nbsp;
+"Use it with the 
+"<A HREF="man_reg.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)+$arg(9)">Layout Page</A>
+" to refine the new user registration process.
+"<P>
+
+"<TABLE BORDER=1>
+"<TR><TD>
+
+set regerrs This is where any user errors (such as mismatched \
+     passwords or empty required fields) would appear.&nbsp; \
+     If no errors, then this box would not appear.
+
+#---Determine urcbase and urtbase depending on arg(8).
+set urcbase REG_$arg(8)_
+set urtbase REG_$arg(8)_t_
+
+"<FORM>
+#---reguser.i opens a TABLE
+include $(main)/reguser.i  $userid() 0
+"</TABLE>
+"</FORM>
+
+"</TD>
+"</TABLE>
+
+set regerrs
+
+"<P>
+"<B>Don't see something you added?</B>&nbsp;
+"Make sure the "Appears on R?" box is checked.
+"<P>
+"<A HREF="man_reg.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)+$arg(9)">Return to Layout Page</A>.
+"</BLOCKQUOTE>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

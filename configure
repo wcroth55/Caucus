@@ -1,0 +1,190 @@
+#!/bin/sh
+#
+#---configure    Prepare Caucus v5 for compilation.
+#
+#:CR 10/31/05 First official Caucus 5 release.
+#:CR 11/06/05 005.012: use openldap-2.3.11 for Solaris 10 compatibility.
+#:CR 11/23/05 007.014: add -lm (to get sqrt())
+#:CR 12/02/05 007.015: use mostly dynamic libraries, add --nosasl2, --nomd5.
+#:CR 12/09/05 007.016: Add -lcrypto if it's in /usr/lib.
+#:CR 01/27/06 013.024: Add MacOSX (Darwin).
+#:CR 03/05/11 Add -lssl for --nosasl2 case for SuSe, but be prepared to remove.
+#:CR 12/12/14 Add --otherlib for CentOS 7 compatibility.
+#----------------------------------------------------------------------------
+
+#======Step 0.  Parse command-line options.=============================
+if test "x$1" = "x--help"; then
+   echo "Options:"
+   echo "  --ltdl=path     full pathname of libltdl.a (libtool library)"
+   echo "  --nosasl2       use if make complains about not finding -lsasl2"
+   echo "  --nomd5         use if make complains about undefined reference to MD5"
+   echo "  --noldap        build w/o LDAP authentication options"
+   echo "  --mysqllib=path library path for MySQL, defaults to /usr/lib/mysql"
+   echo "  --mysqlinc=path include path for MySQL, defaults to /usr/include/mysql"
+   echo "  --otherlib=path add other libraries"
+   echo
+   exit
+fi
+
+
+here=`pwd`
+sasl2=1
+md5=1
+mysqllib="-L/usr/lib/mysql -lmysqlclient"
+mysqlinc=/usr/include/mysql
+openldap=openldap-2.3.11
+for x in $@; do
+   arg=`echo $x | tr "=" " " | (read a b; echo $a)`
+   val=`echo $x | tr "=" " " | (read a b; echo $b)`
+   if test "x$arg" = "x--ltdl";  then
+      ltdl=$val
+   elif test "x$arg" = "x--nosasl2"; then
+      sasl2=0
+   elif test "x$arg" = "x--nomd5"; then
+      md5=0
+   elif test "x$arg" = "x--mysqllib"; then
+      if echo "$val" | grep -e "\.a$" -e "\.so$" >/dev/null; then
+         mysqllib="$val"
+      else
+         mysqllib="-L$val -lmysqlclient"
+      fi
+   elif test "x$arg" = "x--mysqlinc"; then
+      mysqlinc=$val
+   elif test "x$arg" = "x--noldap"; then
+      openldap=""
+   elif test "x$arg" = "x--otherlib"; then
+      other="$other $val"
+   fi
+done
+
+
+#======Step 1.  Figure out what flavor of unix this is. ===============
+UNIX='SunOS ULTRIX HP-UX BSD/386 Linux Darwin'
+USYS1=`uname -s 2> /dev/null`
+USYS2=`uname -v 2> /dev/null`
+USYS3=`uname -m 2> /dev/null`
+USYS="$USYS1 $USYS2 $USYS3"
+
+unix=
+for i in $UNIX; do
+   for j in $USYS; do
+      if [ "$j" = "$i" ]; then
+         unix=$i
+      fi
+   done
+done
+
+if test "x$unix" = "x"; then
+   echo
+   echo "Cannot tell what flavor of unix this is..."
+   echo
+fi
+
+
+if test "x$openldap" != "x"; then
+   echo "#define DISABLED 0"    >CV2/sweb/caucusldap.h
+else
+   echo "#define DISABLED 1"    >CV2/sweb/caucusldap.h
+fi
+
+#======Step 2.  Try to determine libraries... =========================
+
+if test "x$unix" = "xSunOS"; then
+  echo "SQLLIBS=$mysqllib"                                                    >syms
+  if test "x$openldap" != "x"; then
+     echo "OTHERLIBS=$here/libs/lib/libldap.a $here/libs/lib/liblber.a $other -ldl" >>syms
+  fi
+  echo "OPTS=-lcrypt -lsocket -lnsl -lmd5 -lm -lz"                           >>syms
+
+elif test "x$unix" = "xDarwin"; then
+  echo "SQLLIBS=$mysqllib $ltdl"                                             >syms
+  echo "OTHERLIBS=$other \\"                                                >>syms
+  if test "x$openldap" != "x"; then
+     echo "   $here/libs/lib/libldap.a $here/libs/lib/liblber.a \\"         >>syms
+  fi
+  if test $sasl2 -gt 0; then
+     echo "   -lsasl2 -lssl \\"                                             >>syms
+  fi
+  echo "   -ldl -lm -lcrypto"                                               >>syms
+
+else
+  echo "SQLLIBS=$mysqllib $ltdl"                                             >syms
+  echo "OTHERLIBS=$other \\"                                                >>syms
+  if test "x$openldap" != "x"; then
+     echo "   $here/libs/lib/libldap.a $here/libs/lib/liblber.a \\"         >>syms
+  fi
+  if test $sasl2 -gt 0; then
+     echo "   -lsasl2 -lssl \\"                                             >>syms
+  else
+     echo "   -lssl \\"                                                     >>syms
+  fi
+
+  if test -f /usr/lib/libresolv.a; then
+     echo "  /usr/lib/libresolv.a  \\"                                      >>syms
+  fi
+
+  echo "   -ldl -lm "                                                       >>syms
+
+  if test -f /usr/lib/libcrypto.so; then
+     echo "OPTS=-lcrypt -lcrypto "                                          >>syms
+  else
+     echo "OPTS=-lcrypt  "                                                  >>syms
+  fi
+fi
+
+
+aix=0
+bsd=0
+dec=0
+fbs=0
+hpx=0
+irx=0
+lnx=0
+sol=0
+if test "x$unix" = "xLinux"; then
+   lnx=1
+elif test "x$unix" = "xSunOS"; then
+   sol=1
+elif test "x$unix" = "xDarwin"; then
+   fbs=1
+fi
+
+inc=CV2/include/systype.h
+echo "#define  NUT40 0"                                          >$inc
+echo "#define  WNT40 0"                                         >>$inc
+echo "#define  AIX41 $aix  /* IBM's  AIX 4.1 */ "               >>$inc
+echo "#define  BSD21 $bsd  /* BSDI's BSD 2.1 */ "               >>$inc
+echo "#define  DEC32 $dec  /* DEC Unix (OSF/1) v 3.2 */ "       >>$inc
+echo "#define  FBS22 $fbs  /* FreeBSD 2.2, also MacOS X 1.3 */" >>$inc
+echo "#define  HPXA9 $hpx  /* HP-UX A.9...*/ "                  >>$inc
+echo "#define  IRX53 $irx  /* Silicon Graphics IRIX 5.3 */ "    >>$inc
+echo "#define  SUN41 0   "                                      >>$inc
+echo "#define  SOL24 0   "                                      >>$inc
+echo "#define  SOL25 $sol "                                     >>$inc
+echo "#define  LNX12 $lnx "                                     >>$inc
+echo "#define  SYSMD5 $md5 "                                    >>$inc
+
+echo "#define  SYSV   AIX41 | DEC32 | IRX53 | SOL25"          >>$inc
+echo "#define  UNIX   SYSV  | BSD21 | HPXA9 | LNX12 | FBS22"  >>$inc
+
+mkdir  libs 2>/dev/null
+
+cat syms CV2/sweb/makefile.in >CV2/sweb/makefile
+
+#---Configure OpenLDAP.
+SWEBLIBS="."
+if test "x$openldap" != "x"; then
+   if test ! -f $openldap/Makefile; then
+      ln -s $openldap openldap
+      cd $openldap
+      ./configure --prefix=$here/libs --enable-slapd=no --enable-shared=no
+      make depend
+      cd $here
+   fi
+   SWEBLIBS=libs/lib/libldap.a
+fi
+
+
+(echo "SWEBLIBS=$SWEBLIBS";  echo "MYSQLINC=$mysqlinc"; cat makefile.in) >makefile
+
+#----------------------------------------------------------------------

@@ -1,0 +1,125 @@
+#
+#---MAN_MAILALLF.CML.   Forms-processing page for man_mailall.cml and
+#                       and cus_mailall.cml, send
+#                       e-mail to everyone (on site, in conf, in group).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/05/02 Add E-mail users option.
+#: CR 12/29/03 Standardize tmp files to "caucus.userid.function.pid".
+#: CR 05/11/04 For a conf, only mail to people allowed in the conf.
+#: CR 01/09/06 Rewrite for C5.
+#: CR 11/06/06 Fix: qOwner handles sending to user groups.
+#: CR 01/05/07 Fix: qOwner setting must handle $form(range) is empty.
+#: CR 03/27/10 Add support for attaching a file.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_mailall.cml
+end
+
+include $(main)/email_mimeload.i
+
+#---We create two temp files, one for the message text, one for
+#   the list of users, both with filenames based on our process id.
+
+set  pid $word (1 $replace (/ 32 $pid()))
+eval $output (/tmp/caucus.$caucus_id().mailall_txt.$(pid) 644)
+
+set boundary1 ------------\
+             %digit8($random(100000000))%digit8($random(100000000))\
+             %digit8($random(100000000))
+set boundary2 ------------\
+             %digit8($random(100000000))%digit8($random(100000000))\
+             %digit8($random(100000000))
+
+"Subject: $form(subject)
+
+if $not_empty ($form(upload))
+   "Content-Type: multipart/mixed;
+   " boundary="$(boundary1)"
+   "
+   "This is a multi-part message in MIME format.
+   "--$(boundary1)
+   "Content-Type: multipart/alternative;
+   " boundary="$(boundary2)"
+   "
+   "
+   "--$(boundary2)
+   "Content-Type: text/plain; charset=us-ascii; format=flowed
+   "$form(etext)
+   "
+   "--$(boundary2)--
+   "
+   include $(main)/virus_checker.i $form(upload) $(libname) virus_file
+   if $empty ($(virus_file))
+      set  attachment /tmp/$form(name.upload)
+      eval $copyfile ($form(upload) $(attachment) 644)
+
+      #---Figure out its extension, and from that, its mime-type.
+      set mtype  application/octet-stream
+      set dotpos $str_revdex (. $(attachment))
+      if $gt_equal ($(dotpos) 0)
+         set mext   $str_sub    ($plus ($(dotpos) 1) 1000 $(attachment))
+         set mpos   $tablefind ($(mext) $(mime_exts))
+         if $(mpos)
+            set mtype $word ($(mpos) $(mimetypes))
+         end
+      end
+      "--$(boundary1)
+      "Content-Type: $(mtype);
+      " name="$form(name.upload)"
+      "Content-Transfer-Encoding: base64
+      "Content-Disposition: inline;
+      " filename="$form(name.upload)"
+      "
+      "$encode64($(attachment))
+      "--$(boundary1)--
+      "
+      eval $delfile($(attachment))
+   end
+end
+else
+   "
+   "$form(etext)
+end
+
+eval $output()
+
+if $not_empty ($form(everyone))
+   set query1 SELECT userid FROM user_info \
+               WHERE (email != ''  AND  email IS NOT NULL) \
+                 AND active >= 10
+   set list $sql_query_select ($(query1))
+end
+
+elif 0$form(justme)
+   set list $userid()
+end
+
+else
+   set qOwner $if ($not_equal ($form(type) USER) $form(type) $form(range))
+   set query1 \
+       SELECT DISTINCT u.userid FROM user_info u, groups g \
+        WHERE u.userid = g.userid  \
+          AND g.owner='$(qOwner)'  AND  g.name='$form(name)'   \
+          AND g.access >= $priv(minimum)  AND  u.active >= 10 \
+          AND (u.email != ''  AND  u.email IS NOT NULL)
+   set list $sql_query_select ($(query1))
+end
+
+#---Write out the list of userids to send to.
+set list $replace (32 10 $(list))
+
+eval $write (/tmp/caucus.$caucus_id().mailall_lst.$(pid) $(list))
+
+#---Run the script that does the work of actually mailing things
+#   in the background.
+eval $xshell (0 0 1 \
+     $caucus_path()/SWEB/sweba $caucus_path()/SWEB/swebd.conf \
+     ENOTIFY51/main/mailall.cml $(pid) $userid())
+
+"Location: $(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x)
+"

@@ -1,0 +1,83 @@
+#
+#---attachConfCss.cml   Attach a CSS file for the conference.
+#
+# Copyright (C) 2011 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/24/11 New file.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i attachConfCss.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+#---Form processing
+if $not_empty($form(submit))
+   if $equal ($form(submit) Delete)
+      eval $delfile($caucus_path()/public_html/conf$arg(3).css)
+   end
+   else
+      include $(main)/virus_checker.i $form(upload) $form(name.upload) virus_file
+      if $empty ($(virus_file))
+         eval $copyfile ($form(upload) $caucus_path()/public_html/conf$arg(3).css)
+      end
+   end
+
+   set caller $page_caller (1 $arg(2))
+   "Location: $(mainurl)/$page_return ($(caller) # attachConfCss.cml?$(nch)+0+x+x+x+x+x+x)
+   "
+   quit
+end
+
+set nch  $unique()
+set nxt  $page_save (1 attachConfCss.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Attach Conference CSS)
+
+include $(main)/head.i $arg(3)  $quote(Attach Conference CSS)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i     attachConfCss  Attach Conference CSS
+
+
+"<p/>
+"  Each conference may have its own CSS file that overrides the
+"  general site CSS.&nbsp;
+"  From here, you can examine the existing CSS file (if any),
+"  delete it, 
+"  or upload a new one.
+
+"<form ENCTYPE="multipart/form-data" METHOD=POST
+"      ACTION="attachConfCss.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
+
+"<ul>
+if $exists($caucus_path()/public_html/conf$arg(3).css)
+
+   "<li>Examine the 
+   "  <a href="/~$caucus_id()/conf$arg(3).css" target="_blank">existing CSS file</a>.
+
+   "<p/>
+   "<li><input type="submit" name="submit" value="Delete"> 
+   " existing CSS file for this conference.
+end
+
+"<p/>
+"<li>Choose a new CSS file named:
+"<INPUT NAME="upload" TYPE="file">
+"<br>
+"<input type="submit" name="submit" VALUE="Upload" /> it.
+
+"</ul>
+
+"</form>
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------

@@ -1,0 +1,57 @@
+#
+#---H_CUS_MAILALL.CML    Help about "Organizer E-mail Users" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_cus_mailall.cml $quote(Help on Organizer: E-mail Users)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Organizer "E-mail Users" page provides a Caucus conference organizer
+"with the ability to send a brief e-mail to everyone in the conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From a conference home page, click on "Customize", and then 
+"on "E-mail all users".
+
+"<P>
+"<B>What is on the E-mail Users Page?</B><P>
+"<OL>
+
+"<LI>
+"Two radio buttons: "Just me" and "Everyone in this conference".&nbsp;
+"Click on <b>one</b> of these to select who the e-mail is going to.&nbsp;
+
+"<p>
+"You can choose "just me" to send the e-mail to yourself first; this
+"is a good way to see what the e-mail actually looks like before
+"really sending it to everyone.&nbsp;
+"(If it looks OK, just press your browser's BACK key and choose a
+"different checkbox or pull-down menu.)
+
+"<p>
+"<li>Subject box.&nbsp; Enter the subject of your e-mail here.&nbsp;
+"In the subject, make it clear this is a notice for members
+"of your Caucus conference on this site.
+
+"<p>
+"<li>Text box.&nbsp; Enter the text of your e-mail here.&nbsp;
+"Keep your message brief -- if there's a lot of detail, it might
+"be better to use the e-mail to point to a web page, 
+"or to an item in the conference,
+"that contains all the details.
+
+"<p>
+"<li>Send button.&nbsp;
+"Once you're ready, just press <b>Send</b>.&nbsp;
+"Definitely try sending the e-mail just to yourself first; there's
+"nothing like embarrassing yourself in front of hundreds of people
+"with simple typographical or grammatical errors.
+"</OL>
+
+"<p>
+include $(help)/hb.i

@@ -1,0 +1,15 @@
+
+body { font-family: arial;  font-size: 80%; }
+td   { font-family: arial;  font-size: 80%;  padding-right: 1em;  padding-left: 0.5em; }
+
+.counter  { font-family: arial;  font-size: 80%;  padding-right: 0;  padding-left: 0; }
+
+.row0 { background-color: #ddf; }
+.row1 {                         }
+
+.title { font-weight: bold;  font-size: 120%; }
+
+A:link           { text-decoration: none;       color: blue; }
+A:visited        { text-decoration: none;       color: blue; }
+A:visited:hover  { text-decoration: underline;  }
+A:link:hover     { text-decoration: underline;  }

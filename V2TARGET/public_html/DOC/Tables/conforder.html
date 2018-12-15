@@ -1,0 +1,43 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>conforder&nbsp;&nbsp;&nbsp;</span>Conference order override  
+<p/><b>Categories: </b>
+<a href='_Conferences.html'>Conferences</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+Each time a user overrides default (alpha) conference list order, an entry  is made here that overrides the sort order.&nbsp;  E.g. if conf XYZ is placed between A and B, it gets alpha='AL' or similar.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>cnum</td>
+<td>varchar(10) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>alpha</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td></td>
+</table>
+</body>
+</html>

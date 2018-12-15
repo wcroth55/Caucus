@@ -1,0 +1,369 @@
+<html>
+<head>
+<title>Conference Organizer's How To</title></head>
+
+<body BGCOLOR="#FFFFFF">
+
+<BLOCKQUOTE>
+<TABLE BORDER=0 WIDTH="90%" CELLSPACING=0 CELLPADDING=0>
+<TR VALIGN=top><TD><font size=+2>
+Caucus Conference Organizer <NOBR>"How To"</NOBR>
+</font><P>
+Last revised: 18 September 1999<p>
+</TD>
+<TD ALIGN=right><A HREF="http://software.caucus.com"
+    ><IMG SRC="GIF41/lcaucus0.gif" BORDER=0 WIDTH=144 HEIGHT=47></A></TD>
+</TABLE>
+<P>
+
+<b>1.	Introduction</b><p>
+<p>
+This "How To" guide describes the details of <b>how</b> a Caucus conference
+organizer administers a conference.&nbsp; For more general information about the
+<b>whys</b> of conference management, see the companion 
+<A HREF="organize.html">Guide for Conference Organizers</A>.
+
+<p>
+When the Caucus manager creates a conference, he or she also assigns
+someone to be the primary organizer -- the person in charge of the conference.
+Caucus gives this person special abilities.<p>
+<p>
+The primary organizer may in turn give other people these special abilities in
+order to share the power and responsibility of managing the conference.  <p>
+
+<p>
+<b>2.	Starting a Conference</b><p>
+<p>
+Conferences must be created by a Caucus manager, from the manager options
+page.&nbsp;
+The manager creates an empty conference with no items,
+a primary organizer, and an optional list of other organizers.
+<P>
+The manager may also chose to make the conference "closed" (no-one else
+may join until the organizer(s) decide what to do) or "open" (anyone may join,
+immediately).
+
+<p>
+Conference names may be up to 80 characters long,
+and may contain letters, numbers, blanks, underscores, dashes, or dots.&nbsp;
+(Underscores are treated as blanks).
+
+<p>
+A new conference has a
+default INTRODUCTION and GREETING.&nbsp;  (These terms are defined below.)  The
+organizer should join the new conference as soon as is convenient to prepare
+the conference for its participants.<p>
+
+<p>
+<b>3.	Customizing a Conference</b><p>
+<p>
+Caucus gives organizers of a conference special abilities to assist with
+setting up and maintaining a conference.&nbsp; Many of these abilities, such as
+controlling who can join a conference, are provided by the <b>customize</b>
+link in the conference home page.&nbsp;
+Only organizers can use this link.<p>
+<p>
+
+Pressing the customize link brings up a page with links for
+customizing:
+<P>
+<UL>
+<LI><B>Users</B> -- who they are and what they can do
+<P>
+<LI><B>Conference Information</B> -- information about the
+conference for others to see (such as the one-line conference
+description and the introduction for new would-be members).
+<P>
+<LI><B>Colors</B> -- for controlling the colors of pages and
+parts of pages for this conference
+<P>
+<LI><B>Home Page Options</B> -- to control precisely what appears
+on the conference home page.
+<P>
+<LI><B>E-mail Notification</B> -- control the e-mail notification feature
+</UL>
+
+<P>&nbsp;<P>
+<B>4. Customize users</B>
+<P>
+While each page is provided with on-line help and instructions,
+the <B>Users</B> page is important enough to warrant additional
+description.&nbsp;
+This is especially true since it's the first thing that new
+conference organizers will have to work with.
+
+<P>
+<B>Note:</B>&nbsp;
+it may be helpful to print out this page, and then keep it
+in hand while working with the customize pages in Caucus.
+
+<P>
+The first two parts of the <B>Users</B> page control
+<B>Conference Membership</B> and <B>User Capabilities</B>
+-- in other words, who can join the conference, and what they can
+do while they're there.)
+
+<A NAME="cususers"><P></A>
+<B>4.1 Conference Membership</B> <BR>
+This section contains four (or more)
+text boxes with a pull-down menu at the top of each box.&nbsp;
+Use the pull-down menus to select which kind of membership access
+people should have: 
+<P>
+<UL>
+<LI>organizer (can do anything, including control membership and edit
+    any item or response)
+<LI>include (regular membership)
+<LI>readonly (may view but can not add their own responses)
+<LI>exclude (no access).
+</UL>
+<P>
+Then, in the matching text box, type in the userids of the people.
+
+<P>
+<FORM>
+For example, in the membership section shown below, jsmith and bjones
+are included as regular members, and mrobin is an organizer.
+
+<TABLE>
+<TR><TD>&nbsp;&nbsp;</TD>
+<TD><SELECT><OPTION>include</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>jsmith
+bjones</TEXTAREA>&nbsp;</TD>
+<TD><SELECT><OPTION>organizer</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>mrobin</TEXTAREA></TD>
+<TD><SELECT><OPTION>(not used)</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9></TEXTAREA></TD>
+<TD><SELECT><OPTION>(not used)</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9></TEXTAREA></TD>
+</TABLE>
+
+<P>
+Entries in the text boxes may be specific userids, as shown above,
+or may combine text and a trailing "wild card" (an asterisk).&nbsp;
+For example an entry "csc*" means "all userids that begin with the 
+letters 'csc'".&nbsp;
+An entry of just "*" means all userids.
+<P>
+Thus, reading left to right in the membership section below, 
+everyone is included,
+<B>but</B> all userids beginning with "csc" get read-only permission,
+<B>except</B> for user "csc001" who is explicitly excluded from the conference
+altogether.&nbsp;
+Userid mrobin is an organizer.
+
+<TABLE>
+<TR><TD>&nbsp;&nbsp;</TD>
+<TD><SELECT><OPTION>include</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>*</TEXTAREA>&nbsp;</TD>
+<TD><SELECT><OPTION>readonly</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>csc*</TEXTAREA></TD>
+<TD><SELECT><OPTION>exclude</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>csc001</TEXTAREA></TD>
+<TD><SELECT><OPTION>organizer</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>mrobin</TEXTAREA></TD>
+</TABLE>
+
+<P>
+There's one more case to consider.&nbsp;
+Entries in the text boxes may also be references to "groups".&nbsp;
+A group is a collection of people (i.e., of userids) that has been
+created by a Caucus manager.
+<P>
+For example, if you had a group of staff people that were expected to
+participate in several conferences, the Caucus manager might use the
+Caucus manager menu to create a group called "staff", and in it place
+the userids of the staff members.&nbsp;
+Conference organizers could then reference the group, as shown below:
+
+<TABLE>
+<TR><TD>&nbsp;&nbsp;</TD>
+<TD><SELECT><OPTION>include</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9><staff</TEXTAREA>&nbsp;</TD>
+<TD><SELECT><OPTION>organizer</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9>mrobin
+jsmith</TEXTAREA></TD>
+<TD><SELECT><OPTION>(not used)</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9></TEXTAREA></TD>
+<TD><SELECT><OPTION>(not used)</SELECT><BR>
+    <TEXTAREA ROWS=5 COLS=9></TEXTAREA></TD>
+</TABLE>
+
+which includes everyone in the staff group, and makes mrobin and
+jsmith organizers.&nbsp;
+(The "&lt;" in front of "staff" means that staff is a group rather
+than a single userid.)&nbsp;
+<P>
+Note that there is a link right above the text boxes called
+<U><FONT COLOR=BLUE>User Groups on this system</FONT></U>
+that displays the groups that are available on this host.&nbsp;
+This may be helpful when setting up the membership in your
+conference.
+
+<P>
+<B>Warning</B>: the left-to-right order is important.&nbsp;
+Boxes to the right potentially override boxes to the left.&nbsp;
+Thus "include *" followed by "organizer jsmith" includes everyone
+but makes jsmith an organizer; whereas "organizer jsmith" followed by
+"include *" makes jsmith just an ordinary user!
+<P>
+Or in other words, when in doubt, list your organizers last.
+
+</FORM>
+
+<P>&nbsp;<P>
+<B>4.2 User Capabilities</B><BR>
+This section provides finer-grained control over what users
+can do in your conference.
+
+<P>
+<UL>
+<LI><B>Allow users to edit their responses?</B><BR>
+Use this pull-down menu to control when users may edit the text 
+of responses they wrote.&nbsp;
+Normally users may always edit their responses -- typically to clean
+up spelling, etc.&nbsp;
+In some circumstances, if there is a concern that users may "go back and 
+change history", you can restrict how long responses can be changed
+after they've been entered.
+
+<P>
+<LI><B>Allow users to add new items?</B><BR>
+When this box is checked, it means that any member may start a new
+item.&nbsp;
+When cleared, only organizers may start new items.
+<P>
+It's usually a good idea to allow anyone in the conference to start
+new items.&nbsp;
+Sometimes, if the conference is highly structured, or if the members
+are new to Caucus, it may be useful to turn this capability off
+at first.&nbsp;
+Then later, when the members have gotten used to the structure or
+to Caucus, you can turn it back on.
+
+<P>
+<LI><B>Allow item creator to Freeze, Delete, and Rename Item?</B><BR>
+Item creators have certain abilities to control the item as a whole.&nbsp;
+Normally they can freeze the item, rename it (change the title), or
+even completely delete the item and all of its responses.
+<P>
+If those abilities should be reserved to the organizers, clear this
+box.
+
+<P>
+<LI><B>Make the conference name visible to non-members?</B><BR>
+If checked, this means your conference can appear in the lists
+of conferences at the Caucus Center page -- even to someone who
+is not allowed to join your conference.
+
+<P>
+If cleared, your conference name will only appear to people who
+can join the conference.
+
+<P>
+<LI><B>Allow HTML text in items?</B><BR>
+When a user enters the text of a response into Caucus, they
+are offered several choices as to how to treat this text.&nbsp;
+One choice treats the text as "raw" HTML, so that any HTML
+codes in the text get interpreted as if they were part of
+a web page.
+<P>
+This can be a very powerful way to liven up the presentation
+of information, for users who either know HTML or can cut and paste
+from an HTML document.&nbsp;
+In rare cases, that same power can be abused to create annoyances,
+or to mess up the rest of the display of an item.&nbsp;
+Clearing this checkbox disallows the entry or display of HTML
+responses.&nbsp;
+(You may also wish to see the <B>Prohibted Tags</B> section, further
+down the <B>Customize Users</B> page.&nbsp;
+This provides a finer-grained control of HTML tags, and lets you
+prohibit only certain parts of HTML.)
+
+
+<P>
+<LI><B>Allow CML text in items?</B><BR>
+CML is the Caucus Markup Language; it extends HTML with a variety
+of Caucus-specific functions.&nbsp;
+Otherwise this question is similar to the previous one.&nbsp;
+(It is probably best to disallow this capability unless there is
+a specific need for it.)
+
+
+<P>
+<LI><B>Allow copying responses in (and into) this conference?</B><BR>
+At the bottom of each item, near the response box, is a link labelled
+<U><FONT COLOR=BLUE>Act on checked responses</FONT></U>.&nbsp;
+From this link, users may copy responses from one item to another, 
+or even from an item in another conference to an item in this
+conference.
+<P>
+Mostly this is very useful, especially to keep discussions "on track"
+by moving responses that are "drifting" to a new topic, to a new item
+of their own.&nbsp;
+It can also be used to archive or prune just the "important" responses 
+in a long discussion to a new "summary" item.
+<P>
+Sometimes, however, it is better if only the organizer has this power.&nbsp;
+So you can use this switch to turn off this ability for regular members.
+
+<P>
+<LI><B>Allow selected items to have anonymous responses?</B><BR>
+Sometimes it is useful to have truly anonymous discussions.&nbsp;
+Turning this switch "on" (checked) means that item creators have the
+choice of allowing anonymous <B>or</B> or the usual "signed" responses.&nbsp;
+The item creator or an organizer may switch the item back and forth
+between anonymous or "signed" (but anonymous responses always stay
+anonymous).
+
+<P>
+<LI><B>Allow members to set their own e-mail notification schedules?</B><BR>
+If e-mail notification of new material has been enabled for your
+conference, you will also see this choice.&nbsp;
+Normally you, the organizer, get to set the e-mail notification schedule
+(how often all members receive e-mail summarizing new material
+in the conference).
+<P>
+With this switch, you may also allow individual members to set their
+own notification schedules, which can override the schedule that
+you set up.
+
+</UL>
+
+
+<P>&nbsp;<P>
+<b>5.	Other Functions of the Organizer</b><p>
+<p>
+The primary responsibility of an organizer is to keep the conference running
+smoothly.&nbsp; The conference participants expect the organizer to answer
+questions, monitor the progress of the conference, assist in any communications
+difficulties, and in general help keep the conference well structured.<p>
+<p>
+As organizer, you may want to structure the first few items of the conference.
+For example, Item 1 could explain the intents and purposes of the conference,
+Item 2 could be a place to discuss questions about Caucus, and Item 3 could be
+reserved for special bulletins or other timely announcements, such as "Class
+registration begins tomorrow, June 17, at 8:30 am".<p>
+<p>
+The organizer also has the ability to change the text of any item or response
+in the conference, regardless of who entered it.&nbsp; This ability, however, should
+be used sparingly.&nbsp; A typical example would be helping a user make the text of
+his or her item more readable.&nbsp; If an interpersonal problem occurs in a
+discussion on the conference, as organizer you can intervene or even censor
+parts of the discussion.&nbsp; Fortunately, such problems are rare.<p>
+<p>
+To change the text of an item or response, simply click on the <b>edit</b>
+button next to that text.&nbsp; 
+Normally this button only appears next to responses
+that you wrote; but since you are an organizer, it appears next to all items
+and responses.
+<P>
+If your computer system hosts many different conferences with several
+organizers, you may want to start a conference specifically for organizers.
+This is a good way to share information and ideas about how to best set up and
+maintain a conference.<p>
+
+</BLOCKQUOTE>
+<HR>
+</body>
+</html>

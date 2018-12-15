@@ -1,0 +1,21 @@
+#
+#---myconfs2f.cml.  Evaluate form from old personal conference list page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i myconfs.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+set myconfs $replace(32 _ $form(myconfs))
+eval  $set_user_data ($userid() my_confs $(myconfs))
+include $(main)/sortconfs.i 
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))

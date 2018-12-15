@@ -1,0 +1,8 @@
+#
+#---timeout.cml   Do any needed cleanup if Caucus "times out".
+#
+#:CR 02/12/07 New file.
+#------------------------------------------------------------
+
+#---Log a "leftconf" event.
+include $(main)/leftconf.i x x

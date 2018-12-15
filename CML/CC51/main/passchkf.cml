@@ -1,0 +1,36 @@
+#
+#---PASSCHKF.CML.  Process result of PASSCHK.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/25/02 use $auth_pw() to save password.
+#-----------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i passchk.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+if $empty ($form(oldpw))
+   "%location($(mainurl)/passchk.cml?$(nch)+$arg(2)+x+3)
+   "
+   return
+end
+
+set success $pw_verify ($userid() $form(oldpw))
+
+if $not_equal ($(success) 0)
+   "%location($(mainurl)/passchk.cml?$(nch)+$arg(2)+x+$(success))
+   "
+   return
+end
+
+eval $auth_pw ($form(oldpw))
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#-----------------------------------------------------------

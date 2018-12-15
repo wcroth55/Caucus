@@ -1,0 +1,160 @@
+#
+#---H_CONFHOME.I.  Help about Conference Homepage
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_confhome.cml $quote(Help on Conference Home Page)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The conference home page is the place to look for detailed information 
+"about a particular conference.&nbsp;  
+"Everything you want to know about this conference <B>as a
+"whole</B> is located here.&nbsp;  The conference home page corresponds to 
+"the Conference A (or B, etc.) circle in the 
+"<A HREF="$(helpurl)/h_tutor2.cml?x+x">Caucus structure diagram</A>.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"The conference home page tells you what the conference is all
+"about, and gives you tools to view and create
+"information in the conference.&nbsp;  
+"<P>
+"The most important tool is the <B>Item Menu</B>; by choosing
+"different options, you can get different "views" or lists 
+"of the items within the conference.&nbsp;
+"You can also create new items.&nbsp;
+"The Item List and the Item Menu are described in detail below.
+
+"<P>
+"The rest of this help page describes the different parts of
+"the conference home page in detail.
+
+"<P><OL>
+include $(help)/h_pagetop.i
+
+if $equal (%access($(cnum)) 3)
+   "<P><LI>
+      "Since you are also an organizer of this conference, 
+      "below your name you will see a link to 
+      "<FONT COLOR=blue><U>customize</U></FONT> the conference.&nbsp;
+      "This allows you to change the properties and membership of
+      "the conference.
+   "</TD>
+end
+
+"<P><LI>
+  "Below the page title you will see the name of the primary
+  "<A HREF="$(helpurl)/h_organ.cml?x+x">organizer</A> of the conference.&nbsp;
+  "You can always click on a person's name to find about more
+  "about them.&nbsp;
+  "<P>
+  "Below the compass bar is a <B>greeting</B> from the organizer.&nbsp;
+  "It should tell you what the conference is about.&nbsp;  
+  "If it is absent, or is not descriptive, you can
+  "click on the organizer's name to send them a reminder about it.
+
+
+"<P><LI>
+   "Below the conference greeting are options for you to <FONT COLOR=blue><U>
+   "Create a new item,</U></FONT> which you can choose to create a new
+   "discussion topic in the conference, and read <FONT COLOR=blue><U>
+   "all the items,</U></FONT> which you can choose to read through all of
+   "the material in this conference from beginning to end.
+
+
+
+"<P><LI>
+   "The most prominent feature of this page is the <B>Item List</B>, which
+   "is usually set aside in a box with a contrasting background. At the top
+   "is the <B>Item Menu</B>, which you can use to control how the <B>Item List
+   "</B> displays information about the contents of this conference.<P>
+
+   "The menu option that is currently selected is the one that describes the
+   "current list of items.  Choose a different option and press the <B>Now</B>
+   "button to see a different list of items.
+   "(For the precise meaning of each option, see the
+   "<A HREF="h_imenu.cml">explanation of the Item Menu</A>.)<P>
+
+   "Typically, when you visit this page the "Items with new activity" option
+   "is selected. This is the default option, so you can easily review the
+   "new material when you visit this page. If you'd prefer to see a different
+   "list by default (for instance, all of the items, or just your own), choose
+   "an option from the Item Menu and press the <B>Every Time</B> button.
+ 
+
+"<P><LI>
+   "The rest of the <B>Item List</B> shows the titles and other
+   "information about the items you selected.&nbsp;
+   "There are five columns in the list: the item <B># (number)</B>, 
+   "the item <B>Title</B>, <B>Author</B>, "<B>New</B>" indicator, 
+   "and the <B>Last</B> response number.<P>
+
+   "Each column header (except New) is a link; if you click on the header 
+   "the page will be reloaded with the item list sorted by the column you
+   "chose. For instance, if you click on the <B>Title</B> header, the 
+   "items will be sorted alphabetically by title.<P>
+
+   "<P>
+   "<B># (number)</B>: Each item has a number.&nbsp;
+   "The numbers go up in sequence; as new items are created, 
+   "they get higher numbers.&nbsp;
+   "(Item numbers are not re-used.&nbsp; 
+   "If an item is deleted, the number is gone for good.) 
+   "If you have the ability to edit a particular item, you can click on
+   "its number to change or delete it.
+   "<P>
+   "Item numbers are useful when selecting a range of items with the
+   "<B>Item Menu</B>, when using the <B>Go to</B> button on the <A HREF=
+   "$(helpurl)/h_tool.cml>toolbar,</A> and when linking to particular items with 
+   "the special <A HREF="$(helpurl)/h_specurl.cml">Caucus URLs</A>.
+
+   "<P>
+   "<B>Title</B>: Each item has a title that should describe the
+   "purpose and content of the discussion in the item.&nbsp;
+   "The title is chosen by the person who created the item.&nbsp;
+   "Click on the title to go to the very beginning of the item.
+   "<P>
+   "You can use words from the title of an item to select specific items 
+   "when using the <B>Item Menu</B> or the <B>Go to</B> button.
+
+   "<P>
+   "<B>New</B>: Is there anything new in this item?&nbsp;
+   "<IMG $(src_isnew)> means the entire item is new (not seen by you).&nbsp;
+   "A number, such as <FONT COLOR=blue><U>5</U></FONT>, means there
+   "are 5 new responses to this item.&nbsp;
+   "Click on <IMG $(src_isnew)> or the number to see the new material.
+   
+   "<P>
+   "<B>Last</B>: the number of the last response in the item
+   "(same as the total number of responses).&nbsp;
+   "Click on this number to go to the very end of the item,
+   "where you can immediately add a response.
+
+"<P><LI>
+   "Below the list of items are options that allow you to mark items as 
+   "<B>seen</B> or <B>new</B>&#151; all at once or individually.&nbsp;
+   "(See the 
+   "<A HREF="$(helpurl)/h_seenvs.cml">explanation of "Seen vs. New"</A>.)&nbsp;
+   "If the organizer has enabled individual e-mail notification, 
+   "you will also see a link offering 
+   "<FONT COLOR=BLUE><U>E-mail notification</U></FONT> of new activity.&nbsp;
+   "This means you can get automatic e-mails sent to you on a regular
+   "schedule, reminding you about new activity in the conference.
+   "
+   "<P>
+
+"<P><LI>
+   "Below the box containing the item list is one final option. If nothing 
+   "in the conference is of interest to you, you can choose to 
+   "<B>resign</B>&#151;to no longer participate
+   "in the conference at all.
+
+"</UL>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

@@ -1,0 +1,28 @@
+#
+#---man_enf.cml   Handle form processing for sitewide email notification
+#                 (from man_en.cml)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/25/04 New file.
+#----------------------------------------------------------------------
+
+#---Set summary/detail, and list of hours.
+eval $set_site_data (0 - en_hours-$(iface) $form(hd))
+
+#---Set the list of days (weekly or monthly)
+if $form(wd)
+   eval $set_site_data (0 - en_dates-$(iface) 1 $form(wd))
+end
+else
+   eval $set_site_data (0 - en_dates-$(iface) 0 $form(md))
+end
+#eval $set_site_data (0 - en_loginurl_$(iface)  $form(en_loginurl))
+eval $set_site_data (0 - en_notetext_$(iface)  $form(en_text))
+eval $set_site_data (0 - en_subject_$(iface)   $form(en_subject))
+
+"%location($(mainurl)/manage.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x)
+
+#------------------------------------------------------------------

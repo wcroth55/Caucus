@@ -1,0 +1,128 @@
+#
+#---GOODBYE.CML.   Say goodbye.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/12/01 Added quiturl processing.
+#: CR 08/16/02 Handles cookie logouts.
+#: MH 10/16/02 delete "onnow" file
+#: CR 04/08/03 Add interface onto end of caucus.html file (last cookie choice)
+#: CR 05/28/03 Add $logevent().
+#: CR 01/25/05 Only "wipe" cookie if we were using auth_method == 2.
+#: CR 08/28/09 Wipe auth method 3 cookie as well.
+#------------------------------------------------------------------------
+
+include $(main)/leftconf.i x x
+
+eval $logevent (logout $(iface) $minus ($time() $(time_login)))
+eval $goodbye()
+
+eval $delfile($caucus_path()/MISC/ONNOW/$userid())
+
+#---Interface directory setting for quiturl gets first precedence.
+set quit_url $site_data (0 - if_$(iface)_quiturl)
+if $not_empty ($(quit_url))
+   if $not_equal ($str_index (http $(quit_url)) 0)
+      set quit_url http://$(quit_url)
+   end
+   "Location: $(quit_url)
+   if $tablefind ($auth_method() 2 3)
+      "$auth_cookie()
+   end
+   "
+   quit
+end
+
+#---Then all-interfaces setting from "Caucus switches".
+if $empty ($(goodbye_url))
+   set goodbye_url $site_data (0 - SWgoodbye_url)
+end
+if $not_empty ($(goodbye_url))
+   if $not_equal ($str_index (http $(goodbye_url)) 0)
+      set goodbye_url http://$(goodbye_url)
+   end
+   "Location: $(goodbye_url)
+   if $tablefind ($auth_method() 2 3)
+      "$auth_cookie()
+   end
+   "
+   quit
+end
+
+#---If not logged in yet, or using cookie authorization, don't need the 
+#   normal "goodbye" page -- go back to the original login page, 
+#   with the interface name appended.
+if $tablefind ($auth_method() 2 3)
+   set http $word (1 $(http) http)
+   if $not_equal ($(iface) CC44)
+      "Location: $(http)://$host()/~$caucus_id()/caucus.html?location=/@$(iface)
+   end
+   else
+      "Location: $(http)://$host()/~$caucus_id()/caucus.html
+   end
+   "$auth_cookie()
+   "
+   quit
+end
+
+#---Then finally the default "goodbye" page.
+"Content-type: text/html
+if $tablefind ($auth_method() 2 3)
+   "$auth_cookie()
+end
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Goodbye!</TITLE>
+"</HEAD>
+"
+"<BODY $(body_bg)>
+
+"<TABLE BORDER=3 width="100%" CELLPADDING=5>
+"<TR VALIGN=top>
+"<TD width="50%">
+   "<CENTER>
+   "<H1>Goodbye!</H1>
+   
+   "<P>
+      "Thanks for using Caucus.<BR>
+      if $equal ($word (1 $opsys()) nt)
+         "<A HREF="$(http)://$host()/~$caucus_id()/caucuswsl.htm">
+      end
+      else
+         "<A HREF="$(http)://$host()/~$caucus_id()/caucuswsl.html">
+      end
+      "Come back again soon.</A>
+   
+   set url $user_info($userid() homepage)
+   if $not_empty ($(url))
+      if $not_equal ($str_index (http $(url)) 0)
+         set url http://$(url)
+      end
+      "<P>
+      "Take me back to my 
+      "<A HREF="$(url)">home page</A>!
+   end
+   "</CENTER>
+"</TD>
+
+"<TD></TD>
+"<TD width="50%">
+   "<CENTER>
+   "<H1>Warning:</H1>
+   "</CENTER>
+   "<P>
+   "If you are using Caucus at a public station, please <B>QUIT</B>
+   "from your Web browser when you are finished.
+   
+   "<P>
+   "Otherwise the web browser may "remember" your user ID and password
+   "<B>for the next person</B>.
+"</TD>
+"</TABLE>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

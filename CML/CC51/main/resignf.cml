@@ -1,0 +1,26 @@
+#
+#---RESIGNF.CML.   Handle resignation from a conference.
+#
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#----------------------------------------------------------
+
+include $(main)/secure.i member $arg(3)
+
+set nch $unique()
+
+#---Answered "NO", go back to conf home page.
+if $equal ($form(submit) No)
+   "%location($(mainurl)/confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x)
+   "
+   return
+end
+
+#---Answered YES. 
+include $(main)/resign.i $arg(3) $userid()
+
+"%location($(mainurl)/center.cml?$(nch)+$(nxt)+x+x+x+x+x+x)
+#--------------------------------------------------------------------

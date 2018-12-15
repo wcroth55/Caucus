@@ -1,0 +1,48 @@
+#
+#---GOODBYE.CML.   Say goodbye.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/12/01 Added quiturl processing.
+#: CR 01/25/02 New version for REG41.
+#: CR 06/28/02 New version for CC44.
+#: CR 08/09/02 Complete rewrite for CC44/reg.
+#: CR 04/08/03 Add interface name to end of caucus.html URL.
+#------------------------------------------------------------------------
+
+eval $goodbye()
+
+if $empty($(http))
+   set http http
+end
+
+set quit_url $site_data (0 - if_$(iface)_quiturl)
+if $not_empty ($(quit_url))
+   if $not_equal ($str_index (http $(quit_url)) 0)
+      set quit_url http://$(quit_url)
+   end
+   "Location: $(quit_url)
+   "
+   quit
+end
+
+
+if $empty ($(goodbye_url))
+   set goodbye_url $site_data (0 - SWgoodbye_url)
+   if  $empty ($(goodbye_url))
+      set goodbye_url $(http)://$host()/~$caucus_id()/caucus.html
+      if $not_equal ($(iface) CC44)
+         set goodbye_url $(goodbye_url)?location=/@$(iface)
+      end
+   end
+end
+
+if $not_equal ($str_index (http $(goodbye_url)) 0)
+   set goodbye_url $(http)://$(goodbye_url)
+end
+"Location: $(goodbye_url)
+"
+
+#------------------------------------------------------------------------

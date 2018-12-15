@@ -1,0 +1,40 @@
+#
+#---H_MAN_SHUT.I    Help about "Manage: Shutdown Caucus" page
+#
+include $(help)/ht.i h_man_shut.cml $quote(Help on Manage: Shutdown Caucus)
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Shutdown page allows authorized managers to shut down and restart
+"the Caucus server. 
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Shutdown Caucus</U>.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"This page has two options:
+
+"<DL><DT><B>1.Shutdown Caucus Now.</B> 
+"<DD>This option will terminate the Caucus server process and <B>not</B>
+"restart it.  No one will be able to use Caucus until it is restarted from
+"the host machine.<P>
+
+"<DT><B>2.Shutdown Caucus, and Restart. </B>
+"<DD>This second option restarts the Caucus server, if possible, from the 
+"'$caucus_id()' userid.&nbsp;  <B>Warning!</B>  
+"If you normally start Caucus from "root", 
+"or from an 'rc' or equivalent file at system boot time, do <B>not</B> use this
+"option.  See your system manager for more information. <P>
+"</DL>
+
+include $(help)/hb.i

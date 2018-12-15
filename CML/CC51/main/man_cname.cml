@@ -1,0 +1,89 @@
+#
+#---MAN_CNAME.CML.   Manager renaming conference
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 10/04/05 C5 changes.
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_cname.cml
+end
+
+include $(main)/secure.i manage conferenceChange conferencePrivileges
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_cname.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Rename Conference )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Rename a Conference)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_cname  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+   Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   Rename Conference
+
+
+"<blockquote>
+"This page allows you to change the name of a conference.
+"<P><B>Warning!</B>&nbsp; Changing a conference name may confuse some of
+"its members.&nbsp;
+"If you are making a non-trivial name change, it's a good idea
+"to announce the change in advance to its members.
+"<P/>
+"Renaming is best done before a conference is publicized (if it was created
+"with an incorrect name) or after a conference is no longer being used (to 
+"preserve an old conference for archival purposes, for instance).
+
+"<p/>
+if $not_empty ($(bad_conf_name))
+   "<B>$(bad_conf_name)</B>
+   "<P>
+end
+
+"<form METHOD=POST 
+"      ACTION="man_cnamef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+"<TABLE>
+"<TR ALIGN=center>
+"<TD>Conference to Rename:</TD>
+"<TD>&nbsp;&nbsp;</TD>
+"<TD>New Name:</TD>
+
+"<TR>
+"<TD>
+"<SELECT NAME=cnum SIZE=1 >
+"<OPTION VALUE=0>(Select a conference)</OPTION>
+for cnum in $cl_list()
+  "<OPTION VALUE=$(cnum)>%displayed_conf_name ($(cnum))
+  "</OPTION>
+end
+"</SELECT>
+"</TD>
+
+"<TD></TD>
+"<TD><INPUT TYPE=TEXT NAME=newname SIZE=30 VALUE=""></TD>
+
+"<TR>
+#"<TD>&nbsp;&nbsp;</TD>
+"<TD><INPUT TYPE="submit" VALUE="Rename It!"></TD>
+"</TABLE>
+
+"</FORM>
+
+
+"</blockquote>
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------

@@ -1,0 +1,25 @@
+#
+#---ifaceConference.  Implementation of transfer for %ifaceConference()
+#
+#   arg(1)  interface
+#   arg(2)  cnum
+#   arg(3)  itemLabel  (or 0)
+#   arg(4)  rnum       (or 0)
+#
+#--------------------------------------------------------------
+
+set locationBase $(http)://$host()/$(sweb)/swebsock/$pid()/$arg(1)/main
+
+if   $equal ($arg(2) 0)
+   set locationRest center.cml?$(nch)+$(nxt)+x+x+x+x+x+x
+end
+elif $equal ($arg(3) 0)
+   set locationRest confhome.cml?$(nch)+$(nxt)+$arg(2)+x+x+x+x+x
+end
+else
+   set locationRest viewitem.cml?$(nch)+$(nxt)+$arg(2)+$item_id($arg(2) $arg(3))+$arg(4)+x+x+x#here
+end
+
+set mainurl
+"Location: $(locationBase)/$(locationRest)
+"

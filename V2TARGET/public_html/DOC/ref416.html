@@ -1,0 +1,285 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.16: Text Filters</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.16:&nbsp; Text Filters</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref415.html">PREV</A>]
+   [<A HREF="ref417.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+<DL>
+
+<P><DT><A NAME="t2hbr">$t2hbr(stuff)</A>
+<DD>
+Turns plain text <I>stuff</I> (which may contain newlines) into
+HTML.&nbsp;  It turns each newline into a &lt;BR&gt;.&nbsp;  It also turns
+each of the special characters &lt;, &quot;, and &gt; into their
+HTML special codes (unless escaped by a &quot;\&quot;).&nbsp;  Example:
+
+<PRE>
+  &quot; <B>$t2hbr(</B> $shell(cat mytext) <B>)</B>
+</PRE>
+
+displays the text of an ordinary file <I>mytext</I> as HTML.
+
+<P><DT><A NAME="cleanhtml">$cleanhtml(prohibit text)</A>
+<DD>
+&quot;Clean HTML&quot; filter.&nbsp;  Filters HTML fragment in <I>text</I>,
+according to the rules in the string named <I>prohibit</I>.&nbsp;  Provides
+a way to filter out certain HTML tags that you may not wish to
+be displayed in a response, such as applets, javascript, or even
+annoying tags such as &lt;BLINK&gt;.
+
+<P>
+Here are the sample contents of a <I>prohibit</I> string:
+
+<P>
+<UL>
+applet,prohibit,all&nbsp;&nbsp;   script,allow,all&nbsp;&nbsp;   
+blink,prohibit,tag
+</UL>
+
+<P>
+This means that everything between &lt;APPLET&gt; and &lt;/APPLET&gt;
+is ignored; that the &lt;SCRIPT&gt; tag is allowed, and the &lt;BLINK&gt;
+tag (but only the tag, not the text that follows it) is ignored.&nbsp;
+Normally if something is allowed it does not need to be in the
+list, but advanced uses of this feature can support lists of tags
+that can be individually allowed or prohibited at run time.
+
+<P>
+$cleanhtml() includes all of the safety features of $safehtml(),
+such as automatic tag closing and mismatched quote correction.
+
+<P><DT><A NAME="safehtml">$safehtml(prop stuff)</A>
+<DD>
+&quot;Safe HTML&quot; filter.&nbsp;  Obsolete form of $cleanhtml().&nbsp;
+Filters HTML fragment in text of <I>stuff</I>, making it &quot;safe&quot;
+to include in an existing HTML page.&nbsp;  Specifically, it removes
+the tags &lt;HTML&gt;, &lt;/HTML&gt;, &lt;HEAD&gt;, &lt;/HEAD&gt;,
+&lt;BODY&gt;, and &lt;/BODY&gt;.&nbsp;  It &quot;closes&quot; any open
+tags (such as &lt;B&gt;) that don't have a matching closing tag
+(such as &lt;/B&gt;).&nbsp;  It looks for mismatched quotes inside a
+tag, and adds an extra quote if necessary.&nbsp;  (For example, &lt;A
+HREF=&quot;junk&gt; becomes &lt;A HREF=&quot;junk&quot;&gt;.)
+
+<P>
+<I>Prop</I> is a number that controls certain properties of $safehtml().&nbsp;
+ It is the sum of a set of bitmasks (powers of 2); each bit controls
+a particular property.&nbsp;  The properties are:
+
+<P>
+<UL>
+  1 allow &lt;FORM&gt;s.&nbsp;   Otherwise &lt;FORM&gt; tags are removed,
+like &lt;BODY&gt;.
+</UL>
+
+<p/><DT><A NAME="email_wrapper">$email_wrapper(outgoing)</A>
+<DD>
+Put "magic" wrapper text <b>around</b> email text <i>outgoing</i>.&nbsp;
+This wrapper text makes it much easier for <a href="#email_extract">$email_extract()</a>
+to detect and remove text that originally came from Caucus, in a replied-to email.
+
+<p/><DT><A NAME="email_extract">$email_extract(incoming)</A>
+<DD>
+Extract just the new email text from <i>incoming</i> (explain more later).
+
+<P><DT><A NAME="rhtml">$rhtml(stuff)</A>
+<DD>
+Obsolete form of $safehtml(), without the Prop argument.&nbsp;  $rhtml(stuff)
+is equivalent to $safehtml(0 stuff).
+
+<P><DT><A NAME="t2html">$t2html(stuff)</A>
+<DD>
+Attempts an &quot;intelligent&quot; filtering of plain text stuff
+into HTML.&nbsp;  Blank lines become &lt;P&gt;'s.&nbsp;
+Parses and translates URL's into anchored links with the same names.&nbsp;
+(see $t2url().)
+
+<P><DT><A NAME="t2url">$t2url(stuff)</A>
+<DD>
+Translates URLs in <I>stuff</I> into anchored links (that pop up a
+new window) with the
+same names.&nbsp;  Both this function and $t2html() translate URLs that
+begin with any of the schemes http:/, gopher:/, telnet:/, ftp:/,
+or mailto:.
+
+<P><DT><A NAME="wrap2html">$wrap2html()</A>
+<DD>
+A more intelligent (than $t2html) filtering of plain text into
+HTML.&nbsp;  Acts as much as possible like a typical word-processor.&nbsp;
+Each single &quot;hard&quot; RETURN in the original text translates
+into a &lt;BR&gt;; multiple RETURNs become sequences of 
+&quot;&amp;nbsp;&lt;P&gt;&quot;.&nbsp;
+Groups of N spaces become N-1 &quot;&amp;nbsp;&quot;s plus a
+regular space.&nbsp;  A tab is treated as a group of 5 spaces.&nbsp;  
+Parses and translates URL's into anchored links.
+
+<P>
+<B>Special note:</B> All 3 functions also recognize and translate
+special &quot;caucus&quot; URLs of the form &quot;http:/caucus...&quot;,
+into a reference to a particular Caucus CML page on the current
+host (and with the current swebs subserver).&nbsp;  
+For example, &quot;http:/caucus&quot;
+becomes a reference to the Caucus Center page, i.e. center.cml,
+and &quot;http:/caucus/conf_name&quot; becomes a reference to
+confhome.cml for conference <I>conf_name</I>.&nbsp;  This is one of
+the <B>very</B> few instances in which the CML interpreter assumes
+knowledge of the names and arguments of the actual CML files.&nbsp;
+(Normally this would be a <B>bad</B> idea, but in this case the
+feature is so powerful and useful as to allow the exception.)
+
+<P><DT><A NAME="t2amp">$t2amp(stuff)</A>
+<DD>
+Translates all &quot;&amp;&quot;s in <I>stuff</I> 
+into &quot;&amp;amp;&quot;.&nbsp;
+Useful to &quot;pre-escape&quot; HTML code that is going to be
+&quot;unescaped&quot; when displayed by a browser.&nbsp;  
+(This pre-escaping
+is essential when using Caucus to edit a response containing HTML
+code.&nbsp;  Without it, any escaped HTML special sequences like 
+&quot;&amp;gt;&quot;
+would lose their meaning after one edit.)
+
+
+<P><DT><A NAME="t2esc">$t2esc(stuff)</A>
+<DD>
+Translates all instances of "&amp;", "&lt;", and "&gt;"
+in <I>stuff</I> into their HTML code equivalents 
+(<B>&amp;amp; &amp;lt;</B> and <B>&amp;gt;</B>).&nbsp;
+Useful to &quot;pre-escape&quot; HTML code that is going to be
+&quot;unescaped&quot; when displayed by a browser.&nbsp;  
+
+<P><DT><A NAME="xmlesc">$xmlesc(stuff)</A>
+<DD>
+Same as $t2esc, but <b>also</b> escapes ASCII characters
+with values > (octal) 176 into their entity equivalents.&nbsp;
+E.g. octal 177 = hex 8F, which becomes "&amp;#x8f;".&nbsp;
+As the name suggests, this encodes character data so that it
+may be used in XML.
+
+<P>
+<P><DT><A NAME="escquote">$escquote(text) </A>
+<DD>
+Translates all double-quotes in <I>text</I> to the HTML special
+sequence &quot;&amp;quot;&quot;.&nbsp;  This is primarily useful for
+placing text (that contains double-quotes) inside a double-quote-delimited
+field inside an HTML &lt;INPUT&gt; tag.
+
+<P>
+<P><DT><A NAME="escsingle">$escsingle(text) </A>
+<DD>
+Translates all single quotes in <I>text</I> to the sequence "\'".&nbsp;
+(Backslash single-quote).&nbsp;
+Also translates all newlines to the sequence "\n" and all
+returns to the sequence "\r".&nbsp;
+This is primarily useful for
+placing text (that contains single quotes) inside a single-quote
+delimited string -- a common need, especially inside javascript
+inside HTML inside CML.
+
+<P>
+<P><DT><A NAME="t2mail">$t2mail(address)</A>
+<DD>
+Attempts to translate <I>address</I> into a &quot;mailto:&quot;
+URL.&nbsp;  (For example, if <I>address</I> is &quot;joe@xyz.com&quot;,
+$t2mail() generates &quot;&lt;a 
+href=&quot;mailto:joe@xyz.com&quot;&gt;joe@xyz.com&lt;/A&gt;&quot;.)&nbsp;
+If <I>address</I> does not appear to be an e-mail address, it
+is passed through unchanged.
+
+<P><DT><A NAME="wraptext">$wraptext(width text) </A>
+<DD>
+Word-wraps <I>text</I> to <I>width</I> (single-width-character)
+columns by inserting newlines in the appropriate places.
+
+<P><DT><A NAME="mac_define">$mac_define(name text) </A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+Defines a CML macro <I>name</I> that expands to <I>text</I>.&nbsp;
+See the <A HREF="ref31.html">CML macros</A> chapter for more
+information.&nbsp;
+If <I>name</I> is already defined, the original definition is
+erased and replaced by the new one.&nbsp;
+
+<P><DT><A NAME="mac_expand">$mac_expand(text) </A>
+<DD>
+Expands any macro invocations in <I>text</I>.&nbsp;
+Evaluates to <I>text</I>, with the macro invocations replaced by
+the expansion of the macros.&nbsp;
+See the <A HREF="ref31.html">CML macros</A> chapter for more
+information.&nbsp;
+
+<P><DT><A NAME="eval">$eval(text) </A>
+<DD>
+Evaluates to nothing.&nbsp;
+The functional equivalent of the <A HREF="ref5.html#eval">eval</A> 
+directive.&nbsp;
+Particularly useful in macro definitions when some other function needs
+to be evaluated, but the result "thrown away".
+
+<P><DT><A NAME="unhtml">$unhtml(taglist text) </A>
+<DD>
+Evaluates to <i>text</i>, but with all HTML tags removed.&nbsp;
+Tags in <i>taglist</i> are replaced with newlines, all other tags
+are replaced with blanks.&nbsp;
+<i>Taglist</i> is a comma-separated list of tag names, e.g.
+"p,br,tr,ul,ol".
+
+<P><DT><A NAME="url_decode">$url_decode(text) </A>
+<DD>
+Evaluates to the decoded form of "url encoded" <i>text</i>.
+
+<P><DT><A NAME="h2url">$h2url(text)</A>
+<DD>
+Looks for URLs in <b>HTML</b> <i>text</i>, and where they are
+not part of existing &lt;A HREF...&gt; tags, translates them
+into tags that link to those URLs.&nbsp;
+Evaluates to the thus-translated value of <i>text</i>.
+<p/>
+(This function is used, for example, to post-process the output
+from the Caucus "richtext" editor, to automatically "blue" URLs
+when needed.)
+
+<P><DT><A NAME="addtarget">$addtarget(text)</A>
+<DD>
+Looks for &lt;A HREF...&gt; tags in HTML <i>text</i>, and
+if the referenced URL is something viewable (as defined by 
+the New_Win_For parameter in the Caucus swebd.conf configuration
+file) and does not have an explict TARGET reference, adds a
+TARGET that opens a new window.&nbsp;
+Evaluates to the thus-translated value of <i>text</i>.
+<p/>
+(This is another function that was added to help post-process the
+output from the Caucus "richtext" editor.)
+
+<P><DT><A NAME="encode64">$encode64(filename)</A>
+<DD>
+Evaluates to the base64-encoded contents
+of <i>filename</i> (full pathname).&nbsp;
+Particularly useful for generating attachments to emails.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,45 @@
+#
+#---H_MYCONFS2.I   Help about "Personal Conference List" manual-edit page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_myconfs2.cml $quote(Help on manually editing \
+    the Personal Conference List)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"Your Personal Conference List is, as the name suggests, a list of
+"the conferences that are important to <B>you</B>.&nbsp;
+"Normally this list appears on the $(center_name) page, 
+"and shows a summary of how much new activity (items and responses
+"that you haven't read yet) has happened in each conference.
+
+"<P>
+"Generally, the first time that you join a conference, 
+"you're offered the option to add that conference to your
+"Personal Conference List.&nbsp;
+
+
+"<P>
+"<B>What Can I Do From Here?</B><P>
+"<P>
+"Use this page to change which conferences are on your Personal
+"Conference List, and how they appear.&nbsp;
+"Make changes by editing the text of the conference names in 
+"the text box.&nbsp;
+"Click in the box and type the names as you wish; you can also
+"use the Delete and Backspace keys, or the mouse and
+"the browser Edit/Cut or Edit/Paste buttons, to make your changes.
+
+"<P>
+"You can use this page to make fine-tuned changes to precisely how
+"you want your Personal Conference List to appear.&nbsp;
+"On the other hand, this page is harder to use, since <B>you</B>
+"have to make sure that you enter all of the conference names
+"exactly the way you want them.&nbsp;
+"Caucus does not do any checking for you.
+include $(help)/hb.i

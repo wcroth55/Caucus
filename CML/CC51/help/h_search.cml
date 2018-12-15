@@ -1,0 +1,135 @@
+#
+#---H_SEARCH.I    Help about "Search Page"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_search.cml $quote(Help on Search Page)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"<B></B>The Search Items Page is meant to help you find specific discussions
+"in the conferences that you read.&nbsp;
+"If you remember a word or words from the 
+"discussion, or the name of the author of a response, 
+"Search will help you locate 
+"the conversation you are looking for.&nbsp;  
+"Help is also available for the 
+"<a href="$(helpurl)/h_searchf.cml?x+x">Search Results Page</a>.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the <B>Search</B> icon.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<B></B>At the Search Page you can ask Caucus to look for
+"a word or words, or the name of an author, in
+"the items of the current conference.&nbsp;
+"If you clicked on Search from the $(center_name), or any other
+"page 'outside' a conference, you can search any or
+"all of the conferences in your personal conference list.&nbsp;
+"Simply answer the questions on the 
+"page, press a button at the bottom of the page, and the search will begin.
+
+include $(help)/h_pagetop.i
+
+"<P>
+"The rest of this page describes in detail how to use the search page.
+
+"<P><OL>
+"<LI>
+   "<B>Choose Keyword search or Author search.</B>&nbsp;
+   "You can search for a word or words, <B>or</B> for an item
+   "or response written by a particular person -- not both at
+   "the same time.
+
+   "<P>If you chose <B>Keyword search:</B>
+   "<OL TYPE="a">
+   "<LI>Type the word or words in the text box.
+   "<P>
+   "<LI>If you typed more than one word, choose either <B>all</B> of
+   "the words (a 'boolean and' search -- the response must contain
+   "all of the words), or <B>any</B> of the words (a 'boolean or'
+   "search -- the response need only contain one of the words).
+   "<P>
+   "<LI>Decide what counts as a match against your words.&nbsp;
+   "<B>Beginning</B> of a word means "cro" would match "crow" or
+   "crops".&nbsp;  <B>Anywhere</B> means "cro" would also match
+   ""across".
+   "</OL>
+
+   "<P>If you chose <B>Author search</B>:
+   "<OL TYPE="a">
+   "<LI>Type one word in the box; either a first name, last name, or 
+   "a userid.&nbsp;  Names match from the beginning, so if you type
+   ""frank", it will match anyone named "frank", "frankenstein", etc.
+   "<P>
+   "<LI>Choose either <B>userid</B> or <B>part</B> of a person's
+   "real name, whichever you intended to type in <B>a</B>, above.
+   "</OL>
+
+"<P><LI>
+   "<B>How should the results be displayed?</B>&nbsp;
+   "<P>
+   "<OL TYPE="a">
+   "<LI><B>Tell Caucus how many "hits" to display.</B>&nbsp;
+   "Each item or response that contains the word(s) you're looking for
+   "is called a "hit".&nbsp;
+   "This choice controls how many "hits" to show on one page.&nbsp;
+   "(If there are more hits than this, Caucus breaks up the results into
+   "separate pages.)&nbsp;
+   "Typically you can just leave this number as it is.
+   "<P>
+   "Note that where possible, Caucus only displays the part of the item or 
+   "response immediately around the match&#151;not the whole response.
+   "<P>
+   "<LI><B>Display part of the response text with each hit?</B>&nbsp;
+   "Normally this should be checked -- since the whole point of a search
+   "is to <B>find</B> something, you can't tell if you've found it
+   "until you see it!&nbsp;
+   "You might want to clear this box, for example, if you were doing
+   "something unusual like using Search to count the number of responses by
+   "a particular person.&nbsp; In that case you wouldn't need or want to
+   "see what they said.
+   "</OL>
+
+
+"<P><LI>
+   "<B>Where do you want to search?</B>&nbsp;
+   "What items (or conferences) do you want to search?
+
+   "<P>
+   "<OL TYPE="a">
+   "<LI>If you started your search from the $(center_name), 
+   "you'll be offered a list of conferences to search.&nbsp;
+   "Click on the conferences that you want to search.&nbsp;
+   "(On some computers you may need to shift-click or control-click
+   "to highlight more than one conference name.)
+   "<P>
+   "If you started your search inside a conference, Caucus only
+   "searches the current conference.&nbsp; (So you won't see the
+   "list of conferences at all.)
+   
+   "<P>
+   "<LI>At the bottom of the page is an
+   "<A HREF="$(helpurl)/h_imenu.cml">Item Menu</A>.&nbsp;
+   "Choose a particular option to search <B>those</B> items.
+   "<P>
+   "The most common choice is <B>All Items</B>; this searches the entire
+   "conference.&nbsp;
+   "If you have an idea where the word(s) are that you're looking for,
+   "you can use the menu to speed up (or narrow) your search.&nbsp;
+
+   "</OL>
+
+   "<P>
+   "<LI><B>Press Begin!</B>&nbsp;
+   "This starts the actual search process.&nbsp;
+   "Usually you will see some results pretty quickly, although it may
+   "take a while to see all of the results (or the results may be
+   "broken across multiple pages.)
+"</UL>
+include $(help)/hb.i

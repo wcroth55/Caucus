@@ -1,0 +1,105 @@
+#0 roth 1 01-FEB-96  12:56 Charles Roth
++3 66 1674
++4 3
+ Introduction to Caucus: Conferences, Items, & Responses.
+ <blockquote>
+ When you begin using Caucus, it is important to keep in mind
+ how Caucus is structured.&nbsp;  This item explains the terms:
+ </blockquote>
+ 
+ <P>
+ <UL><TABLE>
+    <TR><TD></TD>      <TD><B>conference</B></TD>
+ 
+    <TR><TD></TD>      <TD><B>item</B></TD>
+ 
+    <TR><TD><i>and</i> </TD>  <TD><B>response</B></TD>
+ </TABLE></UL>
+ <P>
+ <blockquote>
+ 
+ In the basic structure of Caucus, group discussions take
+ place inside what are known as "conferences".&nbsp;    A
+ single Caucus host computer -- typically a Web server on an
+ Intranet or
+ at an Internet Web site -- will usually be the home for many
+ different
+ conferences.
+ <P>
+ 
+ Conferences can either be "open" to anyone having access to the
+ Caucus host Web site, or "private" (reserved for exclusive
+ use by a particular group).
+ 
+ <P>
+ A computer conference consists of many separate discussions,
+ called <B>items</B>.&nbsp;    Each item has two parts: the item text,
+ and the responses to it.
+ 
+ <P>
+ <UL>
+ <LI>
+ The item <B>text</B> is what someone enters to begin a new
+ Caucus discussion.
+ 
+ <P>
+ <LI>
+ The <B>responses</B>, which are appended to an item, consist of
+ the comments (or questions) added by other persons in response
+ to the item.
+ </UL>
+ 
+ <P>
+ Here is a diagram of this basic structure of a Caucus
+ conference.
+ 
+ <P>
+ %libimg2(roth 1 dstruct.gif)
+ <P>
+ (More responses are added to items over time, and new items can
+ also be started.)
+ 
+ <P>
+ What you are reading right now is the text for <B>Item 2</B>
+ in this conference.&nbsp;
+ When you look at an item, Caucus first shows you the text of
+ that item, followed by the responses.&nbsp;    Once you've seen the
+ responses, you will have the chance to add your own response.
+ </blockquote>
+ 
+ 
+#0001 roth 0 03-FEB-96 23:42 Charles Roth
++3 27 742
++4 2
+ <blockquote>
+ What you are reading right now is a <B>response</B> -- and
+ you'll notice that it starts with a line that shows
+ 
+ <UL>
+ <LI> its number (in this case, <B>2:1</B>
+ since this is the first response to item number 2),
+ <P>
+ <LI>
+ then the date and time the response was entered,
+ <P>
+ <LI>
+ and then the name of the author (which is automatically added).&nbsp;
+ The name is a link, which you can click on to learn more about
+ the person.
+ <P>
+ 
+ </UL>
+ 
+ <P>
+ Next comes the <b>text</b> of the response; that is what you
+ are reading right now.&nbsp;   It can contain ordinary text, or a
+ mixture of text and <B>HTML</B>.&nbsp;   We'll learn more about
+ putting graphics and other HTML data into a response a
+ little later in this demonstration conference.
+ </blockquote>
+ 
+#0002 roth 0 03-FEB-96 23:48 Charles Roth
++3 2 71
++4 2
+ Once again, click on <B>Pass</B> to continue on to the
+ next new item.

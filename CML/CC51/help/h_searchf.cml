@@ -1,0 +1,99 @@
+#
+#---H_SEARCHF.I   Help about Search Results Page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_searchf.cml $quote(Help on Search Results)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Search Results Page displays the results of your search for a 
+"word or words in the current conference.&nbsp;  
+"You initiated this search at the Search Page.&nbsp;  
+"Help is also available for the 
+"<A HREF="$(helpurl)/h_search.cml?x+x">Search Page</A>.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"From this page you can examine each found item or response,
+"and see the instances of the word(s) you searched for.&nbsp;  
+"You can also navigate from this page to any of the items or 
+"responses that were found as a result of your search.&nbsp;  
+
+"<P>
+"<B>What Is On The Search Results Page?</B><BR>
+"<P>
+
+include $(help)/h_pagetop.i
+
+"<P>
+"The rest of the page contains the results of your search.
+
+"<P>
+"<B>If Your Search Failed</B><BR>
+"If you see the message "<B>No matches were found</B>", 
+"it means that your search failed to find the word(s) you were looking for,
+"in the items and responses you asked to search.&nbsp;  
+
+"<P>
+"You may press the <B>Search</B> button (or your browser's <B>BACK</B>
+"button) to start a new search, with different words or choices.&nbsp;
+"It is also possible that the current conference
+"does not contain the information you are seeking.&nbsp;  
+"Perhaps it is in a different conference.
+
+"<P>
+"<B>If Your Search Succeeds</B><BR>
+"If your search was successful, you will see the items and
+"responses containing the words for which you searched.&nbsp;  
+"Only that part of the text containing your word(s) 
+"is shown.&nbsp;  
+"Your word(s) are displayed in bold, and
+"some context is provided in the form of surrounding phrases or 
+"sentences.&nbsp;  Each item or response is followed by a horizontal line.
+
+"<P>
+"Note that each item or response begins with the item or response
+"number.&nbsp;
+"This is always a live link&#151;click
+"on it to see the full item or response.&nbsp;
+"(You can return to the Search Results page by pressing 
+"your browser's <B>BACK</B> button.)
+
+"<P>
+"<B>Display Next 30 Hits</B><BR>
+"If Caucus found a lot of "hits", you may see the link
+"<U>Display next 30 hits</U> at the bottom of the page.&nbsp;
+"Press it to see the next page's worth of "hits" for
+"the words you are searching for.
+
+"<P>
+"<B>No More Hits</B><BR>
+"When you see the message "There are no more hits" at the bottom
+"of the page, your search is concluded.
+
+"<P>
+"<B>What If You Can't Find What You Want?</B><BR>
+"Sometimes you may find many hits with the word(s) you were
+"looking for, but haven't really found what you wanted.&nbsp;  
+"You can try again by pressing the <B>Search</B> button.&nbsp;
+"Consider:
+"<UL>
+"<LI>Expanding your search.&nbsp;
+   "If you selected a narrow set of items, try the <B>All Items</B> menu
+   "option to search the entire conference.
+   "<P>
+"<LI>Use a less restrictive set of words.&nbsp;
+   "Chose more words that might match, and chose to match on
+   "<B>any one</B> of the words.
+   "<P>
+"<LI>Search a different conference.&nbsp;
+   "Perhaps the discussion you are looking for is in another conference.&nbsp;
+   "Check the "list of all conferences on this host" on the
+   "<B>$(center_name)</B> page for possibly related conferences.
+"</UL>
+
+include $(help)/hb.i

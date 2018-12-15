@@ -1,0 +1,43 @@
+#
+#---cus_archivef.cml.    Handles (organizer) conference archiving.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/07/01 14:00 Add archive and delete options.
+#: CR 04/20/04 Call archivesql.i
+#---------------------------------------------------------------
+
+include $(main)/secure.i org $form(cnum)
+
+set nch $unique()
+
+include $(main)/archiveName.i archname $quote($form(archive))
+
+set cnum  $form(cnum)
+
+#---Complain if it exists already.
+if $empty($form(email))
+   if $or ($exists ($caucus_path()/ARCHIVE5/$(archname).tar.gz) \
+           $exists ($caucus_path()/ARCHIVE5/$(archname)))
+      "%location($(mainurl)/cus_archive.cml?\
+                $(nch)+$arg(2)+$arg(3)+x+x+x+3+$(archname))
+      quit
+   end
+end
+
+#---Archive the item text as .xml files, via a sweba script (so that we
+#   can redefine the attached-file macros to output xml instead of html).
+set rc $xshell (1 1 1 $caucus_path()/SWEB/sweba \
+    $caucus_path()/SWEB/swebd.conf $(iface)/main/archiver.cml \
+    $(cnum) $(archname) $form(email))
+
+set rc 0
+
+if $equal ($(rc) 0)
+   set result Archive <B>$form(archive)</B> successfully created.
+   "%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
+end
+
+#------------------------------------------------------

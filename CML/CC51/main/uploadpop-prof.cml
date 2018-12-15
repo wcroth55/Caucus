@@ -1,0 +1,173 @@
+#
+#---UPLOADPOP.CML   Upload a file to a response.
+#
+#   arg(3)   cnum
+#   arg(4)   inum
+#   arg(5)   rnum
+#   arg(6)   0=new text, 1=old text
+#   arg(7)   base for uploaded files
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/21/04 New file, based loosely on old upload.cml
+#: CR 10/13/04 Use CSS, slight wording changes.
+#: CR 12/16/04 Major rewrite, put file type choices on first pop-up page.
+#: CR 02/10/06 Add arg(7) for generic (not just item/resp) file uploads.
+#: CR 04/25/06 Add ability to upload multiple files.
+#: CR 04/10/11 Replace old Caucus upload with Xupload w progress meter.
+#------------------------------------------------------------------------
+
+set nch $unique()
+set upload_failed 0
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<link rel="stylesheet" type="text/css" href="/xupload.css">
+"<title>Attach a file to your $if ($arg(5) response item)</title>
+include $(main)/css.i 1
+"<script type="text/javascript" language="javascript">
+
+"var exts = ".*"; //Use this to accept all Extensions
+
+"function hideUploadMenu() {
+"   var menu = document.getElementById("uploadMenu");
+"   menu.style.display = 'none';
+"}
+
+"</script>
+"</head>
+
+"<body bgcolor="#FFFFFF">
+
+"<div id="uploadMenu">
+"<form id="myform" enctype="multipart/form-data" action="/reg/upload.cgi" 
+"      name="popform"  method="post" onSubmit="return StartUpload(this);">
+
+"<input type="hidden" id="pbmode" name="pbmode" value="4" />
+
+
+
+
+"<table cellspacing=0 cellpadding=0 border="0">
+"<tr valign="top">
+"<td></td>
+"<td colspan="4">
+"<DIV id="div1" style="margin-left: -2.3em;  border-style: none;">
+"   <div  id="upload_input">
+"     <nobr><b>&nbsp;1.&nbsp;</b>
+"        <input id="my_file_element" name="file_1" type="file" size="20" />
+"     </nobr>
+"   </div>
+"   <div id="files_list"></div>
+"</td>
+
+
+#<tr valign="middle"><td><b>1.&nbsp;</b></td>
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr valign="middle">
+"<td><b>&nbsp;2.&nbsp;</b></td>
+"<td colspan=5><table cellspacing=0 cellpadding=0 border=0>
+
+"   <tr valign="middle">
+"   <td>Display upload progress meter?&nbsp;</td>
+#   <td><Input type="checkbox" name="popup" id="popup" checked></td>
+"   <td><Input type="checkbox" checked onClick="flipCheckbox();"></td>
+"   <td style="font-size: 80%;">
+"      &nbsp;&nbsp;&nbsp;<i>(powered by 
+"      <a href="http://sibsoft.net/xupload.html" target="_blank">SibSoft's XUpload</a>)</i></td>
+"   </table>
+"</td>
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr>
+"<td align="left"><b>&nbsp;3.&nbsp;</b></td>
+"<td colspan=2>Show my attached file(s) as:</td>
+"<td></td>
+"<td colspan=2 ><input type="submit" name="submitter" value="Start Upload"></td>
+
+"<tr><td>&nbsp;</td>
+"<td colspan="5" class="vertSpacer" >
+"   <div style="position: relative;   width: 100%;">
+"      <iframe name="meter" width="100%" height="150" frameborder="0" id="meterFrame"
+"             class="uploadpopOverlay" style="visibility: hidden;"></iframe>
+"   </div>
+"</td>
+"<tr ><td></td>
+"<td><input type="radio" name="utype" value="link" checked>&nbsp;</td>
+"<td colspan="1">The filename(s) as links&nbsp;</td>
+
+"<td><input type="radio" name="utype" value="url">&nbsp;</td>
+"<td colspan=2>The full, absolute URL</td>
+
+#"<tr><td></td>
+#"<td><input type="radio" name="utype" value="url">&nbsp;</td>
+#"<td colspan=2>The full, absolute URL</td>
+
+#"<tr><td class="vertSpacer">&nbsp;</td><td></td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="img">&nbsp;</td>
+"<td colspan=1>Image(s)</td>
+
+#"<tr><td></td>
+"<td><input type="radio" name="utype" value="imgr">&nbsp;</td>
+"<td colspan=1>Right-justified Image(s)</td>
+
+if $not_empty ($config(convertDir))
+   "<tr><td></td>
+   "<td><input type="radio" name="utype" value="imgg">&nbsp;</td>
+   "<td colspan=4>A thumbnail image in a gallery
+   "       <input type="text" name="gwidth"  size="3" value="150"> x 
+   "       <input type="text" name="gheight" size="3" value="100"></td>
+end
+
+#"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="text">&nbsp;</td>
+"<td colspan=1>Plain text (.txt files only)</td>
+
+"<td><input type="radio" name="utype" value="html">&nbsp;</td>
+"<td colspan=1>HTML text (.html files only)</td>
+
+"<tr><td></td>
+"<td><input type="radio" name="utype" value="zip">&nbsp;</td>
+"<td colspan=1>An unzipped zip file (only one!)&nbsp;</td>
+#"<tr><td></td>
+"<td><input type="radio" name="utype" value="iframe">&nbsp;</td>
+"<td>In an iframe</td>
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td></td>
+"<td colspan=5>
+"<b>Note:</b> you can click Browse repeatedly to upload
+"as many files as you like.&nbsp;
+"<nobr>But you can only unzip</nobr> a single .zip file.
+"</td>
+"</table>
+"</DIV>
+"<input type="hidden" name="url_post" 
+"      value="$(mainurl)/xuploadpop-prof.cml?$unique()+x+$arg(3)+$arg(4)+$arg(5)" />
+"</form>
+
+"<iframe src="javascript:false;" name="xupload" style="position:absolute;left:-9999px;"></iframe>
+"</div>
+
+"<script type="text/javascript">
+#//Specify your form ID
+"var x_form_id = 'myform';
+"var x_mode = 1;
+"var x_tmpl_name = '';
+
+"function flipCheckbox() {
+"   var modeField = document.getElementById("pbmode");
+"   modeField.value = (modeField.value == '4' ? '6' : '4');
+"}
+"</script>
+"<script src="/xupload.js" type="text/javascript"></script>
+
+"</body>
+"</html>
+#------------------------------------------------------------------

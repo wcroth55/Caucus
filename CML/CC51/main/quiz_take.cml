@@ -1,0 +1,481 @@
+#
+#---quiz_take.cml.   Take a quiz.
+#
+#   arg(4) = itemid
+#   arg(9) = override userid
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/23/06 New file.
+#: CR 10/15/06 For scoring true/false, compare (only!) 1st letter of answers.
+#: CR 10/16/06 Try to automatically score answers of type "text".
+#: CR 10/25/06 seeAnswers: option to allow students to see correct answers.
+#: CR 06/25/07 Rewrite total score display (so it works!)
+#: CR 09/18/07 LEFT JOIN requires prior tables in ()s; use %reducedChars() to compare.
+#: CR 11/20/07 Handle viewing other people's scores.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_take.cml
+end
+ 
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set thisUser $userid()
+if $not_empty($arg(9))
+   set thisUser $arg(9)
+end
+
+set set_seen 0
+set title
+set seen
+set query \
+    SELECT q.qkey, q.userid, q.title, q.visible0, q.visible1, q.onepage, \
+           q.seeAnswers, s.seen, i.type \
+      FROM (quiz q, items i) \
+      LEFT JOIN resps_seen s \
+        ON (s.items_id = i.id  AND  s.userid='$(thisUser)') \
+     WHERE i.id=$arg(4) AND q.qkey = i.qkey
+
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+set isQuiz $equal($(type) quiz)
+set typeName    $if ($(isQuiz) quiz    survey)
+set problemName $if ($(isQuiz) problem question)
+
+set vi_cnum $arg(3)
+include $(main)/getNextPageTarget.i
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set showSaved 0
+
+#---Both Save and Submit-for-scoring should save answers.
+set saveButton   $equal (x$form(submit)          xSave)
+set submitButton $equal (x$word(1 $form(submit)) xSubmit)
+if $or ($(saveButton) $(submitButton))
+   set showSaved 1
+   eval $item_set_seen ($(cnum) $arg(4) $userid() 1)
+   set  set_seen 1
+   set prev 0
+   count anum 0 1000
+      if $empty ($form(pkey_$(anum)))
+         break
+      end
+      if $not_equal ($(prev) $form(pkey_$(anum)))
+         set q1 DELETE FROM quizscore \
+                 WHERE userid='$userid()' AND pkey=$form(pkey_$(anum))
+         set h1 $sql_query_open ($(q1))
+         eval   $sql_query_close($(h1))
+         set prev $form(pkey_$(anum))
+
+         #---Handle special radio form, only one per problem.
+         if $not_empty ($form(radio_$(prev)))
+            set q2 \
+             INSERT INTO quizscore (userid, qkey, pkey, akey, answer, status) \
+             VALUES ('$userid()', $(qkey), 0$(prev), 0$form(radio_$(prev)), \
+                     '1', 1)
+            set h2 $sql_query_open ($(q2))
+            eval   $sql_query_close($(h2))
+         end
+      end
+      if $not_empty ($form(ans_$(anum)))
+         set q3 \
+             INSERT INTO quizscore (userid, qkey, pkey, akey, answer, status) \
+             VALUES ('$userid()', $(qkey), $form(pkey_$(anum)), \
+                      $form(akey_$(anum)), '$escsingle($form(ans_$(anum)))', 1)
+         set h3 $sql_query_open ($(q3))
+         eval   $sql_query_close($(h3))
+      end
+   end
+end
+
+#---Submit-for-scoring actually does the submission as well, and
+#   marks the quiz as "scored".
+if $(submitButton)
+   eval $item_set_seen ($(cnum) $arg(4) $userid() 2)
+   set set_seen 1
+
+   set q1 \
+      SELECT a.akey, a.pkey, a.answer, a.points, a.type, s.answer sanswer \
+        FROM quizanswers a, quizscore s \
+       WHERE s.qkey=$(qkey) AND a.akey = s.akey AND s.userid='$userid()' \
+       ORDER BY a.pkey, a.akey
+   set h1 $sql_query_open ($(q1))
+   while  $sql_query_row  ($(h1))
+      set status 3
+      if $equal ($(type) tf)
+         set spoints $mult ($equal ($lower($str_sub(0 1 $(answer) ))   \
+                                    $lower($str_sub(0 1 $(sanswer))) ) \
+                                    $(points))
+      end
+      elif $tablefind ($(type) radio check)
+         set spoints $(points)
+      end
+      elif $equal ($(type) number)
+         set spoints $mult ($equal ($plus(0.00000 $(answer)) \
+                                    $plus(0.00000 $(sanswer))) $(points))
+      end
+      elif $equal ($(type) text)
+         set spoints $mult ($equal (%reducedChars($(answer)) %reducedChars($(sanswer))) \
+                                    $(points))
+      end
+      else
+         set spoints 0
+         set status  2
+      end
+      set q2 UPDATE quizscore SET points = $(spoints), status=$(status), \
+                                  submitted = now() \
+             WHERE  qkey=$(qkey) AND pkey=$(pkey) AND akey=$(akey) \
+               AND  userid='$userid()'
+      set h2 $sql_query_open ($(q2))
+      eval   $sql_query_close($(h2))
+   end
+   eval   $sql_query_close($(h1))
+
+end
+
+set nxt   $page_save (1 quiz_take.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $upper1($(typeName)):&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote($upper1($(typeName)): $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i      $(typeName)
+
+if $(showSaved)
+   "<script type="text/javascript" language="javascript">
+   "   alert ("Your answers have been saved.");
+   "</script>
+end
+
+#---Debugging output.
+if 0
+   set q1 \
+      SELECT a.akey, a.pkey, a.answer, a.points, a.type, s.answer sanswer, \
+             s.points spoints, s.qkey, s.status \
+        FROM quizanswers a, quizscore s \
+       WHERE s.qkey=$(qkey) AND a.akey = s.akey AND s.userid='$userid()' \
+       ORDER BY a.pkey, a.akey
+   set q1 \
+      SELECT a.akey, a.pkey, a.answer, a.points, a.type, s.answer sanswer, \
+             s.points spoints, s.status \
+        FROM quizanswers a \
+        LEFT JOIN quizscore s \
+          ON (s.qkey=$(qkey) AND a.akey = s.akey AND s.userid='$userid()') \
+       ORDER BY a.pkey, a.akey
+   set q1 \
+      SELECT a.akey, a.pkey, a.answer, a.points, a.type \
+        FROM quizanswers a, quizmap m \
+       WHERE m.qkey = $(qkey) AND a.pkey = m.pkey \
+         AND a.points > 0 \
+       ORDER BY m.pkey, a.akey
+   set sanswer
+   set spoints
+   set status
+   "q1='$(q1)'<br>
+   set h1 $sql_query_open($(q1))
+   "h1=$(h1)<br>
+   "Debugging:<br>
+   "form(submit)='$form(submit)'<br>
+   "<table border=1>
+   "<tr><td>qkey&nbsp;</td>
+   "<td>pkey&nbsp;</td> <td>akey&nbsp;</td> <td>answer&nbsp;</td>
+   "<td>points&nbsp;</td> <td>type&nbsp;</td> <td>sanswer&nbsp;</td>
+   "<td>spoints</td>
+   "<td>status</td>
+   while $sql_query_row ($(h1))
+      "<tr>
+      "<td>$(qkey)</td>
+      "<td>$(pkey)</td>
+      "<td>$(akey)</td>
+      "<td>$(answer)</td>
+      "<td>$(points)</td>
+      "<td>$(type)</td>
+      "<td>$(sanswer)</td>
+      "<td>$(spoints)</td>
+      "<td>$(status)</td>
+   end
+   eval $sql_query_close($(h1))
+   "</table>
+end
+   
+"<p/>
+"<ul>
+#"qkey=$(qkey)<br>
+"<table cellspacing=0 cellpadding=0 border=0>
+#"<tr><td>Owner:&nbsp;</td> <td>%person($(userid))</td>
+
+if $empty($(set_seen))
+   eval $item_set_seen ($(cnum) $arg(4) $userid() 0)
+   set set_seen 1
+end
+
+if $not_equal ($(thisUser) $userid())
+   "<tr><td colspan=3><b>Results for %person($(thisUser))</b></td>
+   "<tr><td>&nbsp;</td>
+end
+
+set visible0mdy %monthDayYear($(visible0))
+set visible1mdy %monthDayYear($(visible1))
+"<tr><td>$upper1($(typeName)) open:&nbsp;</td>
+"<td>
+"   $ifthen ($not_empty($(visible0mdy)) from $(visible0mdy)&nbsp;)
+"   $ifthen ($not_empty($(visible1mdy)) thru $(visible1mdy)&nbsp;)
+"</td>
+
+set is_org $gt_equal (%access($arg(3)) $priv(instructor))
+if $(is_org)
+   "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   "<td><a href="quiz.cml?$(nch)+$(nxt)+$(arglist)">Edit $upper1($(typeName))</A>&nbsp;</td>
+   "<td>| <a href="quiz_copy.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+    "   >Copy $(typeName)</a></td>
+end
+
+set breakouts $word (1 $site_data ($arg(3) - breakouts) 1)
+set allow_breakouts $or (      $equal($(breakouts) 1)  \
+                         $and ($equal($(breakouts) S) $(is_org)))
+
+if $(allow_breakouts)
+   "<td>&nbsp;| <a href="#" onClick="pop_up('break', '$arg(4)+0'); \
+                            return false;">Breakout</a></td>
+end
+
+"</table>
+
+"<p/>
+"<form name="take" method="post" onSubmit="return verify();"
+"      action="quiz_take.cml?$(nch)+$(nxt)+$(arglist)">
+
+set visible 1
+
+if $not_empty($(visible0mdy))
+   if $less ($time() %epochOfyyyy($(visible0)))
+      set visible 0
+   end
+end
+if $not_empty($(visible1mdy))
+   if $greater ($time() %epochOfyyyy($(visible1)))
+      set visible 0
+   end
+end
+
+set q0 SELECT MIN(status) FROM quizscore \
+        WHERE userid='$(thisUser)' AND qkey=$(qkey)
+set statusMinimum $word (1 $sql_query_select($(q0)) 0)
+
+if $not($(set_seen))
+   eval $item_set_seen ($(cnum) $arg(4) $userid() $min(2 $(statusMinimum)))
+end
+
+#---Still taking test, or reviewing correct answers?
+set stillTaking $less ($(statusMinimum) 3)
+
+if $and ($not($(visible))  $less($(statusMinimum) 2))
+   "This $(typeName) is not currently visible.
+end
+
+#---Display individual problems, if
+#     (a) quiz is set for individual pages for each problem
+#  or (b) user has submitted for scoring, and see-answers is turned off.
+elif $or ($not(0$(onepage)) \
+          $and ($not($(seeAnswers)) $greater ($(statusMinimum) 1)))
+   "This $(typeName) has the individual $(problemName)s listed below:
+   "<p/>
+
+   set query \
+       SELECT p.pkey, p.title, p.totalpoints, MIN(s.status) statmin, \
+              SUM(s.points) stotal \
+         FROM (quizproblems p, quizmap m) \
+         LEFT JOIN quizscore s \
+           ON (s.pkey = p.pkey  AND s.userid='$(thisUser)') \
+        WHERE p.pkey=m.pkey AND m.qkey=$(qkey) AND p.deleted=0 \
+         GROUP BY p.pkey \
+         ORDER BY m.sortorder, p.pkey
+   set h $sql_query_open ($(query))
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr bgcolor="#E0E0FF"><td colspan=2>&nbsp;<b>Title:</b>&nbsp;&nbsp;&nbsp;</td> 
+   "<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   if $(isQuiz)
+      "<td colspan=2 align=right><b>Points</b></td>
+      "<td>&nbsp;&nbsp;&nbsp;</td>
+   end
+   "<td><b>Status</b>&nbsp;&nbsp;&nbsp;</td>
+   
+   set sumpoints   0
+   set sumtotal    0
+   set allProblemsAnswered 1
+   while $sql_query_row  ($(h))
+      set sumpoints $plus ($(sumpoints) $(stotal))
+      set sumtotal  $plus ($(sumtotal)  $(totalpoints))
+      "<tr valign=top><td>&nbsp;&nbsp;</td>
+#     if $greater (0$(statmax) 1)
+#        "<td>$(title)</td>
+#        "<td></td>
+#        "<td align=right>$(stotal)&nbsp;/</td>
+#        "<td align=right>$(totalpoints)</td>
+#     end
+      if $or ($less (0$(statmax) 2)  $(seeAnswers))
+         "<td><a href="quiz_takeprob.cml?$(nch)+$(nxt)+$(arglist)+$(pkey)+$(thisUser)"
+         "   >$(title)</a>&nbsp;&nbsp;</td>
+         "<td></td>
+         if $(isQuiz)
+            "<td colspan=2 align=right>$(totalpoints)</td>
+         end
+      end
+      else
+         "<td>$(title)</td>
+         "<td></td>
+         if $(isQuiz)
+            "<td align=right>$(stotal)&nbsp;/</td>
+            "<td align=right>$(totalpoints)</td>
+         end
+         "<td></td>
+      end
+      set scoredLabel $if ($(isQuiz) Scored Done)
+      "<td></td>
+      "<td>$word ($plus(1 $(statmin)) &nbsp; Saved  Pending  $(scoredLabel))</td>
+
+   end
+   eval  $sql_query_close($(h))
+
+   if $(isQuiz)
+      set problemsToAnswer $sizeof($sql_query_select(\
+           SELECT DISTINCT a.pkey FROM quizanswers a, quizmap m \
+           WHERE m.qkey = $(qkey) AND a.pkey = m.pkey AND a.points > 0))
+      
+      set problemsAnswered $sql_query_select(\
+          SELECT COUNT(*) FROM quizanswers a, quizscore s \
+           WHERE s.qkey=$(qkey) AND a.akey = s.akey AND s.userid='$(thisUser)')
+   
+      set allProblemsAnswered $gt_equal($(problemsAnswered) $(problemsToAnswer))
+   
+   #  "<tr><td colspan=2>2answer=$(problemsToAnswer)</td>
+   #  "<td colspan=2>answered=$(problemsAnswered)</td>
+      
+      "<tr><td colspan=3></td><td colspan=2><hr></td>
+      "<tr><td colspan=3></td>
+      if $greater ($(statusMinimum) 1)
+         "<td align=right>$(sumpoints)&nbsp;/</td> <td align=right>$(sumtotal)</td>
+      end
+      else
+         "<td colspan=2 align=right>$(sumtotal)</td>
+      end
+      "<tr><td>&nbsp;</td>
+      "<tr><td></td>
+   end
+   
+   "</table>
+end
+
+#---Otherwise, all the problems are displayed on one page
+#   (and if we've submitted, we're allowed to see the answers).
+else
+   "<p/>
+   set q1 SELECT m.pkey FROM quizmap m, quizproblems p \
+           WHERE m.qkey=$(qkey) AND m.pkey = p.pkey AND p.deleted=0 \
+           ORDER BY m.sortorder
+   set problems $unquote($sql_query_select ($(q1)))
+
+
+   set count -1
+   "<table border=0>
+   set pnum 0
+   set allProblemsAnswered 1
+   for pkey in $(problems)
+      "<tr><td>&nbsp;</td>
+      set pnum $plus($(pnum) 1)
+      include $(main)/quiz_takeprob.i $(qkey) $(pkey) $(pnum) $(thisUser)
+#     if $(noAnswerGiven)
+#        set allProblemsAnswered 0
+#     end
+      if $not($(allQuestionsAnswered))
+         set allProblemsAnswered 0
+      end
+   end
+   "</table>
+
+   if $(stillTaking)
+      #---Put up the "Save" button.
+      "<p/>
+      "<input type="submit" name="submit" value="Save"
+      "     onClick="document.take.callVerify.value='0';"> my answers.&nbsp;
+      "(You can come back and edit them later.)
+   end
+   else
+      #---Report on total score.
+      set q2 SELECT SUM(p.totalpoints) \
+               FROM quizproblems p, quizmap m \
+              WHERE p.pkey=m.pkey AND m.qkey=$(qkey) AND p.deleted=0
+      set sumTotal $sql_query_select($(q2))
+
+      set q1 SELECT SUM(s.points) \
+               FROM (quizproblems p, quizmap m) \
+               LEFT JOIN quizscore s \
+                 ON (s.pkey = p.pkey  AND s.userid='$(thisUser)') \
+              WHERE p.pkey=m.pkey AND m.qkey=$(qkey) AND p.deleted=0
+      set sumPoints $word(1 $sql_query_select ($(q1)) 0)
+
+      "<b>Total score = $(sumPoints) out of $(sumTotal) possible.</b>
+   end
+
+end
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0 width="80%">
+#if $and ($(stillTaking) $(allProblemsAnswered))
+if $and ($(stillTaking))
+   "<tr>
+   "<td>
+      set buttonLabel $if ($(isQuiz) scoring analysis)
+      "<input type="submit" name="submit" value="Submit for $(buttonLabel)"
+      "   onClick="document.take.callVerify.value='1';">&nbsp;
+      "<br>(Press this when you're sure you're done.)
+   "<td>
+   "<td width="20%">&nbsp;</td>
+end
+else
+   "<td width="50%">&nbsp;</td>
+end
+"<td>
+    include $(main)/passToNextPage.i
+"</td>
+"</table>
+
+include $(main)/showBreakoutLink.i $arg(3) $arg(4) 0 1
+
+"<input type="hidden" name="callVerify" value="1">
+"</form>
+
+"<script type="text/javascript" language="javascript">
+"function verify() {
+"  if (document.take.callVerify.value == '0')  return true;
+#  if $(allProblemsAnswered)
+"     return confirm ("Once you have submitted your $(problemName)s, you will not \n" +
+"                     "be able to change your answers. Continue?");
+#  end
+#   else
+#"     return confirm ("You have some unanswered $(problemName)s.\n" +
+#"                     "Continue anyway?");
+#   end
+"}
+"</script>
+
+
+"</ul>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

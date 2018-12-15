@@ -1,0 +1,525 @@
+#
+#---FILESAFE.CML     Display a specific file safe.
+#
+#   Invoked as:
+#      filesafe.cml ? nch nxt name
+#
+#   Argument (aka) what
+#      (1)    nch      unique # (defeat caching)
+#      (2)    nxt      saved page index of "calling" page
+#      (3)    cn       conf #                  (carried from caller)
+#      (4)    in       item #                  (ditto)
+#      (5)    rn       resp #                  (ditto)
+#      (6)    rs       starting resp # in page (ditto)
+#      (7)    ix       index into IL           ("x" to use value from last)
+#      (8)    il       name of list of items   ("x" if none)
+#      (9)    name     filesafe name
+#     (10)    section  scroll to this section
+#     (11)    sort     sort sections by (name, uid, date, desc, keyword)
+#
+#   Purpose:
+#
+#   How it works
+#      The interaction between forms and javascript on this page is
+#      pretty damn complicated!  Each section has two forms, and shares
+#      one global form:
+#      * one for deleting entries (files or urls), that contains
+#        the checkboxes and the Delete button
+#      * one for uploading a file (has text boxes for name, desc, keywords,
+#        1-char upload field, Browse button, and Add/update button)
+#
+#      The global form ('addlink') is used for adding URLs, or updating the
+#      desc/keywords of an already uploaded file.  Basically, the Add button 
+#      calls a function which decides if this is:
+#        (a) a file upload -- proceeds with submission
+#        (b) a URL entry   -- copies name, desc, keywords to form 'addlink',
+#            submits *it* instead
+#        (c) existing file update -- copies name, desc, keywords to 
+#            'addlink', submits it.
+#
+#      The form processing page, filesafef.cml, looks at the hidden
+#      field 'action' to decide what to do:
+#         delete
+#         addfile
+#         addlink
+#         update
+#
+#      One really complicated (but nice) trick lets us pretend to
+#      make the "File or URL" box work with both URLs and uploaded
+#      files.  Basically, when a user selects a file to upload with
+#      the Browse button, the filename gets put in the (almost invisible)
+#      upload field.  Every two seconds, function update_filenames()
+#      copies any change to the upload field *into* the File or Link
+#      box.
+#
+#      Another nice feature: clicking on a file or URL under the
+#      "Name" column (a) pops open a new page containing that file
+#      or URL, while (b) also autofilling-in the name, desc, and
+#      keyword boxes.  This makes it easy to update, say, the
+#      text of the desc or keywords -- click on the link, edit
+#      the boxes, then press Add/Update!
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/18/01 14:20 New file, based loosely on old FileVault.cml
+#: CR 10/23/01 13:10 Check for readonly privs; open new window for files
+#: BB 12/21/01 14:22 Change default fonts, table attributes
+#: CR 04/23/02 Add filesafe to CC44.
+#: CR 09/08/02 Non-manager with "file_manager" group perm can edit filesafe.
+#: CR 10/17/02 Massive rewriting, handles uploaded files OR urls!
+#: CR 01/25/03 Add $arg(11), allow for sorting by columns; add configurable hdr
+#: CR 03/12/04 Fix permission handling; treat all filesafe privs as *additive*!
+#: CR 04/20/04 Improve name handling, remove redundant "filesafe" in titles.
+#: CR 06/07/04 Fix bug in calculation of vnames (filesafe section list).
+#: CR 08/04/04 Raise maxlength of file description field to 2000 chars.
+#: CR 10/13/04 Add virus checking.
+#: CR 12/18/06 Check mgr_in_group for proper permission.
+#: CR 10/03/07 Sort by section *titles* (not internal names)
+#: CR 10/04/07 If Config showFilesafeDescriptionFirst not empty, do so.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 05/07/17 Don't use %makeLegal, it messes up names with % in them.
+#==========================================================================
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i filesafe.cml
+end
+
+#---Calculate and check access to this filesafe.
+if %mgr_in_group ($userid() filesafeManage)
+   set access $priv(organizer)
+end
+else
+   set access $group_access ($userid() Filesafe $arg(9))
+end
+if $less ($(access) $priv(readonly))
+   "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+   quit
+end
+
+#---Readonly flag forces normal users to readonly (weird historic feature).
+if $less ($(access) $priv(instructor))
+   if $not_empty ($site_data(0 - FReadonly_$arg(9)))
+      set access $priv(readonly)
+   end
+end
+
+include $(main)/requiredinfo.i
+
+#---Calculate "nicer name" for this page, i.e. don't call it
+#   "Filesafe:" if the filesafe already has the word "filesafe" in it.
+set location $(filesafe_name):&nbsp;$upper1($site_data (0 - FN_$arg(9)))
+if $gt_equal ($str_index ($lower($(filesafe_name)) \
+              $lower($site_data (0 - FN_$arg(9)))) 0)
+   set location $site_data (0 - FN_$arg(9))
+end
+
+set nch  $unique()
+set nxt  $page_save (1 filesafe.cml \
+         $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) # \
+                    $(location))
+set last_conf x
+set location $upper1 ($replace(_ 32 $(location)))
+
+include $(main)/head.i $arg(3)  $quote($(location))
+include $(main)/body.i $arg(3) onUnload="pop_close('all');" \
+                               onLoad="loadtime();"
+
+set pagename <span class="pageTitle">$(location)</span>
+
+include $(main)/header.i safe $(location)
+
+include $(main)/virus_warning.i
+
+set errtext $errors()
+if $not_empty ($(errtext))
+   "<FONT COLOR=RED>
+   "$t2hbr($(errtext))
+   "</FONT>
+   "<HR>
+end
+
+#---Determine the user's rights: read, update/add, or manage.
+set file_manager   $gt_equal ($(access) $priv(organizer))
+set _userCanUpdate $gt_equal ($(access) $priv(include))
+
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+
+#---Filesafe name.  Show title only if nonempty and different.
+
+"<tr>
+"<td><font face="Arial" size="4"><b>
+"$upper1 ($replace (_ 32 $arg(9))): 
+if $and ($not_empty ($site_data (0 - FN_$arg(9))) \
+         $not_equal ($quote($lower($replace(32 _ x$site_data(0 - FN_$arg(9))))) \
+                     $quote($lower(x$arg(9)))))
+   ""$site_data (0 - FN_$arg(9))"
+end
+"</b></font></td>
+
+#-----------------------------------------------------------
+"<td align=right>
+if %mgr_in_group ($userid() filesafeManage)
+   "You can 
+   "<A HREF=man_safe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)+$arg(9)>manage</A> this $lower($(filesafe_name)).
+end
+elif $(file_manager)
+   "You can 
+   "<A HREF=editsafe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(8)+$arg(9)>manage</A> this $lower($(filesafe_name)).
+end
+"</td>
+
+set tabindex 0
+set is_empty 1
+
+"</table>
+
+set header $site_data (0 - FH_$arg(9))
+set h1 $word (1 $(header))
+if $or ($empty ($(h1)) $equal (x$(h1) xnone))
+end
+elif $equal  ($(h1) t)
+   set h2 $rest (2 $(header))
+   "$cleanhtml(prohibited \
+        $protect($mac_expand($reval($cleanhtml(_empty $(h2)))) ))
+   "<BR CLEAR=ALL>
+end
+else
+   "%ifs_resp ($(h1) 0)
+end
+
+#-----------------------------------------------------------
+#"<script type="text/javascript" language="javascript">
+#"   confirm (window.outerWidth + ", " + window.outerHeight);
+#"</script>
+
+#---If the user can add/update files, then for each section we
+#   need to build some javascript variables and functions to
+#   handle the user choosing to enter a link or a file...
+set vnames  $list_site_data (0 - FS_$arg(9)_)
+set vtitles
+for vn in $(vnames)
+   set vtitles $(vtitles) $quote($site_data (0 - $(vn)))
+end
+set vsorted $gen_sort (1 $(vtitles))
+"<script type="text/javascript" language="javascript">
+
+if $(_userCanUpdate)
+   for vdex in $(vsorted)
+      set vname $word ($(vdex) $(vnames))
+      "var hold_$(vname)_filename = "";
+   end
+
+   "function loadtime() {
+   if $and ($not_empty ($arg(10)) $not_equal ($arg(10) x))
+   "   if ($(is_explorer5))  location.hash = '#$arg(10)';
+   end
+   if $not_empty ($(filesafe_err))
+   "   alert ('$(filesafe_err)');
+       set filesafe_err
+   end
+   "   setTimeout('update_filenames()',2000);
+   "}
+
+   "function update_filenames() {
+   for vdex in $(vsorted)
+      set vname $word ($(vdex) $(vnames))
+   "  if (hold_$(vname)_filename != document.$(vname).upload.value) {
+   "      hold_$(vname)_filename  = document.$(vname).upload.value;
+   "      document.$(vname).flink.value = hold_$(vname)_filename;
+   "      document.$(vname).desc.value = "";
+   "      document.$(vname).keyw.value = "";
+   "      document.$(vname).desc.focus();
+   "  }
+   end
+   "  setTimeout ('update_filenames()', 2000);
+   "}
+
+   "function submit_link_or_file (myform) {
+   "   document.addlink.section.value = myform.section.value;
+   "   document.addlink.flink.value   = myform.flink.value;
+   "   document.addlink.desc.value    = myform.desc.value;
+   "   document.addlink.keyw.value    = myform.keyw.value;
+
+   "   if (myform.flink.value.substring(0, 4).toLowerCase() == "http") {
+   "      document.addlink.action.value = 'addlink';
+   "      document.addlink.submit();
+   "      return false
+   "   }
+   "   else if (myform.flink.value != myform.upload.value) {
+   "      document.addlink.action.value = 'update';
+   "      document.addlink.submit();
+   "      return false
+   "   }
+   "   return true;
+   "}
+
+   "function fill_in (myform, flink, desc, keyw) {
+   "   myform.flink.value = flink;
+   "   myform.desc.value  = desc;
+   "   myform.keyw.value  = keyw;
+   "   return true;
+   "}
+end
+else
+   "function loadtime() {}
+end
+"</script>
+
+#---%column_header (type text)
+eval $mac_define (column_header \
+   <font face="arial" size="2"><b>\
+   \$if (\$equal (\$(fs_order) @1) <u>@2</u> \
+       <a href="\$(sorturl)+@1">@2</a>)</font>)
+
+#---For each variable name (aka section) in the file safe specified by
+#   arg(9), in sorted order...
+set section1 1
+for vdex in $(vsorted)
+   set vname $word ($(vdex) $(vnames))
+
+   set vtitle $site_data (0 - $(vname))
+   if $empty ($(vtitle))
+      continue
+   end
+
+   set is_empty 0
+
+   "<form name="del_$(vname)" method="post"
+   "    action="filesafef.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+   "<input name="action"  type="hidden" value="delete">
+   "<input name="section" type="hidden" value="$(vname)">
+
+   "<table cellspacing=0 cellpadding=0 border=0 width="100%">
+   "<tr>
+   "<td><a name="$(vname)"
+   "  ><FONT color="$site_data(0 - fsTitleColor)" face="$site_data(0 - fsTitleFont)" 
+   "      size="+$site_data(0 - fsTitleSize)">Section: $(vtitle)</FONT></a>
+   "</td>
+   if $(section1)
+      "<td align=right><a href="myfilesafe.cml?$(nch)+$(nxt)+\
+           $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)"
+      "    %help(h_filesafe)>View other</a> $(filesafe_name)s.</td>
+      set section1 0
+   end
+   "</table>
+
+   #---Precalculate the base of the URL to go to when clicking on
+   #   the section column headers (to sort the list of files by that
+   #   column.)
+   set sorturl filesafe.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                $arg(6)+$arg(7)+$arg(8)+$arg(9)+$(vname)
+
+   #---Determine the ordering (by column)
+   if $not_empty ($arg(11))
+      set fs_order_$arg(9) $arg(11)
+   end
+   set fs_order $word (1 $(fs_order_$arg(9)) name)
+
+   set descFirst $not_empty($config(showFilesafeDescriptionFirst))
+   "<table  cellspacing=0 border="0">
+   "<tr>
+   if $(descFirst)
+      "<td>&nbsp;%column_header (desc Description)&nbsp;</td>
+   end
+   else
+      "<td>%column_header (name Name )&nbsp;</td>
+   end
+   "<td>%column_header (uid  Owner)&nbsp;&nbsp;</td>
+   "<td>%column_header (date Date )&nbsp;</td>
+   if $(descFirst)
+      "<td>%column_header (name Name )&nbsp;</td>
+   end
+   else
+      "<td>&nbsp;%column_header (desc Description)&nbsp;</td>
+   end
+   "<td>&nbsp;%column_header (keyw Keywords)&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   "<td><input type="submit" name="submit" value="Delete"></td>
+   "</tr>
+
+   #---Is user a file-safe manager?
+   set manager $or ( %mgr_in_group ($userid() filesafeManage) $(file_manager))
+
+   #---Build the list of files, uids, dates, desc, keywords.
+   set fdir    $caucus_path()/public_html/LIB/FILESAFE/$(vname)
+   set fileset $dirlist(0 $(fdir))
+   set fs_names
+   set fs_uids
+   set fs_dates
+   set fs_descs
+   set fs_keyws
+   for x in $(fileset)
+      if $not_equal($str_sub(0 1 $(x)) .)
+         set ofile $open($(fdir)/.$(x) r)
+         set re $readln($(ofile) uid)
+         set re $readln($(ofile) date)
+         set re $readln($(ofile) desc)
+         set re $readln($(ofile) keyw)
+         set cl $close ($(ofile))
+         set uid      $word (1 $(uid))
+   
+         set fs_names $(fs_names) $(x)
+         set fs_uids  $(fs_uids)  $(uid)
+         set fs_dates $(fs_dates) $epoch ($(date))
+         set fs_descs $(fs_descs) $quote($(desc) )
+         set fs_keyws $(fs_keyws) $quote($(keyw) )
+      end
+   end
+#  "<tr><td colspan=6>fs_order=$(fs_order)</td>
+#  "<tr><td colspan=6>$(fs_names)</td>
+#  "<tr><td colspan=6>$(fs_uids)</td>
+#  "<tr><td colspan=6>$(fs_dates)</td>
+#  "<tr><td colspan=6>$(fs_descs)</td>
+#  "<tr><td colspan=6>$(fs_keyws)</td>
+   
+   #---Prepare the alternating color bars (and index to select them).
+   set colors $words (1 2 $site_data (0 - fsRowColor1) $site_data (0 - fsRowColor2) \
+                          $(def_rowcolor1) $(def_rowcolor2))
+   set colori 2
+
+   #---For each file in the current section, sorted by fs_order...
+#  "<tr><td colspan=6>fs_$(fs_order)s</td>
+#  "<tr><td colspan=6>$(fs_$(fs_order)s)</td>
+#  "<tr><td colspan=6>$gen_sort (1 $lower ($(fs_$(fs_order)s)))</td>
+   for xindex in $gen_sort (1 $lower ($(fs_$(fs_order)s)))
+
+      set x $word ($(xindex) $(fs_names))
+
+      #---Open the info file for that data file (same name as file, but
+      #   prepended with ".").
+      if $not_equal($str_sub(0 1 $(x)) .)
+         set ofile $open($(fdir)/.$(x) r)
+
+         #---Get owner, upload date, description
+         set re $readln($(ofile) uid)
+         set re $readln($(ofile) date)
+         set re $readln($(ofile) desc)
+         set re $readln($(ofile) keyw)
+         set cl $close ($(ofile))
+         set is_link 0$word (2 $(uid))
+         set uid      $word (1 $(uid))
+
+
+         set colori $minus (3 $(colori))
+         set color  $word ($(colori) $(colors))
+         "<tr valign=top bgcolor="$(color)">
+
+         #---Name or Description
+         if $(descFirst)
+            "<td align="left"><font face="arial" size="2">&nbsp;$(desc)</td>
+         end
+         else
+            include $(main)/filesafe_filename.i
+         end
+         "<input type="hidden" name="$(x)" value="$(uid)">
+
+         #---File owner
+         "<td align="left"><font face="arial" size="2"
+         "        >&nbsp;%person ($(uid) $(uid))&nbsp;</font></td>
+
+         #---Upload date
+         "<td><font face="arial" size="2">$(date)</td>
+
+         #---Description or Name.
+         if $(descFirst)
+            include $(main)/filesafe_filename.i
+         end
+         else
+            "<td align="left"><font face="arial" size="2">&nbsp;$(desc)</td>
+         end
+
+         #---Keywords
+         "<td align="left"><font face="arial" size="2">&nbsp;$(keyw)</td>
+
+         #---If current user is owner or manager, allow delete checkbox.
+         if $or ($(manager) $equal($(uid) $userid()))
+         "  <td align="center"
+         "     ><input type="checkbox" name="cb_$replace([ _ $replace(] _ $replace(% _ $(x))))"></td>
+         end
+         else
+         "  <td>&nbsp;</td>
+         end
+
+         "</tr>
+      end
+   end
+   "</table>
+   "</form>
+   
+   "<BR>
+
+   # if the current user is authorized to update the filesafe, display the
+   # add/update files form
+   if $(_userCanUpdate)
+      "<form ENCTYPE="multipart/form-data" METHOD=POST name="$(vname)"
+      "      ACTION="filesafef.cml?$(nch)+$arg(2)+\
+               $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+      "<input name="action"  type="hidden" value="addfile">
+      "<input name="section" type="hidden" value="$(vname)">
+      "<table border=0>
+      "<tr>
+      "  <td>File&nbsp;or&nbsp;URL:&nbsp;</td>
+      "  <td><nobr><input name="flink"  type="text" size="40" 
+      "          tabindex="%preinc(tabindex)"
+      "      >&nbsp;<input name="upload" type="file" size="1"></nobr>
+      "</td>
+      "<td rowspan=3>&nbsp;&nbsp;</td>
+      "<td rowspan=3 valign=top>Hint: click on <b>Browse</b> to upload a file,
+      "or type a URL (with http://) to enter a web page.</td>
+
+      "<tr>
+      "  <td>Description:</td>
+      "  <td><input NAME="desc" TYPE="text" size="40" maxlength="2000"
+      "      tabindex="%preinc(tabindex)"></td>
+      "<tr>
+      "  <td>Keywords:</td>
+      "  <td><input NAME="keyw" TYPE="text" size="40" maxlength="50"
+      "      tabindex="%preinc(tabindex)"></td>
+      "<tr><td></td>
+      "  <td><input type="submit" name="submit" value="Add or Update"  
+      "       tabindex="%preinc(tabindex)"
+      "        onClick="return submit_link_or_file(document.$(vname));"></td>
+
+
+      "</table>
+      "<input type="hidden" name="userid" value="$userid()">
+      "<input type="hidden" name="utype"  value="url">
+      "</form>
+
+   end
+
+   "<p>
+   "<hr width="100%" size="$site_data(0 - fsSepHeight)" 
+   "    color="$site_data(0 - fsSepColor)">
+end
+
+#---Here's the global addlink form, used by the 'trick' in 
+#   submit_link_or_file ()  to handle URLs and text updates.
+"<form name="addlink" method="post"
+"    action="filesafef.cml?$(nch)+$arg(2)+\
+                $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9)">
+"   <input name="action"   type="hidden" value="">
+"   <input name="section"  type="hidden" value="">
+"   <input name="flink"    type="hidden" value="">
+"   <input name="desc"     type="hidden" value="">
+"   <input name="keyw"     type="hidden" value="">
+"   <input name="userid"   type="hidden" value="$userid()">
+"   <input name="utype"    type="hidden" value="url">
+"</form>
+
+if $(is_empty)
+   "This $lower($(filesafe_name)) is empty.&nbsp;
+   "A manager must first create a $lower($(filesafe_name)) section before 
+   "the $lower($(filesafe_name)) can be used.
+end
+
+
+"</div>
+"</body>
+"</html>
+
+set virus_file

@@ -1,0 +1,345 @@
+#
+#---CUSTOM_HOME.CML.   Organizer customizing conference home page options
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 04/20/04 Show path as "customize" or "control panel".
+#: CR 10/13/04 Add default sort order, virus warning.
+#: CR 11/28/05 Add course tools checkbox.
+#: CR 09/23/07 Add 'private' option.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_home.cml
+end
+
+include $(main)/secure.i ins $arg(3)
+include $(main)/requiredinfo.i
+set is_course $equal (x$site_data($arg(3) - confType) xCourse)
+
+set nch   $unique()
+
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set title1 Customize 
+set nxt   $page_save (1 custom_home.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title1): Information&nbsp;&amp;&nbsp;Options)
+
+include $(main)/head.i $arg(3)  $quote($(title1) : Information&nbsp;&amp;&nbsp;Options)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+set custompage custom.cml
+include $(main)/header.i customh </A><A HREF="$(custompage)?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+   $(title1)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+   Information&nbsp;&amp;&nbsp;Options
+
+
+set columns $site_data($(cnum) - columns)
+if $empty($(columns))
+  set columns number title author new last
+end
+
+set ikey  $word (1 $site_data($(cnum) - default_list))
+set idata $rest (2 $site_data($(cnum) - default_list))
+
+if $empty($(ikey))
+  set ikey all
+end
+
+#---If we've been using the upload function, $arg(9) should contain
+#   tx_resp, which is the text into which something has been uploaded.
+#
+#   If those aren't defined, then we just pull the text out of the conference
+#   variables.
+
+if $equal(x$arg(9) xtx_resp)
+   set tx_greet $(tx_resp)
+end
+else
+   set tx_greet $site_data($(cnum) - greet1)
+end
+
+"<BLOCKQUOTE>
+"Use this page to customize the appearance and behavior of your
+"conference.&nbsp;  There are options for modifying the 
+"<A HREF="#course">Course Tools</A>, the
+"<A HREF="#description">Description</A>, the
+"<A HREF="#thumbnails">Member thumbnails</A>, the
+"<A HREF="#location">Response geo-locations</A>, the
+"<A HREF="#name">Home Page Name</A>, the
+"<A HREF="#greeting">Conference Greeting</A>,
+if $greater (0$sizeof($(confhome)) 3)
+   "for setting the appearance and default behavior of the 
+   "<A HREF="#list">Item List</A>, and for using any
+   "<A HREF="#variant">variant</A> conference home pages.
+end
+else
+   "and for setting the appearance and default behavior of the 
+   "<A HREF="#list">Item List</A>.
+end
+"<P>
+"<form METHOD=POST ACTION="customhf.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x">
+
+
+#-------------Description-----------------------------
+"<H2><A NAME="description">The Description</A></H2>
+"The Description is a brief phrase that users see when they're browsing the
+"list of available conferences. It's intended to help them decide if they
+"want to look at your conference.  Typically, a description will describe what
+"the conference is for, but you can be creative.<P>
+
+"Description: <INPUT TYPE=TEXT MAXLENGTH=70 SIZE=70 NAME=description
+"VALUE="$site_data($(cnum) - description)"><P/>
+"&nbsp;<br>
+#"<hr>
+
+#-------------Member Thumbnails-----------------------------
+"<H2><A NAME="thumbnails">Member Thumbnails?</A></H2>
+"Should thumbnail images of members appear next to their responses?
+"<input type="checkbox" name="showThumbNails"  value="1"
+"  $ifthen ($word(1 $site_data ($(cnum) - showThumbNails) $(cc_thumbnail)) \
+      checked) >
+
+"<p/>
+
+
+"<H2><A NAME="location">Response geo-locations?</A></H2>
+"Should the geographical location of members appear next to their responses?
+"<input type="checkbox" name="showGeoLoc"  value="1"
+"  $ifthen ($word(1 $site_data ($(cnum) - showGeoLoc) $(cc_geoloc)) \
+      checked) >
+
+"<p/>
+#"Enabling the course tools means that the Assignments and Status
+#"buttons will appear in the top-right toolbar for this conference.&nbsp;
+#"It also means that this conference will be considered a "course"
+#"by the \%courselist() macro.
+"&nbsp;<br>
+#"<hr>
+
+#-------------Private conf?-----------------------------
+"<H2><A NAME="private">Private Conference</A></H2>
+"A private conference never appears on the public "list of all conferences"
+"(for users who are not members of the conference).
+"<p/>
+"Make this conference private?&nbsp;
+"<input type="checkbox" name="private"  value="1"
+"  $ifthen ($sql_query_select (SELECT private FROM confs WHERE cnum=$(cnum)) checked) >
+"<p/>
+"&nbsp;<br>
+
+#-------------Course Tools-----------------------------
+"<H2><A NAME="course">Course Tools</A></H2>
+"Should the course tools be enabled?&nbsp;&nbsp;&nbsp;
+"<input type="checkbox" name="coursetools"  value="1"
+"  $ifthen ($equal (x$site_data ($(cnum) - confType) xCourse) checked) >
+"<p/>
+"Enabling the course tools means that the Assignments and Status
+"buttons will appear in the top-right toolbar for this conference.&nbsp;
+"It also means that this conference will be considered a "course"
+"by the \%courselist() macro.
+"&nbsp;<br>
+#"<hr>
+
+#-------------Home Page Name----------------------
+
+"<H2><BR><A NAME="name">The Conference Home Page Name</A></H2>
+"This setting controls the text used to label your conference home page.&nbsp;
+"For example, the page could be called <B>$(cname) Home Page, $(cname) Home,
+"$(cname) Center,</b> or just <b>$(cname)</b>.<P>
+
+
+"Call the conference home page: <B>$(cname)</B>
+"<INPUT TYPE=TEXT SIZE=25 NAME="home_page"
+if $empty ($site_data($(cnum) - home_page))
+   "   VALUE="Home">
+end
+else
+   "   VALUE="$rest(2 $site_data($(cnum) - home_page))">
+end
+"<P/>
+"&nbsp;<br>
+
+
+
+#-------------Greeting--------------------------------
+"<A NAME="textbox"></A>
+"<H2><BR><A NAME="greeting">The Greeting</A></H2>
+"The Greeting is the text which always appears at the top of the conference
+"home page.<P>
+include $(main)/virus_warning.i
+
+"<TABLE>
+"<TR>
+"<TD>Edit the</TD>
+"<TD>
+include $(main)/resptype.i tp_greet 1 $arg(10) $site_data($(cnum) - greet_tp)
+"</TD>
+"<TD>text of the <B>Greeting</B></TD><TD>&nbsp;&nbsp;&nbsp;</TD>
+"<TD> or </TD>
+"<TD><INPUT TYPE="image" NAME="upload_greet" BORDER=0 $(src_upload) HSPACE=3>
+"</TD><TD> a file.</TD>
+"</TR></TABLE>
+
+"<TEXTAREA WRAP=physical NAME="tx_greet" ROWS=$(rows) COLS=$(cols)
+">$t2esc($(tx_greet))</TEXTAREA>
+"<BR>
+
+   include $(main)/boxsize.i 0
+
+"<P/>&nbsp;<br>
+
+#-------------Item List Options--------------------------------
+
+"<H2><BR><A NAME="list">Item List Options</A></H2>
+"As organizer, you can configure the list of items that appears on the
+"conference home page.&nbsp; You can choose which items will be displayed by
+"default, and what information is visible about each item in the list.
+
+"<BLOCKQUOTE>
+"<H3><BR>Default Item List</H3>
+"By default, visitors to the conference home page see a list of all items,
+"unless they have explicitly chosen to see an alternate list.&nbsp;  
+"From here you can set a different default list.
+"<P>Visitors to the conference home page see:<P>
+"<TABLE>
+include $(main)/iselect.i
+"</TABLE>
+"<P>Note: In a conference with many items, setting the default to "No items"
+"is often a good choice.
+
+"<P>
+"<H3><BR>Item List Columns</H3>
+"Use this set of menus to specify what information is displayed in the list
+"of items.&nbsp;  
+"Each menu represents a column in the display, reading from left
+"to right.<P><CENTER>
+
+set fcount 0
+for col in $(columns)
+  set fcount $plus($(fcount) 1)
+"  <BR><SELECT NAME=column$(fcount) SIZE=1>
+"  <OPTION VALUE=empty>(empty column)</OPTION>
+"  <OPTION VALUE=number $if($equal($(col) number) SELECTED)>Item Number</OPTION>
+"  <OPTION VALUE=title $if($equal($(col) title) SELECTED)>Title</OPTION>
+"  <OPTION VALUE=author $if($equal($(col) author) SELECTED)>Item Author</OPTION>
+"  <OPTION VALUE=new $if($equal($(col) new) SELECTED)>Number of new or seen responses</OPTION>
+"  <OPTION VALUE=last $if($equal($(col) last) SELECTED)>Number of last response</OPTION>
+"  <OPTION VALUE=last_date $if($equal($(col) last_date) SELECTED)>Date of last response</OPTION>
+"  <OPTION VALUE=frozen $if($equal($(col) frozen) SELECTED)>Whether item is frozen or not
+"  </SELECT>
+end
+
+count i $plus($(fcount) 1) 7
+"  <BR><SELECT NAME=column$(i) SIZE=1>
+"  <OPTION VALUE=empty SELECTED>(empty column)</OPTION>
+"  <OPTION VALUE=number>Item Number</OPTION>
+"  <OPTION VALUE=title>Title</OPTION>
+"  <OPTION VALUE=author>Item Author</OPTION>
+"  <OPTION VALUE=new>Number of new or seen responses</OPTION>
+"  <OPTION VALUE=last>Number of last response</OPTION>
+"  <OPTION VALUE=last_date>Date of last response</OPTION>
+"  <OPTION VALUE=frozen>Whether item is frozen or not</OPTION>
+"  </SELECT>
+end
+"</CENTER>
+
+"<P>
+"<h3>Default Sort Order</h3>
+"<p>
+"Select the default sort order from this list:&nbsp;
+" <select name="isort">
+   for _value _label in \
+    0 $quote(Item Number) \
+    1 $quote(Item Title) \
+    2 $quote(Item Author) \
+    3 $quote(Date of Last Response)
+      "  <option value="$(_value)" \
+      $ifthen($equal($plus(0$site_data($arg(3) - isort) 0) $(_value)) selected)>$unquote($(_label))</option>
+   end
+" </select>
+"</p>
+
+
+"</BLOCKQUOTE>
+"<P>
+
+#-------------Customized Page Options--------------------------------
+
+if $greater (0$sizeof($(confhome)) 3)
+   "<HR>
+   "<H2><BR><A NAME="variant">Variant Conference Home Pages</A></H2>
+   "Some sites have "variant" conference home pages, that have been
+   "extensively modified to present conference information in 
+   "different ways.&nbsp; (A good example is the <B>Collaborate 99</B>
+   ""Book Store" page, which is really a modified conference home page.)
+   "<P>
+   "If your site supports "variant" conference home pages, 
+   "you can use this section to select which variant page to
+   "use as the default, and which variant pages link to which
+   "other variant pages.
+   
+   "<P>
+   "<B>Default conference home page is:&nbsp;</B>
+   set defhome $word (1 $site_data ($(cnum) - defhome) 0)
+   "<SELECT NAME=chome>
+   for vnum vname vpage in $(confhome)
+   "   <OPTION VALUE="$(vnum)"
+   "       $ifthen ($equal ($(vnum) $(defhome)) SELECTED)>$(vname)
+   end
+   "</SELECT></TD>
+   #        set confhome 0 Conference&nbsp;home confhome.cml \
+   #                     1 Book&nbsp;Store      bookstore.cml
+   
+   "<TABLE BORDER=2>
+   "<TR><TD></TD><TD COLSPAN=4 ALIGN=center><B>Show link to:</B></TD>
+   "<TR>
+   "<TD><B>On Page</B></TD>
+   for vnum vname vpage in $(confhome)
+      "<TD><B>$(vname)</B>&nbsp;&nbsp;</TD>
+   end
+   
+   for vnum vname vpage in $(confhome)
+#     "<TR><TD COLSPAN=6>defhome$(vnum) checks=$(checks)</TD>
+      "<TR><TD>$(vname)</TD>
+      for bnum bname bpage in $(confhome)
+         if $equal ($(vnum) $(bnum))
+            "<TD>&nbsp;</TD>
+         end
+         else
+            "<TD ALIGN=center>
+            "<INPUT TYPE=CHECKBOX NAME="defhome$(vnum).$(bnum)" VALUE="1"
+            "  $ifthen (0$site_data ($(cnum) - defhome$(vnum).$(bnum)) CHECKED)>
+            "</TD>
+         end
+      end
+   end
+   "</TABLE>
+   "<P>
+end
+
+
+"<P><INPUT TYPE=SUBMIT VALUE="Make all changes">
+"</FORM>
+"</BLOCKQUOTE>
+"<p/>
+"<HR>
+
+
+
+#include $(main)/trailer.i  customg  </A><A HREF="custom.cml?\
+#   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Customize \
+#   $(cname)</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+#   Home&nbsp;Page&nbsp;Options
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

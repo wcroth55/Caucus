@@ -1,0 +1,19 @@
+#
+#---frameElgg.cml     Implementation of %frameElgg(url link-text) macro.
+#
+#:CR 09/04/2009 New script for framed Elgg support.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i frameElgg.cml
+end
+
+"Content-type: text/html
+"
+"<html>
+"<frameset rows="$arg(3)px,*" frameborder=0>
+"   <frame name="ctop" src="$(mainurl)/frameElggTop.cml?$unique()+$(nxt)+x+x+x+x+x+x" scrolling="no">
+"   <frame name="cbot" src="$(mainurl)/frameElggBot.cml?$unique()+$arg(2)+$arg(3)">
+"</frameset>
+"</html>
+

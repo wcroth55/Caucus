@@ -1,0 +1,173 @@
+#
+#---man_mgrs.cml    Master manager list.  Show each mgr group, and its members.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/23/05 New file.
+#: CR 12/06/05 Show manager groups as CSS class "managerGroup".
+#: CR 01/16/06 Add quizzes.
+#: CR 02/06/06 Use sql_query_row() instead of sql_query_select().
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_mgrs.cml
+end
+set pagename Manager&nbsp;Groups
+
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_mgrs.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Manager Groups )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Manager Groups)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i      man_mgrs  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+   Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Manager Groups
+
+"<blockquote>
+"The manager privilege groups control who has what privileges.&nbsp;
+"If you are a member of a manager group, then you have that privilege --
+"for example, conferenceCreate means you can create new conferences.
+"<p/>
+"The groups are arranged by the kind of "object" they relate to -- 
+"<a href="#conf">conferences</a>,
+"<a href="#file">filesafes</a>,
+"<a href="#grou">groups</a>,
+"<a href="#inte">interfaces</a>,
+"<a href="#pass">passwords</a>,
+"<a href="#quiz">quizzes</a>,
+"<a href="#user">users</a>, or the entire
+"<a href="#syst">system</a>.&nbsp;
+"You can click on a group to see the full details, and if
+"you have sufficient privileges, you can edit it.&nbsp;
+"(Anyone with 'organizer' privilege in a group can edit that group,
+"or anyone in groupEditAll or systemAllPrivileges can edit any group.)
+"<p/>
+"Below each group is the list of members of that group.&nbsp;
+"Click on a person's name to see the full list of
+"privileges they have (which manager groups that they belong to).&nbsp;
+
+set object4 conf file grou inte pass quiz user syst
+set objects Conferences Filesafes Groups Interfaces Passwords Quizzes Users System
+
+set mgrGroups conferenceCreate conferenceDelete conferenceChange \
+    conferenceArchive conferenceRestore conferenceAllPrivileges \
+    filesafeManage  \
+    groupEditNonManager groupEditAll \
+    interfaceManage  \
+    passwordChangeUsers passwordChangeManagers passwordChangeAnyone \
+    userCreate userDelete userEdit userReports \
+    systemShutdown systemEditCML systemEditSwitches systemBulletins \
+    systemAllPrivileges
+
+"<table cellspacing=0 cellpadding=0 border=0>
+set prev4 _
+for mgr in $(mgrGroups)
+   set this4 $str_sub (0 4 $(mgr))
+   if $not_equal ($(this4) $(prev4))
+      set which $tablefind ($(this4) $(object4))
+      "<tr><td>&nbsp;</td> <td>&nbsp;</td>  <td>&nbsp;</td> 
+      "    <td>&nbsp;</td> <td>&nbsp;</td>
+      "<tr><td colspan=3><b><a name="$(this4)"
+      "   ><b>$word ($(which) $(objects))</b></a></td>
+      set prev4 $(this4)
+   end
+   else
+      "<tr><td><img $(src_clear) width=1 height=4></td>
+   end
+
+   "<tr valign=top><td width=20>&nbsp;</td>
+   "<td colspan=2><span class="managerGroup"
+   "  >&nbsp;<a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                   MGR+_+$(mgr)">$(mgr)</a>&nbsp;</span></td>
+   "<td>&nbsp;&nbsp;</td>
+
+   #---Explanatory notes about many groups.
+   "<td>
+   if $equal ($(mgr) conferenceDelete)
+      "Conference organizers may also delete their own conferences.
+   end
+   elif $equal ($(mgr) conferenceArchive)
+      "Conference organizers may also archive their own conferences.
+   end
+   elif $equal ($(mgr) conferenceAllPrivileges)
+      "All of the above conference privileges.
+   end
+   elif $equal ($(mgr) conferenceChange)
+      "Become an organizer of any conference.
+   end
+   elif $equal ($(mgr) conferenceRestore)
+      "Required in order to create a new conference <b>from</b> an archive.
+   end
+   elif $equal ($(mgr) filesafeManage)
+      "Create, edit, or delete any filesafe.
+   end
+   elif $equal ($(mgr) groupEditNonManager)
+      "Edit any group (that does not confer manager privileges).&nbsp;
+      "This includes conference groups.
+   end
+   elif $equal ($(mgr) groupEditAll)
+      "Edit <b>any</b> group.&nbsp; Full power over the entire system.
+   end
+   elif $equal ($(mgr) interfaceManage)
+      "Create new interfaces, or modify any existing interface.&nbsp;
+      "(Organizers of interface storage conferences may modify
+      "the matching interface.)
+   end
+   elif $equal ($(mgr) passwordChangeUsers)
+      "Change the passwords of ordinary users.
+   end
+   elif $equal ($(mgr) passwordChangeManagers)
+      "Change the passwords of managers (except for groupEditAll or
+      "systemAllPrivileges members).
+   end
+   elif $equal ($(mgr) passwordChangeAnyone)
+      "Change <a>anyone's</b> password.&nbsp; Do not grant lightly.
+   end
+   elif $equal ($(mgr) systemEditCML)
+      "Edit the actual CML interface files.&nbsp; Not for the faint of heart!
+   end
+   elif $equal ($(mgr) systemBulletins)
+      "Post short pop-up bulletins for all to see.
+   end
+   elif $equal ($(mgr) systemAllPrivileges)
+      "All privileges over everything.
+   end
+   elif $equal ($(mgr) userReports)
+      "View group memberships and user statistical reports.
+   end
+   "</td>
+
+   set query \
+      SELECT ui.userid, ui.fname, ui.lname FROM user_info ui, groups g  \
+       WHERE ui.userid = g.userid \
+         AND g.owner='MGR' AND g.name='$(mgr)' AND g.active > 0 \
+         AND g.access > 0 \
+       ORDER BY ui.lname
+   set h0 $sql_query_open ($(query))
+#  "<tr><td>colspan=10>$(query)</td>
+#  "<tr><td>colspan=10>h0=$(h0)</td>
+   while  $sql_query_row  ($(h0))
+      "<tr valign=top><td></td><td width=20>&nbsp;</td>
+      "<td colspan=3><a href="javascript: pop_up('person', '$(userid)');"
+      "   >$unquote ($(fname)) $unquote($(lname))</a> ($(userid))</td>
+   end
+   eval   $sql_query_close($(h0))
+end
+"</table>
+
+"</blockquote>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

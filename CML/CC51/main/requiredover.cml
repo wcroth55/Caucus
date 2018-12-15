@@ -1,0 +1,22 @@
+#
+#---requiredover.cml.   Manage override of "required info" check,
+#                       turns off required info switch and goes
+#                       to Caucus Center.
+#
+# CR 4/05/2004 New file.
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i requiredover.cml
+end
+ 
+set nch $unique()
+
+set _requiredinfo $(iface)
+
+"%location($(mainurl)/center.cml?$(nch)+$(nxt)+x+x+x+x+x+x)
+#---------------------------------------------------------------

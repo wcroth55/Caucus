@@ -1,0 +1,182 @@
+#
+#---tasks.cml    Task list page.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 12/22/04 New page.
+#: CR 04/13/05 C5 code merge.
+#: CR 10/05/05 C5 changes.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i tasks.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch    $unique()
+set cnum   $arg(3)
+set cname  %displayed_conf_name ($(cnum))
+set tname  $upper1($(tasks_name))s
+
+set nxt   $page_save (1 tasks.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(tname))
+
+set pagename <span class="pageTitle">$(tname)</span>
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(tname))
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/header.i  tasks </a><a href="#top">$(tname)
+
+"<script src="/~$caucus_id()/popover.js"></script>
+
+set arglist $(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set access %mgr_in_group ($userid() systemEditSwitches)
+
+"<p/>
+"<table width="100%" border=0>
+"<tr><td>
+"Hover over a title to see part of the description.&nbsp;
+"Click on a title to see the entire task.&nbsp;
+"Click on a column heading to sort by that column.
+"</td>
+"<td width="15%">&nbsp;</td>
+"<td align=right>
+"<nobr><a href="taske.cml?$(arglist)+0">Create a new task</a>.</nobr>
+if $(access)
+   "<br><a href="taskedcat.cml?$(arglist)"><nobr>Edit the categories</nobr></a>.
+end
+"</td>
+"</table>
+
+"<table class="gradetable" border="0">
+"<tr class="graderowh" valign="top">
+"<td class="gradetext"><a href="tasks.cml?$(arglist)+catname">Category</a></td>
+"<td class="gradetext"><a href="tasks.cml?$(arglist)+title">Title</a></td>
+"<td class="gradetext"><a href="tasks.cml?$(arglist)+lead">Lead</a></td>
+"<td class="gradetext"><a href="tasks.cml?$(arglist)+assigner">Assigner</a></td>
+"<td class="gradetext"><a href="tasks.cml?$(arglist)+tgroup">Group</a></td>
+"<td class="gradedate"><a href="tasks.cml?$(arglist)+target">Target Date</a></td>
+"<td class="gradedate"><a href="tasks.cml?$(arglist)+priority">Priority</a></td>
+#<td class="gradetext"><a href="tasks.cml?$(arglist)+links">Item Links</a></td>
+"<td class="gradetext">Item Links</td>
+"<td class="gradedate"><a href="tasks.cml?$(arglist)+status">Status</a></td>
+"<td class="gradedate"><a href="tasks.cml?$(arglist)+updated">Updated</a></td>
+
+set query SELECT t.tkey, t.tid, t.title, t.lead, t.assigner, t.tgroup, \
+                 t.target, t.priority, t.category, t.status, \
+                 t.updated, t.text, t.towner, c.catname \
+            FROM tasks t, task_cats c \
+           WHERE t.current = 1   AND  t.category = c.category \
+             AND t.deleted = 0
+
+set orderby1 $user_data ($userid() orderby1)
+set orderby2 $user_data ($userid() orderby2)
+if $and ($not_empty ($arg(9))  $not_equal (x$arg(9) x$(orderby1)))
+   set orderby2 $(orderby1)
+   set orderby1 $arg(9)
+   if $equal (x$(orderby1) xpriority)
+      set orderby1 $(orderby1) desc
+   end
+   eval $set_user_data ($userid() orderby1 $(orderby1))
+   eval $set_user_data ($userid() orderby2 $(orderby2))
+end
+
+if $not_empty ($(orderby1))
+   set query $(query) ORDER BY $(orderby1)
+   if $not_empty ($(orderby2))
+      set query $(query), $(orderby2)
+   end
+end
+
+#set whitespace &nbsp;&nbsp;&nbsp;&nbsp;
+set whitespace &nbsp;&nbsp; 
+set h $sql_query_open ($(query))
+set parity 1
+while $sql_query_row  ($(h))
+
+   #---Make sure this user is allowed to see/edit this task.
+   set display $or ($equal (x$userid() x$(lead))  \
+                    $equal (x$userid() x$(assigner)))
+   if $and ($not ($(display))  $not_empty ($(tgroup)))
+      set display $gt_equal ($group_access ($userid() $(towner) $(tgroup)) $priv(minimum))
+   end
+   if $not ($(display))
+      continue
+   end
+
+   set parity $minus (1 $(parity))
+   "<tr class="taskrow$(parity)" valign="top">
+   "<td class="gradetext">$(catname)</td>
+   "<td class="gradetext"><a href="taskx.cml?$(arglist)+$(tkey)"
+   "    onMouseOver="popOver('desc$(tid)', true);"
+   "     onMouseOut="popOver('desc$(tid)', false);"
+   ">$(title)</a
+
+   set ellipses $ifthen ($greater ($strlen($(text)) 128) ...)
+   "><div id="desc$(tid)" style="POSITION: absolute; visibility: hidden"
+   "><table width="220" border="0" cellspacing="1" cellpadding="4" 
+   "   bgcolor="#006B91">
+   "<tr><td bgcolor="#CEEAF5"
+   "><font face="Arial,Helvetica,sans-serif" 
+   " style="font-family: Arial, Helvetica, sans-serif; font-size: 8pt;"
+   ">$str_sub (0 128 $unhtml(x $(text)))$(ellipses)</font></td>
+   "</table></div></td>
+
+   "<td class="gradetype">%personpop($(lead))</td>
+   "<td class="gradetype">%personpop($(assigner))</td>
+
+   "<td class="gradetype">
+      include $(main)/task_group.i $(towner) $(tgroup)
+   "</td>
+   "<td class="gradedatesmall">%monthDay($(target))</td>
+   "<td class="gradedate">%taskPriority($(priority))</td>
+
+   #---Item Links
+   "<td class="gradetext"
+      set query SELECT cnum ci, inum ii, rnum ri FROM task_links \
+                 WHERE tid = $(tid)  ORDER BY ci, ii, ri
+      set h2 $sql_query_open ($(query))
+      set ci0 0
+      while  $sql_query_row  ($(h2))
+         if $not_equal ($(ci0) $(ci))
+            ">$ifthen($(ci0) $(whitespace) )<a 
+            "   href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x#here"
+            "   >%displayed_conf_name($(ci))&nbsp;$item_label($(ci) $(ii)):$(ri)</a
+            set ci0 $(ci)
+         end
+         else
+            ">, 
+            "<a href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x#here"
+            "    >$item_label($(ci) $(ii)):$(ri)</a
+         end
+      end
+      eval   $sql_query_close($(h2))
+   "></td>
+   "<td class="gradedate">$(status)</td>
+   "<td class="gradedatesmall">%monthDayHour($(updated))</td>
+
+end
+eval $sql_query_close($(h))
+
+"</table>
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+
+set pagename
+#-----------------------------------------------------------------

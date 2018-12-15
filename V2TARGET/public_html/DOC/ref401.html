@@ -1,0 +1,132 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.1: State Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 4.1:&nbsp; CML State Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref402.html">NEXT</A>]
+</TD>
+</TABLE>
+
+
+<P>
+The CML state functions are the glue that ties a group of CML
+pages and a Sweb server together.&nbsp;  To understand more about why
+they exist, see the design document &quot;The Web Caucus&quot;.&nbsp;
+For the CML author, it is only necessary to understand <B>where</B>
+they must be used.
+
+<P>
+<DL>
+
+<DT><A NAME="host">$host()</A>
+<DD>
+Evaluates to the host name (and http port number) of the current
+host.&nbsp;  This is a useful way to build HTML links that require the
+current host name, and still keep your CML code portable.&nbsp;  Example:
+
+<P>
+<TT>&quot;&lt;A HREF=&quot;http://<B>$host()</B>/dir/page.html&quot;&gt;some
+text&lt;/A&gt; </TT>
+
+<P>
+<DT><A NAME="pid">$pid()</A>
+<DD>
+Evaluates to the pid (process id) and security code for the swebs
+server that is dedicated to your browser.&nbsp;  You <B>must</B> include
+this in links to CML pages.&nbsp;  Example:
+
+<P>
+<TT>&quot;&lt;A HREF=&quot;http://$host()/sweb/swebsock/<B>$pid()</B>/SP/test.cml?15+bye&quot;&gt;<BR>
+  &quot; name&lt;/A&gt; </TT>
+
+<P><DT><A NAME="arg">$arg(n)</A>
+<DD>
+Evaluates to the <I>N</I>'th argument to this CML page.&nbsp;  In the
+previous example, clicking on link &quot;name&quot; will bring
+up the CML page test.cml.&nbsp;  In test.cml, $arg(1) will then evaluate
+to &quot;15&quot;, and $arg(2) will evaluate to &quot;bye&quot;.
+
+<P><DT><A NAME="inc">$inc(n)</A>
+<DD>
+Evaluates to the <I>N</I>'th argument to this &quot;include&quot; file.&nbsp;
+See the <A HREF="ref5.html#include">include</A> directive.&nbsp;
+Note that when $inc(n) is evaluated, it automatically "unquotes"
+itself, so that in the following code fragment:
+<P>
+<UL>
+<TABLE >
+<TR><TD>in "including" file:&nbsp;&nbsp;</TD>
+<TD><TT>include file.i $quote(Hello, world)</TT></TD>
+<TR><TD>in "file.i"</TD>
+<TD><TT>"$sizeof($inc(1))</TT></TD>
+</TABLE>
+</UL>
+<P>
+$sizeof() evaluates to <B>2</B>!
+   
+
+<P><DT><A NAME="form">$form(myfield)</A>
+<DD>
+When a CML page is the &quot;recipient&quot; of an HTML form
+(as in &lt;FORM ACTION=&quot;...&quot;&gt;), the form data is
+available through the CML $form function.&nbsp;  The function evaluates
+to the data entered by the user in field 
+<I>myfield</I> (as in NAME=&quot;<I>myfield</I>&quot;
+in an &lt;INPUT&gt; or &lt;TEXTAREA&gt; HTML tag), or (in the
+case of TYPE=&quot;submit&quot; fields) to the VALUE string for
+the button with NAME="<I>myfield</I>".&nbsp;  If there are multiple values
+for the field <I>myfield</I> (as in a &lt;SELECT MULTIPLE&gt; field),
+the values are concatenated together, separated by single spaces.&nbsp;
+For a checkbox name="<i>x</i>", $form(x) evaluates to "on" if checked,
+and to nothing if not checked.
+
+<P>
+The $form() function transparently handles both 
+standard (&quot;application/x-www-form-urlencoded&quot;)
+and &quot;multipart/form-data&quot; forms.&nbsp;  $form() may be used
+only with METHOD=POST forms.
+
+<P>
+Multipart forms may be used with some browsers to upload an entire
+file, with an HTML tag of the form &lt;INPUT TYPE=&quot;file&quot;
+NAME=&quot;<I>myfile</I>&quot;&gt;.&nbsp;  In this case, $form(<I>myfile</I>)
+evaluates to the name of a temporary file on the server host.&nbsp;
+(The uploaded data has been placed in that file).&nbsp;  The temporary
+file will be automatically deleted when the swebs process exits
+(i.e., when the user's session is over).&nbsp;  The original name of
+the file is also available as $form(name.<I>myfile</I>)
+
+<P><DT><A NAME="debug">$debug(n)</A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<DD>
+<I>N</I> = 1 turns on debugging, which writes data to a logging
+file in /tmp.  <I>N</I> = 0 turns off debugging.&nbsp;  The default
+is 0.
+
+<P><DT><A NAME="caucus_id">$caucus_id()</A>
+<DD>
+Evaluates to the name of the caucus userid, i.e. the userid that
+owns the Caucus files.
+
+</DL>
+<P>
+</BLOCKQUOTE>
+
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,445 @@
+#
+#---ADD ITEM.
+#
+#   arg(4)   x => normal create top level item.
+#            b => create breakout item from pop-up, f=freeblog entry, m=modblog entry
+#   arg(7)   x => if org, choose d(iscussion) or q(uiz) or s(urvey) or top level of 
+#                 f=freeblog or m=modblog or l(ink) to shared item.
+#   arg(8)   foreign conference (only used for assignments/announcements)
+#   arg(9)   name of variable containing item text [optional, see upload.cml]
+#   arg(10)  type of text [optional, see upload.cml]
+#   arg(11)  "x" => show page again, but complain no title was supplied.
+#            anything else => name of variable containing title
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/12/03 Add ebox stuff.
+#: CR 05/19/03 Add announcement stuff.
+#: CR 05/30/03 Add time_additem for logging.
+#: CR 06/21/03 Require title and text before allowing submit.
+#: CR 08/26/03 Add "assignment item" code to get dates & group/confs.
+#: CR  8/08/04 Add restricted date range for responding.
+#: CR  9/01/04 Add ebox_submit() call.
+#: CR 11/09/04 Fix create+view bug under richtext.
+#: CR 05/13/08 Add word, responses limits.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i additem.cml +$arg(9)+$arg(10)+$arg(11)
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt0  $(nxt)
+set nxt   $page_save (1 additem.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Create an Item in $(cname))
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+
+include $(main)/head.i $arg(3)  $quote(Create Item in $(cname)) 0 0 1
+
+include $(main)/body.i $arg(3)   onLoad="onLoadHandler();"  onUnload="pop_close('all');"
+
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     additem  Create Item
+
+set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+"<script type="text/javascript" language="javascript">
+"   function hasTitleText() {
+"      if (document.ebox.ti_resp.value == ""  ||
+"          document.ebox.tx_resp.value == "") {
+"         confirm ("Please fill in both title and text\nfor this new item.");
+"         return false;
+"      }
+"      return true;
+"   }
+"</script>
+
+set isChooseItemType $and ($equal($arg(7) x) \
+         $or ($(is_org) $(addQuiz) $(addSurvey) $(addWiki) $(addFreeBlog) $(addModBlog)))
+if $(isChooseItemType)
+   set nxt $(nxt0)
+end
+
+"<form METHOD=POST ACTION="additemf.cml?$(nch)+$(nxt)+\
+       $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)" NAME="ebox"
+"      onSubmit="return ebox_submit() & hasTitleText();">
+
+
+eval $cl_list (system_announcements system_assignments)
+set ann_cnum    $word (1 $cl_num (system_announcements) 0)
+set assign_cnum $word (1 $cl_num (system_assignments)   0)
+set itemName the item
+set isBlog 0
+if $equal ($arg(3) $(ann_cnum))
+   "Use this page to create a new <b>announcement</b> item.&nbsp;
+   "See the help on the 
+   "<a href="javascript: pop_up('help', '$(helpurl)/h_announce.cml?x+x+1');"
+    "  >\%announce()</a> macro.
+end
+elif $equal ($arg(3) $(assign_cnum))
+   "Use this page to create a new <b>assignment</b> item.&nbsp;
+end
+elif $and ($(is_org) $equal($arg(7) x))
+   "Use this page to create a new item. 
+end
+elif $equal($arg(7) w)
+   "<p/>
+   "Use this page to create a new Wiki item.&nbsp;
+   "Remember that a Wiki is editable by <b>anyone</b>.
+   set itemName the Wiki
+end
+elif $equal($arg(7) f)
+   "<p/>
+   "Use this page to create a new Blog.&nbsp;
+   "Remember that this is published so that <b>anyone</b> 
+   "on the Internet can see it.
+   set itemName your blog
+   set isBlog 1
+end
+elif $equal($arg(7) m)
+   "<p/>
+   "Use this page to create a new Blog.&nbsp;
+   "Remember that, after it is approved by the conference organizer,
+   "your blog is published so that <b>anyone</b> 
+   "on the Internet can see it.
+   set itemName your blog
+   set isBlog 1
+end
+elif $equal($arg(7) l)
+   "<p/>
+   "Shared items...
+end
+else
+   "Use this page to create a new discussion item. 
+end
+
+set addQuiz      $and ($word (1 $site_data ($arg(3) - addQuiz)   0) $(is_org))
+set addSurvey    $and ($word (1 $site_data ($arg(3) - addSurvey) 0) $(is_org))
+set addDiscussion $or ($word (1 $site_data ($arg(3) - co_add)    0) $(is_org))
+set addWiki       $word (1 $site_data ($arg(3) - addWiki) 0)
+set addFreeBlog   $word (1 $site_data ($arg(3) - addFreeBlog) 0)
+set addModBlog    $word (1 $site_data ($arg(3) - addModBlog) 0)
+
+
+if $(isChooseItemType)
+   "<script language="javascript">
+   "   function onLoadHandler() { }
+   "</script>
+
+   "<p/>
+   "<b>First</b>, choose the type of item: 
+   "<ul>
+   "<table >
+
+   if $(addDiscussion)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="discussion"
+      "          onClick="location.href = 'additem.cml?$(nch)+$(nxt)+$(arglist)+d+$arg(8)';"></td>
+      "<td><b>Discussion items</b> are controlled by you, and may have responses by others.&nbsp;
+      "   This is the normal kind of item.
+      "</td>
+   end
+
+   if $(is_org)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="link"
+      "          onClick="location.href = 'shareItem.cml?$(nch)+$(nxt)+$(arglist)+x+$arg(8)';"></td>
+      "<td>A <b>shared item</b> is an item in another conference.&nbsp; 
+      "   Sharing means that the item appears in <b>both</b> conferences, and is
+      "   visible to the members of both conferences.
+      "</td>
+   end
+
+   if $(addQuiz)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="quiz"
+      "      onClick="location.href = 'quizCreate.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)';"></td>
+      "<td><b>Quiz items</b> are scored sets of questions-and-answers, with no discussion.</td>
+   end
+
+   if $(addSurvey)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="survey"
+      "      onClick="location.href = 'quizCreate.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+s';"></td>
+      "<td><b>Survey items</b> are sets of questions, with no discussion.</td>
+   end
+
+   if $(addWiki)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="wiki"
+      "       onClick="location.href = 'additem.cml?$(nch)+$(nxt)+$(arglist)+w+$arg(8)';"></td>
+      "<td><b>Wiki items</b> are like discussion items, 
+      " but may be edited by <b>anyone</b> in the conference.&nbsp;
+      " The complete history of each Wiki is preserved and available.</td>
+   end
+
+   if $(addFreeBlog)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="freeBlog"
+      "       onClick="location.href = 'additem.cml?$(nch)+$(nxt)+$(arglist)+f+$arg(8)';"></td>
+      "<td><b>Blog items</b> are like discussion items, but are automatically published 
+      "  like a blog so that <b>anyone</b> on the Internet can see them.</td>
+   end
+
+   if $(addModBlog)
+      "<tr valign=top>
+      "<td><input type="radio" name="itemtype" value="freeBlog"
+      "       onClick="location.href = 'additem.cml?$(nch)+$(nxt)+$(arglist)+m+$arg(8)';"></td>
+      "<td><b>Moderated blog items</b> are like discussion items, but when approved by the conference
+      "  organizer, are automatically published 
+      "  like a blog so that <b>anyone</b> on the Internet can see them.&nbsp;
+      " Edits to moderated blogs must also be approved.</td>
+   end
+   "</table>
+   "</ul>
+end
+
+else
+   "<script language="javascript">
+   "   function onLoadHandler() {
+   "      ebox_onload('');
+   "      document.ebox.ti_resp.focus();
+   "   }
+   "</script>
+   
+   "<P>
+   set title
+   if $equal (x$arg(11) xx)
+      "<BLINK><B>You must enter a title for $(itemName):<B></BLINK>
+   end
+   else
+      "<b>Enter</b> a descriptive title for $(itemName):
+      if $not_empty ($arg(11))
+         set title $($arg(11))
+      end
+   end
+   
+   "<BR>
+   "<INPUT TYPE="text" NAME="ti_resp" SIZE=60 VALUE="$(title)" >
+
+
+   set showGeoLoc $word (1 $site_data ($arg(3) - showGeoLoc) $(cc_geoLoc) 0)
+   if $(showGeoLoc)
+      include $(main)/openEditMap.i
+      "<p/>
+      "<b>Your current location</b> appears to be:
+      include $(main)/getNewLatLong.i
+      "<input type="text" name="location" size="20" value="$escquote($(newLocation))">.
+      "<input type="hidden" name="latlong" value="$(newLatLong)">
+      "&nbsp;&nbsp;&nbsp;&nbsp;
+      "<a href="editRespLatLongOnMap.cml?$unique()+x+0+1+\
+            $(newLatLong)+$url_encode($quote($(newLocation)))"
+         "   onClick="return openEditMap();"   TARGET="editMap"
+         "  >Edit via map</a>&nbsp;&nbsp;
+
+   end
+
+   "<p/>
+   #---Handle assignments: show pulldowns for dates, group/conf selections.
+   if $equal ($arg(3) $(assign_cnum))
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><b>Next:</b>&nbsp</td>
+      "<td colspan=3>choose a starting date</td>
+      "<td></td>
+      "<td colspan=3>an ending date</td>
+      "<td>and a conference or group.</td>
+      
+      "<tr>
+      "<td></td>
+      set d0 $word (2 $(assignment_temp) x   $minus ($time()  86400))
+      set d1 $word (3 $(assignment_temp) x x $plus  ($time() 604800))
+      include $(main)/datefield.i $(d0) d0
+      "<td>&nbsp;&nbsp;</td>
+      include $(main)/datefield.i $(d1) d1
+      
+      include $(main)/sortedgroups.i
+      include $(main)/sortedconfs.i
+   
+      #---%gcsel (value)   Mark "selected" if $(who) == value.
+      #   Just a convenience to make the whole <select> menu easier to write.
+      set who $word (4 $(assignment_temp) x x x $arg(8))
+      eval $mac_define (gcsel \$if (\$equal (\$(who) @1) selected))
+   
+      "<td><select name="who">
+      "    <option value="0" >(select one)
+      "    <option value="-1" %gcsel(-1)>* (everyone)
+      
+           #---Groups
+           for group in $(sorted_groups)
+           "   <option value="$(group)" %gcsel($(group))>Group: $(group)
+           end
+           #---Conferences
+           for cnum conf in $(sorted_confs)
+           "   <option value="$(cnum)"  %gcsel($(cnum)) >Conf: $(conf)
+           end
+      "</select></td>
+      "</table>
+      "<p>
+   end
+   
+   include $(main)/ebox_type.i
+   if $(ebox_rt)
+      if $(isBlog)
+         "<b>Then:</b> attach a header image, if you have one, or
+         "enter any header text that should appear at the top of your blog.
+      end
+      else
+         "<b>Then:</b> enter and edit your text below.
+      end
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5></td>
+      "<td align=right><img $(src_eboxtr)></td>
+      include $(main)/ebox_rt.i $if ($empty($arg(9)) 0 2) 0 0 i_item 0
+   end
+   elif $(ebox_ek)
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5 rowspan=2><b>Then choose from:</b></td>
+      "<td align=right><img $(src_eboxtr)></td>
+   
+      "<tr $(eboxbg)>
+      "<td><img $(src_clear) width=1 height=3></td>
+      "<td><img $(src_clear) width=1 height=3></td>
+      include $(main)/ebox_ek.i $if ($empty($arg(9)) 0 2) 0 0 i_item hasTitleText()
+   end
+   elif $(ebox_ta)
+      "<table cellspacing=0 cellpadding=0 border=0>
+      "<tr>
+      "<td><img $(src_eboxtl)></td>
+      "<td $(eboxbg) colspan=5 rowspan=2><b>Then choose from:</b></td>
+      "<td align=right><img $(src_eboxtr)></td>
+      "<tr $(eboxbg)>
+      "<td><img $(src_clear) width=1 height=3></td>
+      "<td><img $(src_clear) width=1 height=3></td>
+      include $(main)/ebox_ta.i $if ($empty($arg(9)) 0 2) 0 0 i_item 0
+   end
+   
+   if $word (1 $site_data($arg(3) - allowanon) 0)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5>
+         "<TABLE CELLSPACING=0 CELLPADDING=0>
+         "<TR><TD><b>Anonymous responses:</b>&nbsp;
+         "Normally, all responses to your $(itemName) are automatically
+         ""signed" with the name of the person who wrote the response.&nbsp;
+         "You may choose instead to make all responses <b>anonymous</b>.&nbsp;
+         "(To switch between making new responses signed or anonymous,
+         "just click on the edit button by the $(itemName).)
+         "</TD>
+         "</TABLE>
+      "</td>
+      "<td></td>
+   
+      "<tr $(eboxbg)><td colspan=7><img $(src_clear) width=1 height=4></td>
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><img $(src_bullet)
+      "   >&nbsp;<INPUT TYPE=radio NAME=anon VALUE="0" CHECKED>
+         "Responses are signed
+         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         "<INPUT TYPE=radio NAME=anon VALUE="1">
+         "Responses are anonymous
+      "</td>
+      "<td></td>
+   end
+   
+   if $(is_org)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><br>
+      "<b>Date Range:</b>&nbsp;
+      "You may restrict <b>when</b> responses may be added,
+      "by filling in a start date and an end date.<br>
+      "&nbsp;&nbsp;&nbsp;&nbsp;
+      "Start: <input type="text" name="rdate0" size=12>
+      "&nbsp;&nbsp;&nbsp;&nbsp;
+      "End: <input type="text" name="rdate1" size=12></td>
+      "<td></td>
+   end
+
+   "<tr $(eboxbg)><td></td>
+   "<td colspan=5><table cellspacing=0 cellpadding=0>
+      "<tr>
+      "<td>
+         "<b>Word limit:</b> limit responses to this many words:
+         " <input type="text"   name="wordLimit" size=6 value=""></td>
+      "</table></td>
+   "<td></td>
+
+   "<tr $(eboxbg)><td></td>
+   "<td colspan=5><table cellspacing=0 cellpadding=0>
+      "<tr>
+      "<td>
+         "<b>Response limit:</b> limit users to this many responses:
+         " <input type="text"   name="respLimit" size=6 value=""></td>
+      "</table></td>
+   "<td></td>
+
+   if $(ebox_ta)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><TABLE>
+         "<TR>
+         "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create+View"></TD>
+         "<TD>&nbsp;new $(itemName) now.</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         
+         "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create+Go"></TD>
+         "<TD> to $rest(4 $page_get($arg(2)))</TD>
+   
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "<TD>
+            include $(main)/boxsize.i
+         "</TD>
+         "</TABLE>
+      "</td>
+      "<td></td>
+   end
+   
+   if $(ebox_rt)
+      "<tr $(eboxbg)><td></td>
+      "<td colspan=5><TABLE>
+         "<tr><td><img $(src_clear) width=1 height=3></td>
+         "<TR>
+         "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create+View"></TD>
+         "<TD>&nbsp;new $(itemName) now.</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         
+   #     "<TD><INPUT TYPE="submit" NAME="submit"   VALUE="Create+Go"></TD>
+   #     "<TD> to $rest(4 $page_get($arg(2)))</TD>
+   
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "</TABLE>
+      "</td>
+      "<td></td>
+   end
+   
+   "<tr valign=bottom>
+   "<td><img $(src_eboxbl)></td>
+   "<td $(eboxbg) colspan=5> </td>
+   "<td align=right><img $(src_eboxbr)></td>
+   "</table>
+end
+
+"</FORM>
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+
+if $empty ($arg(9))
+   set time_additem $time()
+end

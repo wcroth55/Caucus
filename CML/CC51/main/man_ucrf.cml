@@ -1,0 +1,202 @@
+#
+#---man_ucrf.cml.    Handles manager user creation
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR 01/14/02 15:30 Add intg_ integration calls.
+#: CR 03/12/02 14:10 After user is created, return to man_ucr.cml
+#: CR 01/17/03 Change "cannot create" error to $form(fn) $form(ln).
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR  9/17/04 Add handling for pw_add error code 12.
+#: CR 12/03/04 Add newly registered userid to special group.
+#: CR 07/31/05 Log 'adduser' event.
+#: CR 03/15/06 Fill in user_info.registered.
+#: CR 08/13/07 Only set newly created user's info fields that are not empty.
+#: CR 09/12/07 Set user_info.regface.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#---------------------------------------------------------------------
+
+#"Content-type: text/plain"
+#"
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_users.cml
+end
+
+include $(main)/secure.i manage userCreate
+
+set nch $unique()
+
+#---Insist on a userid!
+if $empty($form(create_userid))
+   set create_error You must provide a userid.
+   "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+   "
+   return
+end
+
+
+#---In general, the code for this page must handle two cases:
+#   userids can be created ($pw_can_add()), or they must already
+#   exist in the user database.
+
+if $pw_can_add()
+
+   #---Verify password(s) match.
+   if $not_equal($form(create_password) $form(create_verify))
+      set create_error Please re-enter the password and verification.
+      set save_create_userid $form(create_userid)
+     "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8)#$(what))
+     "
+      return
+   end
+
+   #---Create the userid, and prepare error message if it fails.
+   set error $pw_add($form(create_userid) $form(create_password) 0)
+
+   if $not_equal($(error) 0)
+      if $equal($(error) -1)
+         set create_error You are not permitted to perform this action.
+      end
+      elif $equal($(error) 1)
+         set create_error There has been a program error. \
+                           Please contact your Caucus administrator.
+      end
+      elif $equal($(error) 2)
+         set create_error The userid $form(create_userid) already exists.
+      end
+      elif $equal($(error) 3)
+         set create_error The userid \
+                  '$form(delete_userid)$form(password_userid)' does not exist.
+      end
+      elif $equal($(error) 6)
+         set create_error The specified password is too long.
+      end
+      elif $equal($(error) 7)
+         set create_error The userid may contain only lower-case letters, \
+                          digits, dot, underscore, dash, or @-sign.
+      end
+      elif $equal($(error) 8)
+         set create_error The password database has had a lock failure. \
+                           Contact your Caucus administrator.
+      end
+      elif $equal($(error) 9)
+         set create_error The password database cannot be read. \
+                           Contact your Caucus administrator.
+      end
+      elif $equal($(error) 10)
+         set create_error The password database cannot be modified. \
+                           Contact your Caucus administrator.
+      end
+      elif $equal($(error) 11)
+         set create_error SYSTEM ERROR -- The disk may be full. \
+                           Contact your Caucus administrator.
+      end
+      elif $equal($(error) 12)
+         set create_error LDAP database cannot be modified.
+      end
+  
+      "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+      "
+      return
+   end
+end
+
+#---Registering user information.
+#"lname='$form(lname)'
+if $not_empty ($form(lname))
+
+#  #---Fails if trying to create an existing userid.  (Not 100% clear
+#  #   if this should be the case!)
+#  if $and ($pw_can_verify()  \
+#           $equal ($pw_verify($form(create_userid) xxx) 3) )
+#     set create_error Userid '$form(create_userid)' does not exist.
+#     "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+#     "
+#     return
+#  end
+
+   #---Fails if a name is already registered to this userid.
+   if $not_empty (%per_lname($form(create_userid)))
+      set create_error Userid '$form(create_userid)' \
+                is already registered to "%per_name($form(create_userid))".
+      "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+      "
+      return
+   end
+
+   #---Try to register user (+ phone + email + join to confs)
+   if $set_user_info ($form(create_userid) lname $form(lname))
+      eval $set_user_info ($form(create_userid) regface $(iface))
+#     eval $set_user_info ($form(create_userid) registered \
+#              %yyyymmddOf($dateof($time())) $word(2 $dateof($time())):00)
+
+      #---Log user creation as an event.
+      eval $logevent (adduser $(iface) 0 0 0 0 0 0 $form(create_userid))
+
+      #---Record the fact that this user was registered via this interface,
+      #   by placing them in a specially-named group.
+      include $(main)/group_registered.i $form(create_userid)
+
+      set query SELECT uc.name, uc.type, ui.required \
+                  FROM user_columns uc, user_iface ui \
+                 WHERE uc.name = ui.name AND iface='$(iface)' \
+                   AND ui.on_mgr > 0
+      set h $sql_query_open ($(query))
+      
+      set regerrs
+      set nuid $form(create_userid)
+      while $sql_query_row ($(h))
+         if $and ($(required) $empty($form($(name))))
+            if $empty ($(regerrs))
+               set regerrs <p/>Some required fields (marked with a \
+                     <font color=red><b>*</b></font>) are empty.
+            end
+         end
+
+         if $equal ($(type) upload)
+            if $not_empty ($form(name.$(name)))
+               set fname $replace (/ 32 $form(name.$(name)))
+               set fname $word ($sizeof($(fname)) $(fname))
+               include $(main)/virus_checker.i $form($(name)) $(fname) virus_file
+               if $empty ($(virus_file))
+                  set url   $copy2lib ($form($(name)) PICTURES/$(nuid)/$(fname))
+                  eval  $set_user_info ($(nuid) $(name) $(nuid)/$(fname))
+                  include $(main)/methumb.i $(nuid) $(fname)
+               end
+            end
+         end
+         elif $not_empty ($form($(name)))
+            eval $set_user_info ($(nuid) $(name) $form($(name)))
+         end
+      end
+  
+      #---Automatically add user to 'groups' table for any wildcard matches.
+      include $(main)/group_addnewusers.i $form(create_userid)
+
+      #---Integration: create user in outside web app.
+      include $(main)/intg_encpass.i  $form(create_userid)    other_pw
+      include $(main)/intg_create.i   $form(create_userid)  $(other_pw)
+
+      for cnm in $form(conflist)
+         set q1 INSERT INTO grouprules (grkey, owner, name, userid, access) \
+                VALUES (NULL, 'CONF', '$(cnm)', '$form(create_userid)', $priv(include))
+         set h1 $sql_query_open ($(q1))
+         eval   $sql_query_close ($(h1))
+         eval   $group_update_rule ($form(create_userid) $quote(CONF $(cnm)))
+      end
+   end
+   else
+      set create_error Cannot create user "$form(fn) $form(ln)".
+      "%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+      "
+      return
+   end
+end
+set man_ucr_success  $form(create_userid)
+
+"%location($(mainurl)/man_ucr.cml?$arg(1)+$arg(2)+$arg(3)+x+x+x+x+$arg(8))
+#------------------------------------------------------

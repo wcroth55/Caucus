@@ -1,0 +1,92 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>quiz&nbsp;&nbsp;&nbsp;</span>Quizzes.  Each quiz has a unique key (qkey); each row represents a single quiz.  
+<p/><b>Categories: </b>
+<a href='_Quizzes.html'>Quizzes</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ "Quizzes" are a new feature in Caucus 5.0, intended to round  out the e-Learning side of Caucus discussions.&nbsp;  The basic use-case model goes like this:  <ol>  <li>Quizzes are just another type of item.&nbsp;  They belong to a conference, and have the same kind of access control  as a regular ("discussion") item.  <li>Quizzes are created and edited by organizers (or instructors).  <li>Quizzes have a list of editable properties, such as title, when the quiz  is available to be taken, etc.  <li>Generally it is assumed that the quizzes are meant to be "taken"  by the regular ("include" level) members, although the organizers may  also "take" their own quizzes.  <li>Quizzes in turn contain a list of "Problems".&nbsp;  Each Problem is a single question, with an optional list of  answers.&nbsp;  A problem may be "in" one or more Quizzes, but every Problem must  appear in at least one Quiz.&nbsp;  Problems can be moved around, or copied, to different Quizzes.  <li>Quiz takers have a record of their "Score(s)", identified by Quiz and  Problem.&nbsp;  Takers can only see their own Scores, organizers can see all the scores  for all quizzes in the conference.  <li>Quizzes do not have discussion, although one can add a "breakout"  discussion item to a quiz item (or vice versa).  <li>Quizzes have 4 states, which appear as icons in the "new" column  of the conference home page item list:  <ul>  <li>"New" -- never seen.  <li>Open circle -- seen but no answers saved.  <li>Half-filled circle -- some or all answers saved.  <li>Filled-in circle -- quiz scored.  </ul>  </ol>  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>qkey</td>
+<td>int(11) ++</td>
+<td>PK </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Quiz owner (writer)  <br></td>
+<tr valign=top class='row0'>
+<td>title</td>
+<td>varchar(240) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Description/name of quiz  <br></td>
+<tr valign=top class='row1'>
+<td>visible0</td>
+<td>date </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Starting date when quiz is visible  <br></td>
+<tr valign=top class='row0'>
+<td>visible1</td>
+<td>date </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Ending date when quiz is visible  <br></td>
+<tr valign=top class='row1'>
+<td>onepage</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>deleted</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> Is quiz deleted?  <br></td>
+<tr valign=top class='row1'>
+<td>seeAnswers</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> May takers see the correct answers after scoring?  <br></td>
+<tr valign=top class='row0'>
+<td>seesummary</td>
+<td>varchar(20) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Who can see the summary? (editors/takers/anyone)  <br></td>
+<tr valign=top class='row1'>
+<td>includeScore</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'1'</td>
+<td> Should this quiz's score be included when computing total across all quizzes?  <br></td>
+</table>
+</body>
+</html>

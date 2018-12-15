@@ -1,0 +1,22 @@
+#
+#---location.cml   Interpret "special Caucus URLs" during login.
+#
+#   Parameters:
+#      $(location)     [@interface/][conference[/item[/response]]]
+#
+#   Purpose:
+#      Parse location part of "special Caucus URLs" during login,
+#      calculate where the user should go, and send them to that page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/27/02 new file.
+#---------------------------------------------------------------
+
+include $(main)/caucusurl.i $(location)
+
+"Location: $(location)
+"
+#---------------------------------------------------------------

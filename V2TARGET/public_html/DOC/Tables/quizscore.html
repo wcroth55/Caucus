@@ -1,0 +1,85 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>quizscore&nbsp;&nbsp;&nbsp;</span>Records Takers' scores on problems.  One row per Taker/problem/quiz/session combination.  (Allows for a single problem to be shared across multiple quizzes, and also for taking a quiz more than once.) .  
+<p/><b>Categories: </b>
+<a href='_Quizzes.html'>Quizzes</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> Taker  <br></td>
+<tr valign=top class='row1'>
+<td>qkey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row0'>
+<td>pkey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>akey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row0'>
+<td>session</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> ignored for now  <br></td>
+<tr valign=top class='row1'>
+<td>answer</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> Taker's answer set  <br></td>
+<tr valign=top class='row0'>
+<td>points</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Points scored for this answer  <br></td>
+<tr valign=top class='row1'>
+<td>status</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Status of scoring: unscored=1, waiting for human scoring=2, scored=3.  <br></td>
+<tr valign=top class='row0'>
+<td>submitted</td>
+<td>datetime </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> When the answers were submitted/scored  <br></td>
+</table>
+</body>
+</html>

@@ -1,0 +1,44 @@
+:
+#---FIXMASTER.   Fix the 'masteres' file for a specific conference.
+#
+#   Invoked as:
+#      fixmaster  conference
+#
+#   Arguments:
+#      conference   name of conference directory, e.g. "C005".
+#
+#   Purpose:
+#      If a conference 'masteres' file gets screwed up, 'fixmaster'
+#      can rebuild it from the item/response partfiles.
+#
+#   How it works:
+#      Must be run from the Caucus directory.
+#
+#      Asks the user for the name of organizer.
+#
+#      The old masteres file is placed in '_masteres.old'.
+#
+#   History of revisions:
+#: CR  2/02/93 12:17 New scriopt.
+#----------------------------------------------------------------------------
+#
+#
+if test "x$1" = "x"; then
+   echo "Usage:  fixmaster conference_directory"
+   echo " (e.g. 'fixmaster C005')"
+   exit
+fi
+
+if test ! -d $1; then
+   echo "Directory $1 does not exist."
+   exit
+fi
+
+cd $1
+if test -r masteres; then
+   mv masteres _masteres.old
+fi
+ls [0-9A-Z]????????? >_fmast.tmp 2>/dev/null
+../BIN2/fmaster _fmast.tmp  masteres
+rm -f _fmast.tmp
+#----------------------------------------------------------------------------

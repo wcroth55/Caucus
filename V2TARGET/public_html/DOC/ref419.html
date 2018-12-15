@@ -1,0 +1,145 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.19: Page Functions</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.19:&nbsp; CML Page Functions</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref418.html">PREV</A>]
+   [<A HREF="ref420.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+One of the most challenging tasks in creating sophisticated interfaces
+in CML is keeping track of where the user has been.&nbsp;  For example,
+a user may start at page A, go to page B to fill out a form, which
+in turn is processed by page C... which should return the user
+to page A.&nbsp;  If page B may be invoked from many different places,
+this task (remembering where to return to after page C) can get
+quite complicated.
+
+<P>
+<!--
+This issue is dealt with more fully in the forthcoming &quot;Caucus
+3.1 Programmer's Guide&quot;.&nbsp; -->  
+This section details the CML functions
+which make this capability possible.
+
+<P>
+<DL>
+
+<P><DT><A NAME="page_save">$page_save(refresh cmlfile arglist fragment description)</A>
+<DD>
+This function &quot;saves&quot; a CML page reference in a table
+inside the CML interpreter.&nbsp;  It evaluates to (i.e., returns) a
+slot number in that table, which may be used by the other $page_...
+functions to access the saved page.&nbsp;  The arguments to $page_save()
+define a page reference in such a way that the reference can be
+used  later to easily &quot;return to&quot; that page later.
+
+<P>
+<I>Cmlfile</I> is the name of the CML file.&nbsp;  <I>Arglist</I> is
+the list of arguments to that file that should be remembered.&nbsp;
+(<I>Arglist</I> must be one word, so typically the arguments
+are specified in their URL form, i.e. with plus signs separating
+the individual arguments.)&nbsp;  <I>Fragment</I> is the anchor point
+where that document should be re-entered, e.g. &quot;#here&quot;.&nbsp;
+(If there is no such anchor point, <I>fragment</I> should just
+be &quot;#&quot;.)&nbsp;  <I>Description</I> is just ordinary text that
+describes that page; it may be any number of words, including
+none.
+
+<P>
+The &quot;Caucus Center&quot; page shown in the example CML file
+in section 3 uses $page_save() to save the current location in
+a table slot:
+
+<P>
+<PRE>
+set nxt $page_save (1 center.cml \
+        $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                # $(center_name) )
+</PRE>
+
+<P>
+
+This CML code fragment saves the current page (center.cml), with
+its list of arguments ($arg(2)+...), no fragment (&quot;#&quot;),
+and a text description (contained inside the variable center_name).&nbsp;
+The saved page reference is stored in a slot, and the slot number
+is stored (by the &quot;set&quot; statement) in variable <B>nxt</B>.
+
+<P>
+The <I>refresh</I> argument is somewhat complicated.&nbsp;  The slot
+table in the CML interpreter has a fixed size... which means that
+slots that haven't been touched in a while will get automatically
+recycled.&nbsp;  <I>Refresh</I> is a number that refers to the arguments
+in <I>arglist</I>.&nbsp;  If <I>refresh</I> has a value of N, then the
+N'th argument in <I>arglist</I> is assumed to be a slot number,
+and that slot is refreshed -- that is, protected from being recycled
+until the rest of the slots in the table have been recycled. &nbsp;
+See the previously mentioned Programmer's Guide for more information.
+
+<P><DT><A NAME="page_get">$page_get(slot)</A>
+<DD>
+Evaluates to the entire string saved in <I>slot</I> (by $page_save()).&nbsp;
+The first word of the result is the page name, the second word
+is the argument list, the third word is the fragment (anchor name,
+with &quot;#&quot;), and the fourth through last words are the
+page description.
+
+<P><DT><A NAME="page_return">$page_return(slot&nbsp; #override&nbsp; empty)</A>
+<DD>
+Evaluates to a string that can be used in an HTTP &quot;Location:&quot;
+directive to &quot;return to&quot; a page saved in <I>slot</I>.&nbsp;
+<I>#override</I> is a fragment anchor that may be used to override
+the anchor that was saved (with $page_save()).&nbsp;  If it is just
+&quot;#&quot;, the original (saved) anchor is used, otherwise
+<I>#override</I> is used.&nbsp;  <I>Empty</I> should be a full CML page
+reference, to be used only if there is no page saved at slot.
+
+<P>
+Here is an example from the Caucus 3.1 additemf.cml file, which
+processes adding a new item to a conference, and then returns
+to the page which invoked &quot;create a new item&quot;:
+
+<P>
+<PRE>
+   &quot;Location: $(href)/$page_return($arg(2) # \
+                           center.cml?$(nch)+0+x+x+x+x+x+x)
+</PRE>
+
+<P>
+In this case, $arg(2) is the slot number of the page that originally
+invoked &quot;create a new item&quot;.&nbsp;  There is no override on
+the saved fragment anchor, and the default page (in case there
+was no saved &quot;calling&quot; page) is center.cml, the &quot;Caucus
+Center&quot;  page.
+
+<P><DT><A NAME="page_caller">$page_caller(which slot)</A>
+<DD>
+Evaluates to the slot number of the page which &quot;called&quot;
+the page saved at <I>slot</I>.&nbsp;  Assumes that the caller of a page
+is stored in the argument list to that page, in argument number
+<I>which</I>.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

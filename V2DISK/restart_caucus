@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+#---restart_caucus
+#
+#   This script is run from crontab every morning.  It tries to
+#   restart Caucus, in case it is not running.  (If it is already
+#   running, then this script will have no effect.)
+#
+#: CR  7/23/03 Replace whoami with $LOGNAME.
+#-----------------------------------------------------------------
+
+uid=$LOGNAME
+
+if ps -u $uid | grep swebd >/dev/null 2>/dev/null; then
+   exit
+fi
+
+rm -f $HOME/SOCKET/sweb $HOME/SOCKET/sweb0*
+$HOME/SWEB/swebd $HOME/SWEB/swebd.conf

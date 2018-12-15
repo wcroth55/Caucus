@@ -1,0 +1,235 @@
+#
+#---quiz.cml.   Edit a quiz.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/16/06 New file.
+#: CR 02/17/06 Add more explanatory text.
+#: CR 03/28/06 Add "See summary" link.
+#: CR 05/22/06 Add 3 choices for who can see the summary.
+#: CR 10/27/06 Add seeAnswers choice.
+#: CR 01/08/08 Add includeScore choice.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+set type $word(1 $sql_query_select (SELECT type FROM items WHERE id=$arg(4)))
+set typeName $upper1($(type))
+set isQuiz $equal ($(type) quiz)
+set typePlural  $if ($(isQuiz) quizzes surveys)
+set problemName $if ($(isQuiz) problem question)
+set pagename <span class="pageTitle">Edit $upper1($(type))</span>
+
+#---Handle editing a quiz
+if $not_empty ($form(submit))
+   set query UPDATE quiz SET title='$escsingle($form(title))', \
+                           onepage='$plus(0 $form(onepage))', \
+                           visible0='%yyyymmddOf($form(visible0))', \
+                           visible1='%yyyymmddOf($form(visible1))', \
+                           seesummary='$form(seesummary)', \
+                           seeAnswers=$word(1 $form(seeAnswers) 0), \
+                           includeScore=$word(1 $form(includeScore) 0) \
+              WHERE qkey=$(qkey)
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   eval $item_set ($arg(3) $arg(4) title $form(title))
+
+#  set _save h=$(h), $(query)
+
+   count num 0 1000
+      if $empty ($form(pkey_$(num)))
+         break
+      end
+      if $not_equal (x$form(oldsort_$(num)) x$form(newsort_$(num)))
+         set q1 UPDATE quizmap SET sortorder=$form(newsort_$(num)) \
+                 WHERE qkey=$(qkey) AND pkey=$form(pkey_$(num))
+         set h1 $sql_query_open ($(q1))
+         eval   $sql_query_close($(h1))
+      end
+   end
+end
+
+set title
+set query \
+    SELECT userid, title, visible0, visible1, onepage, seesummary, seeAnswers, \
+           includeScore \
+      FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set onepage $plus(0 $(onepage))
+
+set nxt   $page_save (1 quiz.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Quiz:&nbsp;$(qname))
+include $(main)/head.i $arg(3)  $quote($(typeName): $(qname))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+#include $(main)/header.i      quiz  </A><A HREF="quiz_my.cml?\
+#   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+#   My&nbsp;Quizzes</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top"\
+#   >$(qname)
+include $(main)/header.i      $(type) </a><a href="#top">Edit $(typeName)
+
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+#"_save=$(_save)<br>
+"<p/>
+#"h=$(h)<br>
+#"query=$(query)<br>
+#"qname=$(qname)
+"<form name="quiz" method="post" 
+"    action="quiz.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)">
+"<ul>
+"<li>Use this section to edit information <b>about</b> a $(typeName).&nbsp;
+"To edit a single $(problemName) in the $(typeName), click on the $(problemName)
+"in the list of $(problemName)s.
+"<p/>
+"<table border=0>
+"<tr><td>Name:</td>  
+"    <td><input type="text" name="title" size=30 value="$(qname)"></td>
+"<td>&nbsp;<td>
+"<td><input type="submit" name="submit" Value="Save Changes"></td>
+#"<tr><td>Owner:&nbsp;</td> <td>%person($(userid))</td>
+"<tr><td>Quiz open:</td>
+"<td><input type="text" size="10" name="visible0" 
+"          value="%monthDayYear($(visible0))">&nbsp; thru
+"    <input type="text" size="10" name="visible1" 
+"          value="%monthDayYear($(visible1))">&nbsp; (dates)</td>
+"<tr><td colspan=4>$(typeName) takers see all $(problemName)s on one page?&nbsp;
+"    <input type="checkbox" name="onepage" value="1" 
+"         $ifthen($(onepage) checked)>
+#  &nbsp;<b><i>(not operating yet)</i></b>
+"</td>
+
+#"<tr><td colspan=3
+#"   ><a href="groupedit.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#                   Quiz+_+$arg(7)">Access Control</a>&nbsp;&nbsp;
+#"  (Who can edit this quiz?&nbsp;  Who can take this quiz?)</td>
+
+"<tr><td colspan=3
+#   ><a href="quiz_del.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+0"
+#         onClick="return confirm('OK to delete $(qname)?');"
+#   >Delete this quiz</a> 
+#    (but save ($problemName)s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"   <a href="quiz_del.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+arg(8)+1"
+"         onClick="return confirm('OK to delete $(qname) and *all* its $(problemName)s?');"
+"   >Delete this $(typeName)</a> (and all its $(problemName)s)
+"</td>
+
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td><a href="quiz_copy.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+ "   >Copy this $(typeName)</a></td>
+
+"<tr><td colspan=3
+"   ><a href="quiz_summary.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+"   >See Summary</a>
+
+"   | <a href="quiz_score.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+"   >See scores</a>
+
+if $(isQuiz)
+   "   | <a href="quizAllScores.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)"
+   "   >See scores across <b>all</b> $(typePlural)</a>
+end
+"</td>
+
+"<tr><td colspan=5
+"   >Who is allowed to see the $(typeName) summary?
+    set seesummary $word (1 $(seesummary) takers)
+    for x in editors takers anyone
+       "<input type="radio" name="seesummary" value="$(x)"
+       "   $ifthen ($equal($(x) $(seesummary)) checked)
+       "   >$upper1($(x))&nbsp;&nbsp;
+    end
+"</td>
+
+if $(isQuiz)
+   "<tr><td colspan=2
+   "   >Can students see the correct answers when they're done?</td>
+   "<td colspan=3>
+   "   <input type="radio" name="seeAnswers" value="1"
+   "      $ifthen ($(seeAnswers) checked)>Yes&nbsp;&nbsp;
+   "   <input type="radio" name="seeAnswers" value="0"
+   "      $ifthen ($not($(seeAnswers)) checked)>No 
+   "</td>
+
+   "<tr><td colspan=2
+   "   >Include this quiz's score in total score across all $(typePlural)?</td>
+   "<td colspan=3>
+   "   <input type="radio" name="includeScore" value="1"
+   "      $ifthen ($(includeScore) checked)>Yes&nbsp;&nbsp;
+   "   <input type="radio" name="includeScore" value="0"
+   "      $ifthen ($not($(includeScore)) checked)>No 
+   "</td>
+end
+
+"</table>
+
+"<p/>
+"<li>Use this section to edit or add the $(problemName)s that <b>belong</b>
+"to the $(typeName).&nbsp;
+"Each $(problemName) has a title and an (optional) category.&nbsp;
+"Click on the title to edit the $(problemName).
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr bgcolor="#E0E0FF">
+"<td><b>Order</b>&nbsp;</td>
+"<td colspan=1>&nbsp;<b>Title</b>&nbsp;&nbsp;&nbsp;</td> 
+"<td align=right><b>Points</b></td>
+"<td>&nbsp;&nbsp;</td>
+"<td><b>Category:</b>&nbsp;&nbsp;&nbsp;</td>
+
+set count -1 
+set query SELECT p.pkey, p.category, p.title, p.totalpoints, m.sortorder \
+            FROM quizproblems p, quizmap m \
+           WHERE p.pkey=m.pkey AND m.qkey=$(qkey) AND p.deleted=0 \
+           ORDER BY m.sortorder, p.pkey
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set count $plus ($(count) 1)
+   "<tr valign=top><td><input type="text" size="3" name="newsort_$(count)"
+   "              value="$word (1 $(sortorder) $(pkey))"
+   "   ><input type="hidden" name="oldsort_$(count)" value="$(sortorder)"
+   "   ><input type="hidden" name="pkey_$(count)"    value="$(pkey)"
+   "   >&nbsp;&nbsp;</td>
+   "<td><a href="quiz_prob.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)"
+   "   >$(title)</a>&nbsp;&nbsp;</td>
+   "<td align=right>$(totalpoints)</td>
+   "<td></td>
+   "<td>$(category)</td> 
+end
+eval  $sql_query_close($(h))
+
+"<tr><td>&nbsp;</td>
+"<tr><td></td>
+"<td><input type="button" value="Add new $(problemName)"
+"           onClick="location.href=\
+                     'quiz_probedit.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+0';"
+"   ></td>
+
+"</table>
+"</ul>
+"</form>
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

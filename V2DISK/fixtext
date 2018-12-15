@@ -1,0 +1,48 @@
+:
+#---FIXTEXT.   Fix missing TEXTnnn directories.
+#
+#   Invoked as:
+#      fixtext
+#
+#   Purpose:
+#      Sometimes a Caucus user has a USERnnn/userid directory, but
+#      no matching TEXTnnn/userid directory.
+#
+#      This can cause problems when trying to respond, or send Caucus
+#      mail.  The user may see an error message like "textmsc2: cannot
+#      create".
+#
+#      FIXTEXT automatically scans all of the USERnnn/userid directories,
+#      and ensures that the matching TEXTnnn/userid directories exist.
+#
+#   How it works:
+#     
+#   Notes:
+#
+#   History of revisions:
+#: CR 10/13/95 14:03 New script.
+#----------------------------------------------------------------------------
+#
+#
+#
+confid=`pwd`
+
+for nnn in 0 1 2 3 4 5 6 7 8 9; do
+   if test -d USER00$nnn; then
+      cd USER00$nnn
+      for letter in a b c d e f g h i j k l m n o p q r s t u v w x y z _; do
+         for id in $letter*; do
+            if test "$id" != "$letter*"; then
+#              echo "Scanning $id".
+               if test ! -d $confid/TEXT00$nnn/$id; then
+                  echo "  Creating text dir for $id"
+                  mkdir     $confid/TEXT00$nnn/$id
+                  chmod 777 $confid/TEXT00$nnn/$id
+               fi
+            fi
+         done
+      done
+      cd $confid
+   fi
+done
+#----------------------------------------------------------------------------

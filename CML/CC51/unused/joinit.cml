@@ -1,0 +1,101 @@
+#
+#---JOINIT.CML.   Actually join the person to the conference.
+#
+#   Like join.cml, the conference number is supplied in $arg(4).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  5/13/03 Implement 'markseen' option.
+#: CR  5/25/04 Use add2persconf.i
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i joinit.cml
+end
+
+include $(main)/secure.i member $arg(4)
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+#---Answered "NO", go back to Caucus Center.
+if $equal (x$form(submit) xNo)
+   "%location($(mainurl)/center.cml?$(nch)+$(nxt)+x+x+x+x+x+x)
+   "
+   return
+end
+
+#---Answered YES.  
+if $it_join($arg(4))
+
+   #---YES! means join *and* add to pers conf list.
+   if $or ($equal (x$form(submit) xYes!) $not($(confirm_join)))
+      include $(main)/add2persconf.i $userid() $arg(4)
+#     set found 0
+#     set myconfs $user_var ($userid() my_confs)
+#     for word in $(myconfs)
+#        if $equal ($lower($(word)) $cl_name($arg(4)))
+#           set found 1
+#        end
+#     end
+#     if $not ($(found))
+#        eval  $set_user_var ($userid() my_confs \
+#                    $(myconfs)$newline()$cl_name($(cnum))$newline())
+#     end
+      include $(main)/sortconfs.i 
+   end
+
+   #---If organizer set "mark all items as seen for new members", do
+   #   so for this member.
+   if 0$site_data ($arg(4) - markseen)
+      error!
+#     count inum 1 $it_last($arg(4))
+#        if $or (        $it_visib  ($arg(4) $(inum))  \
+#                $equal ($it_hidden ($arg(4) $(inum)) 2))
+#           eval $set_it_seen( $arg(4) $(inum) $it_resps($arg(4) $(inum)) )
+#           eval $item_set_seen ($arg(4) item_id $userid() %item_lastresp(item_id))
+#        end
+#     end
+   end
+
+
+   #---If a particular item number was requested, call viewitem with 
+   #   the appropriate arguments; otherwise just go to the conference
+   #   home page.
+
+   if $equal($arg(5) x)
+     "%location($(mainurl)/confhome.cml?$(nch)+$arg(2)+$arg(4)+$arg(5)+$arg(6)+x+x+x)
+   end
+   else
+     set nxt   $page_save (1 confhome.cml $arg(2)+$arg(4)+x+x+x+x+x \
+                      # $(cname) Home Page )
+     "%location($(mainurl)/viewitem.cml?$(nch)+$(nxt)+$arg(4)+$arg(5)+$arg(6)+x+x+x)
+   end
+   "
+   return
+end
+
+#---Could not join for some reason, possible Caucus error.
+
+set cname %displayed_conf_name ($arg(4))
+
+include $(main)/head.i $quote(Error joining $(cname))
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/header.i    joinit  Error Joining $(cname)
+
+"<H2>Error joining $(cname)</H2>
+
+"<P>
+"An error occurred in attempting to join this conference.&nbsp;
+"Please restart your browser and try again from the very beginning.
+
+"<P>
+"If you see this message again, please contact the Caucus
+"host administrator (who should put a link here).
+
+"</BODY>
+"</HTML>
+#--------------------------------------------------------------------

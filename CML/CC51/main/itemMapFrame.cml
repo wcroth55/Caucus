@@ -1,0 +1,26 @@
+#
+#---itemMapFrame.cml  Implementation of %itemMapFrame() macro.
+#
+#   arg(1)  unique
+#   arg(2)  conf num
+#   arg(3)  itemLabels (comma sep)
+#   arg(4)  zoom (0=>default)
+#   arg(5)  width
+#   arg(6)  height
+#
+#:CR 12/04/10 New script.
+#---------------------------------------------------------------------
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+   include $(main)/css.i
+   include $(main)/popup.i
+"</head>
+
+"<body onunload="GUnload()" style="margin: 0px 0px 0px 0px;">
+"   <div id="map_canvas1" style="width: $arg(5)px; height: $arg(6)px"></div>
+    include $(main)/itemMap.i $arg(2) $arg(3) $arg(4) 1 script
+"</body>
+"</html>

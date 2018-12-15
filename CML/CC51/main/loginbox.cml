@@ -1,0 +1,59 @@
+#
+#---loginbox.cml   Process cookie-based login from bookmarked URL
+#
+#   Invoked from:
+#      loginbox.i (called from startup.i), from either a bookmarked URL 
+#      or an E-mail notification URL.  
+#
+#   Parameters: 
+#      userid     userid   from login box
+#      password   password from login box
+#      target     target cml file and "?" querystring arguments
+#
+#   Purpose:
+#      When a user enters Caucus via a bookmarked URL or an e-mail
+#      notification URL, the target page loads startup.i, which
+#      detects that there is no userid.  In in turn loads loginbox.i, 
+#      which displays a page with the login box.
+#
+#      That page in turn submits a form to this page (loginbox.cml), which
+#      is responsible for verifying the userid & password, setting the
+#      login cookie, and going on to the original target page, now all
+#      properly logged in.
+#
+#   Notes:
+#          
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 08/23/02 new file.
+#---------------------------------------------------------------
+
+#---If userid & pw are OK, go on to originally desired page, setting
+#   cookies along the way in the HTTP header.
+if $equal ($pw_verify ($form(userid) $form(password)) 0)
+   "Location: $(http)://$host()/$(sweb)/swebsock/$pid()/$(main)/$form(target)
+   "$auth_cookie ($form(userid) /$(sweb)/swebsock/)
+   "
+   eval $auth_pw ($form(password))
+end
+
+else
+
+   "Content-type: text/html
+   "
+   "<html>
+   "<body bgcolor="#FFFFFF">
+   
+   "<script type="text/javascript" language="javascript">
+   "   confirm ('Invalid userid or password.');
+   "   history.back();
+   "</script>
+   
+   "</div>
+"</body>
+   "</html>
+end
+   
+#-------------------------------------------------------------------------

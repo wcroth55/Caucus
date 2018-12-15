@@ -1,0 +1,300 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.7: Strings</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.7:&nbsp; String &amp; Date Manipulation</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref406.html">PREV</A>]
+   [<A HREF="ref408.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+This page contains subsections on
+<A HREF="#_translate">translations</A>,&nbsp;
+<A HREF="#_lines">line manipulation</A>,&nbsp;
+<A HREF="#_words">word manipulation</A>,&nbsp;
+<A HREF="#_char">character manipulation</A>,&nbsp; and
+<A HREF="#_date">dates</A>.
+
+<P>
+<DL>
+<P>
+<DT><A NAME="_translate"><B>4.7.1 Translations</B></A>
+<P>
+<DT><A NAME="upper">$upper(words)</A>
+<DD>
+Converts all the text in <I>words</I> to upper case.
+
+<P><DT><A NAME="upper1">$upper1(words)</A>
+<DD>
+Converts the first letter of each word in <I>words</I> to upper
+case.
+
+<P><DT><A NAME="lower">$lower(words)</A>
+<DD>
+Converts all the text in <I>words</I> to lower case.
+
+<P><DT><A NAME="quote">$quote(words)</A>
+<DD>
+Treats all of the <I>words</I> as a single word.&nbsp;
+It evaluates to the string <I>words</I>, with all of the
+blanks, tabs, and newlines replaced with non-printable control 
+characters.&nbsp;
+This function is useful in several different circumstances:
+<OL>
+<P>
+<LI>When comparing two multi-word strings, as in:<BR>
+     <A HREF="ref405.html#equal">$equal</A> ($quote (string1) $quote (string2))
+    <P>
+
+<LI>To combine several words as one argument to the 
+    <A HREF="ref5.html#include">include</A> directive, as in:<BR>
+    include file.i $(cnum) $quote(conference description)
+    <P>
+
+<LI>For complicated $if() functions, such as <FONT SIZE=-1><PRE>
+$unquote ($if (<I>condition</I> $quote(then some multi-word text) \
+                               else some multi-word text))</PRE></FONT>
+</OL>
+
+<P><DT><A NAME="unquote">$unquote(words)</A>
+<DD>
+Undoes the effect of $quote() when explicitly necessary.&nbsp;
+I.e. $unquote ($quote (words)) evaluates to the original, unmodified
+<I>words</I>.
+
+<P><DT><A NAME="md5hash">$md5hash(word)</A>
+<DD>
+Evaluates to a 32-character (all hex digits) MD5 hash of <i>word</i>,
+for use in (very simple) cryptography.
+
+
+<P>
+<DT><A NAME="_lines"><B>4.7.2 Line manipulation</B></A>
+<P>
+The first line in a string is line number 1.
+
+<P><DT><A NAME="lines">$lines (n count str)</A>
+<DD>
+Evaluates to the first <I>count</I> lines of string <I>str</I>,
+starting with line number <I>n</I>.&nbsp;
+Lines are separated by newline characters.&nbsp;
+If <I>count</I> is -1, it uses all the remaining lines in
+<I>str</I>.
+
+
+<P>
+<DT><A NAME="_words"><B>4.7.3 Word manipulation</B></A>
+<P>
+The first word in a string is word number 1.
+
+<P><DT><A NAME="set">$set (a b)</A>
+<DD>
+Sets the variable named <I>a</I> to the string <I>b</I>.&nbsp;
+Evaluates to nothing.&nbsp;
+Equivalent to the <A HREF="ref5.html#set">Set</A> directive,
+but usable as a function.
+
+<P><DT><A NAME="words">$words (n count str)</A>
+<DD>
+Evaluates to the first <I>count</I> words of string <I>str</I>,
+starting with word number <I>n</I>.&nbsp;
+Words are separated by one or more spaces (or tabs, newlines, or 
+Kanji double-wide spaces).&nbsp;  
+The first word is word number 1.&nbsp;
+If <I>count</I> is -1, it uses all the remaining words in
+<I>str</I>.
+
+<P><DT><A NAME="word">$word(n str)</A>
+<DD>
+Evaluates to word number <I>n</I> of string <I>str</I>.&nbsp;
+Equivalent to $words (n 1 str).&nbsp;
+If <i>n</i> < 0, evaluates to the n'th word from the end.&nbsp;
+Thus "$word (-1 str)" is the last word in <i>str</i>.
+
+<P><DT><A NAME="rest">$rest(n str)</A>
+<DD>
+Evaluates to the &quot;rest&quot; of the words in a string, i.e.
+word number <I>n</I> through the end of <I>str</I>, inclusive.&nbsp;
+Equivalent to $words (n -1 str).
+
+<P><DT><A NAME="tablefind">$tablefind(word str)</A>
+<DD>
+Look for <I>word</I> in <I>str</I>.&nbsp;  If it is identical to a
+single word, evaluate to the number of that word in <I>str</I>.&nbsp;
+Otherwise '0'.&nbsp; (Note that $tablefind() effectively reduces all
+strings to lowercase before checking "identical to".&nbsp;
+This may have originally been a bug.)
+
+<P><DT><A NAME="tablematch">$tablematch(word str)</A>
+<DD>
+Look for <I>word</I> in <I>str</I>.&nbsp;  If it is identical to a
+single word, evaluate to the number of that word in <I>str</I>.&nbsp;
+Otherwise '0'.&nbsp; (This function does <b>not</b> convert to
+lowercase first.)
+
+<P><DT><A NAME="sizeof">$sizeof(str)</A>
+<DD>
+Evaluates to the number of words in string <I>str</I>.
+
+<P><DT><A NAME="numeric">$numeric(str)</A>
+<DD>
+Evaluates to 1 if the (first word of) <I>str</I> is a number,
+and 0 otherwise.
+
+<P><DT><A NAME="is_num">$is_num(str)</A>
+<DD>
+Evaluates to the position of the first character in <I>str</I>
+which is <B>not</B> a number.&nbsp;  (A leading minus sign is
+considered to be part of a number.)
+
+<P><DT><A NAME="commaList">$commaList(type elements...)</A>
+<DD>
+Evaluates to a comma-separated list of <i>elements</i>,
+suitable for use in an SQL query.&nbsp;
+<i>Type</i> must be "number" or "string" (1st letter is sufficient),
+to determine if the elements should be quoted.&nbsp;
+E.g.
+<pre>
+   $commaList(n 4 5 6)            = "4,5,6"
+   $commaList(s alpha beta gamma) = "'alpha','beta','gamma'"</pre>
+
+<P>
+<DT><A NAME="_char"><B>4.7.4 Character &amp; Position Manipulation</B></A>
+<P>
+The first character in a string is character number 0.
+
+<P><DT><A NAME="pad">$pad(num)</A>
+<DD>
+Evaluates to <I>num</I> blanks.&nbsp;  Generally only useful inside
+&lt;PRE&gt; text.
+
+<P><DT><A NAME="newline">$newline()</A>
+<DD>
+Evaluates to a newline character.&nbsp;  Useful inside arguments to
+functions such as $t2hbr(), etc.
+
+<P><DT><A NAME="replace">$replace(a b c)</A>
+<DD>
+Each of the strings <I>a</I> and <I>b</I> must either be single
+characters, or else the (two or more digit) base-ten numeric representation 
+of a single
+character.&nbsp;  $replace() evaluates to string <I>c</I>, but with
+each instance of character <I>a</I> replaced by character <I>b</I>.
+
+<P><DT><A NAME="asc2dec">$asc2dec(text)</A>
+<DD>
+Converts <I>text</I> to a space-separated string of decimal numbers,
+representing the value of each character in <I>text</I>.
+
+<P><DT><A NAME="wordpos">$wordpos(n str)</A>
+<DD>
+Evaluates to the character position in <I>str</I> of word
+number <I>n</I>.
+
+<P><DT><A NAME="str_index">$str_index(what text)</A>
+<DD>
+Find the first occurrence of the (one-word) string <I>what</I>
+in string <I>text</I>.&nbsp;  Evaluates to position number of <I>what</I>
+in <I>text</I>.&nbsp;  (The first position is 0.)  Evaluates to &quot;-1&quot;
+if not found.
+
+<P><DT><A NAME="str_replace">$str_replace(orig replace text)</A>
+<DD>
+Evaluates to <i>text</i>, with all 
+all instances of <i>orig</i> replaced with <i>replace</i>.&nbsp;
+$str_replace() automatically "unquotes" its first two arguments,
+so that multiple word <i>orig</i> or <i>replace</i> strings may 
+supplied by $quote()ing them.
+
+<P><DT><A NAME="str_revdex">$str_revdex(what text))</A>
+<DD>
+Find the <B>last</B> occurrence of the (one-word) string <I>what</I>
+in <I>text</I>.&nbsp;  Evaluates to position number of <I>what</I> in
+<I>text</I>.&nbsp;  (The first position is 0.)&nbsp;  
+Evaluates to &quot;-1&quot; if not found.
+
+<P><DT><A NAME="str_sub">$str_sub(pos len text)</A>
+<DD>
+Evaluates to a substring of <I>text</I>, starting at position
+<I>pos</I>, <I>len</I> characters long.
+
+<P><DT><A NAME="strlen">$strlen(text)</A>
+<DD>
+Evaluates to the number of characters in <I>text</I>.
+
+<P><DT><A NAME="width">$width(str)</A>
+<DD>
+Evaluates to the width (equivalent number of single-width characters)
+of <I>str</I>.&nbsp;  Double-wide kanji have a width of 2.
+
+<P><DT><A NAME="charval">$charval(pos string)</A>
+<DD>
+Returns the decimal value of the <I>pos</I>'th character
+in <I>string</I>.&nbsp;
+The first character in <I>string</I> is at position 0.&nbsp;
+Positions beyond the end of the string return a character
+value of 0.
+
+<P><DT><A NAME="charvals">$charvals(string)</A>&nbsp;&nbsp;&nbsp; (v4.41)
+<DD>
+Evaluates to the decimal values of every character in <i>string</i>,
+separated by (leading) spaces.
+
+<P><DT><A NAME="char">$char(cval)</A>
+<DD>
+Evaluates to the ASCII character with decimal value <I>cval</I>.&nbsp;
+For example, $char(97) is the letter <B>a</B>.
+
+<P>
+<DT><A NAME="_date"><B>4.7.5 Dates</B></A>
+
+<P><DT><A NAME="epoch">$epoch(date)</A>
+<DD>
+<I>Date</I> must be a date of form DD-MMM-YY[YY].&nbsp;
+The function evaluates to its equivalent "epoch" time, i.e.
+the number of seconds since Jan 1, 1970.&nbsp;
+(See <A HREF="ref402.html#time">$time()</A>.)
+
+<P><DT><A NAME="dateof">$dateof(time)</A>
+<DD>
+Evaluates to the date form (DD-MMM-YYYY HH:MM) of
+an "epoch" <I>time</I> in seconds.
+
+<P><DT><A NAME="weekday">$weekday(time)</A>
+<DD>
+Evaluates to the number of the day of the week 
+(Sunday=0, Monday=1, ... Saturday=6) of an "epoch"
+<I>time</I> in seconds.
+
+<p/><DT><A NAME="yyyymmddOf">$yyyymmddOf(time)</A>
+<DD>
+Evaluates to the "YYYY-MM-DD HH:MM" equivalent of
+an "epoch" <I>time</I> in seconds.
+
+<p/><DT><A NAME="epochOfYYYY">$epochOfYYYY(date)</A>
+<DD>
+Evaluates to the "epoch" time, in seconds, of
+a date in the form YYYY-MM-DD HH:MM.
+
+</DL>
+</BLOCKQUOTE>
+
+<P>
+<HR>
+</BODY>
+</HTML>

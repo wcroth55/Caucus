@@ -1,0 +1,222 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 3.1: Macros</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>Chapter 3.1:&nbsp; Macros</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref3.html">UP</A>]
+   [<A HREF="ref3.html">PREV</A>]
+   [<A HREF="ref4.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+CML provides a "macro" capability that may be used by both
+the CML code developer or the end user alike.&nbsp;
+It is similar to the macro capability in the C language, 
+or the functions that can be created in the Korn and
+other Unix shells.
+
+<P>
+A macro is just a shortcut, a way of representing a longer string
+of HTML and/or CML functions, with arguments that are expanded
+when the macro is evaluated.&nbsp;
+
+<P>
+Macros are defined by the CML function
+<A HREF="ref416.html#mac_define">$mac_define()</A>;
+they are automatically evaluated (or "expanded") by the CML
+interpreter.&nbsp;
+They may also be expanded with the 
+<A HREF="ref416.html#mac_expand">$mac_expand()</A> function,
+which is particularly useful when the macro reference is contained in
+a CML variable, or returned by a CML function.&nbsp;
+
+<P>&nbsp;<BR>
+<B>3.1.1 HTML Example</B><BR>
+Here's a simple example of defining and using a macro that just
+acts as an HTML shortcut:
+
+<P>
+<PRE>
+   eval $mac_define (image &lt;IMG SRC="@1" WIDTH=@2 HEIGHT=@3&gt;)
+
+   %image (myimage.gif 64 32)
+</PRE>
+
+<P>
+The invocation of the "%image", above, expands to:
+
+<P>
+<PRE>
+   &lt;IMG SRC="myimage.gif" WIDTH=64 HEIGHT=32&gt;
+</PRE>
+
+<P>
+Note that the "@1" in the macro definition represents the first word
+(or argument) in the macro invocation, "@2" the second word, and so on.&nbsp;
+Macros support nine arguments, "@1" through "@9", plus the special
+argument "@@", which expands to the complete list of words in the macro
+invocation, no matter how many there are.
+
+
+<P>&nbsp;<BR>
+<B>3.1.2 CML Example</B><BR>
+Here's a more interesting macro definition.&nbsp;
+(It assumes some knowledge of the CML functions
+<A HREF="ref405.html#if">$if()</A>,
+<A HREF="ref405.html#equal">$equal()</A>, and
+<A HREF="ref410.html#per_name">$per_name()</A>.)
+
+<P>
+The "namer" macro displays the full name of a person, 
+given their userid as the single argument -- for example,
+when invoked as <TT>%namer(roth)</TT>.&nbsp;
+But if that userid is <I>this</I> person (i.e., the current user), then
+the name is shown as blinking text.
+
+<P>
+<PRE>
+   eval $mac_define (namer \$if (\$equal ($userid() @1) &lt;BLINK&gt;)\
+                                 \$per_name(@1)&lt;/BLINK&gt;)
+</PRE>
+
+<P>
+Note the use of the backslash ("\") to "escape" some of the CML
+functions.&nbsp;
+The backslash is removed during the definition of the macro, 
+but it prevents the functions from being evaluated <I>during</I>
+the macro definition.&nbsp;
+Instead, those functions are evaluated only when the macro is
+actually expanded.
+<P>
+For example, the $userid() function has no backslash, 
+and thus <I>is</I> evaluated immediately,
+and becomes a constant part of the macro definition.&nbsp;
+This is fine, since the userid
+is constant during the entire Caucus session.&nbsp;
+$per_name(), on the other hand, is escaped with a backslash.&nbsp;
+It must be evaluated during the
+macro expansion -- otherwise the definition would be attempting
+to find the name of the person called "@1"!
+
+<P>&nbsp;<BR>
+<B>3.1.3 Macro expansion and CML evaluation</B><BR>
+As stated in the previous section,
+when macros are expanded, any CML functions in the definition
+are automatically evaluated.&nbsp;
+
+<P>
+The reverse, however, is not true.&nbsp;
+If a CML function evaluates to a macro invocation, that macro
+is not automatically expanded.&nbsp;
+(Only macro invocations in the original CML source code are
+automatically expanded.)
+
+<P>
+To expand a macro that results from a CML function evaluation,
+use the 
+<A HREF="ref416.html#mac_expand">$mac_expand()</A> function.&nbsp;
+
+<P>
+For example, here is an actual line of CML code from the page
+that displays the responses to an item:
+<P>
+<FONT SIZE=-1>
+<PRE>
+   "$cleanhtml (prohibited $protect($mac_expand($wrap2html($re_text()))))
+</PRE>
+</FONT>
+
+<P>
+Now suppose that the particular response from 
+<A HREF="ref414.html#re_text">$re_text()</A> is "word-wrapped"
+text that contains
+a macro invocation, such as the "%image" macro from 3.1.1.&nbsp;
+Consider how that text is processed by the functions in this line.&nbsp;
+<A HREF="ref416.html#wrap2html">$wrap2html()</A>
+just handles word-wrapping and quoting of special
+HTML characters; it doesn't affect the macro.
+<P>
+Then <A HREF="ref416.html#mac_expand">$mac_expand()</A> actually 
+expands the macro, which can contain
+any CML functions, <I>and evaluates them</I>.&nbsp;
+(Note that it only evaluates CML functions that are within
+the expansion of the macro.&nbsp;
+Any other instances of CML functions in the argument text
+of $mac_expand() are left unevaluated.)
+<P>
+While this is very powerful, it can also be dangerous to allow any
+user to evaluate any CML function that might be in a macro.&nbsp;
+So <A HREF="ref402.html#protect">$protect()</A> disables the effect 
+of any CML functions that are considered "unsafe".&nbsp;
+And finally, 
+<A HREF="ref416.html#cleanhtml">$cleanhtml()</A> removes or 
+hides any HTML tags that
+the Caucus manager or conference organizer has chosen to be
+prohibited, even if they were in the original macro definition.
+
+
+
+<P>&nbsp;<BR>
+<B>3.1.4 Nested Macros</B><BR>
+Macros may use other macros in their definitions.&nbsp;
+Here is a very simple example that just uses HTML:
+<P>
+<PRE>
+   "eval $mac_define (tag B)
+   "eval $mac_define (emphasize &lt;%tag()&gt;@@&lt;/%tag()&gt;)
+
+   "Some words deserve %emphasize(special) emphasis!
+</PRE>
+
+<P>
+And it produces the text "Some words deserve <B>special</B> emphasis!".&nbsp;
+But, if instead we use backslashes to "escape" the invocations of %tag
+in the definition of %emphasize:
+<P>
+<PRE>
+   "eval $mac_define (emphasize &lt;\%tag()&gt;@@&lt;/\%tag()&gt;)
+</PRE>
+
+<P>
+Now the expansion of %tag is delayed until the expansion of
+%emphasize.&nbsp;
+This means that if we redefine %tag later on, %emphasize will
+use the new definition of %tag.
+
+<P>
+Macros may also use other macros in their expansion, 
+in the same way that CML functions may call other CML
+functions as their arguments.&nbsp;
+Here is another simple HTML-only example:
+
+<P>
+<PRE>
+   "eval $mac_define (bold   &lt;B&gt;@@&lt;/B&gt;)
+   "eval $mac_define (italic &lt;I&gt;@@&lt;/I&gt;)
+
+   "Some words get %bold(%italic(double)) emphasis!
+</PRE>
+<P>
+Which produces "Some words get <B><I>double</I></B> emphasis!".
+
+</BLOCKQUOTE>
+
+
+<P>
+<HR>
+</BODY>
+</HTML>

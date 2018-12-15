@@ -1,0 +1,73 @@
+#
+#---CUS_ARCHIVE.CML.   Organizer archiving their conference
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/07/01 14:00 Add archive and delete options.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#----------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i cus_archive.cml
+end
+
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (2 cus_archive.cml \
+                      $arg(2)+$arg(3)+x+x+$arg(6)+$arg(7)+$arg(8) \
+                      # Customize : Archive)
+
+include $(main)/head.i $arg(3)  $quote(Customize : Archive)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i  cusarch </A><A HREF="custom.cml?\
+   $arg(1)+$(nxt)+$arg(3)+x+x+$arg(6)+$arg(7)+$arg(8)">Customize\
+   </A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Archive
+
+if $equal ($arg(7) 3)
+   "<BLINK><B>Error:</B></BLINK> there is already an archive
+   "called <B>$arg(8)</B>.&nbsp;
+   "Consider adding a version number to the archive name, such as
+   "<B>$arg(8).1</B>, or a date, such as <B>$arg(8)_2006-02-28</B>.
+end
+
+include $(main)/mac_bug.i
+
+"<p/>
+"<form name="archiver" METHOD=POST ACTION="cus_archivef.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+
+"<TABLE BORDER=0>
+"<TR><TD></TD><TD align=center>(name of archive file)</TD>
+"<TR>
+"<TD>Archive <B>$(cname)</B> as&nbsp;
+"   <INPUT TYPE=HIDDEN NAME=cnum             value="$(cnum)">
+"   <INPUT TYPE=HIDDEN NAME=email id="email" value="$user_info($userid() email)">
+"</TD>
+
+"<TD colspan="2"><INPUT TYPE=TEXT NAME=archive SIZE=80 VALUE="$(cname)"></TD>
+
+"<tr>
+"<td>&nbsp;</td>
+"<TD><INPUT TYPE="submit" VALUE="Private archive" onClick="document.archiver.email.value = ''; return true;">
+"<td>Archive with Caucus, to be used when creating new conferences.</td>
+"<tr>
+"<td></td>
+"<TD><INPUT TYPE="submit" VALUE="Email archive"></TD>
+"<td>Send me an email with a link to the archive.</td>
+"</TABLE>
+
+"</FORM>
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

@@ -1,0 +1,80 @@
+#
+#---man_userfacef.cml  Handles form submission from the user registration
+#                      layout page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/21/05 New file.
+#: CR 12/19/05 Add forceRequired checkbox.
+#: CR 02/08/06 Add sendto email address field (notify about new registrant)
+#-------------------------------------------------------------------
+
+#"Content-type: text/plain
+#"
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_userface.cml
+end
+
+include $(main)/secure.i manage interfaceManage
+
+set nch $unique()
+
+set query DELETE FROM user_iface WHERE iface='$(iface)'
+set h $sql_query_open ($(query))
+eval  $sql_query_close($(h))
+
+count i 1 10000
+   if $empty ($form(name$(i)))
+      break
+   end
+   if $equal ($form(name$(i)) {delete})
+      continue
+   end
+   set query INSERT INTO user_iface \
+          (name, position, format, iface, width, label, required, \
+           on_reg, on_public, on_self, on_mgr, macro, choices) \
+       VALUES \
+          ('$form(name$(i))', $form(position$(i)), '$form(format$(i))', \
+           '$(iface)', 0$form(width$(i)), '$escsingle($form(label$(i)))', \
+           0$word(1 $form(required$(i))),  0$word(1 $form(on_reg$(i))), \
+           0$word(1 $form(on_public$(i))), 0$word(1 $form(on_self$(i))), \
+           0$word(1 $form(on_mgr$(i))),    '$form(macro$(i))', \
+           '$escsingle($form(choices$(i)))' )
+   set h $sql_query_open ($(query))
+#  if $less ($(h) 0)
+#     "query='$(query)'
+#  end
+   eval  $sql_query_close($(h))
+end
+
+#---User requested inserting a row.
+if $not_empty ($form(insert))
+   set query INSERT INTO user_iface (name, position, iface) \
+             VALUES ('{none}', $minus($form(insert) 0.5), '$(iface)')
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+end
+
+eval $set_site_data (0 - forceRequired_$(iface) 0$form(forceRequired))
+
+"%location($(mainurl)/man_userface.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+\
+                         $arg(5)+$arg(6)+$arg(7)+$arg(8))
+quit
+
+if   $not_empty ($form(show))
+  "%location($(mainurl)/man_regs.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                               $arg(6)+$arg(7)+$arg(8)+$arg(9))
+end
+elif $not_empty ($form(submit2))
+   "%location($(mainurl)/man_reg.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                            $arg(6)+$arg(7)+$arg(8)+$arg(9)\
+                                            #blk$form(submit2))
+end
+else
+   "%location($(mainurl)/man_reg.cml?$unique()+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                            $arg(6)+$arg(7)+$arg(8)+$arg(9)\
+                                            #blk$minus($(anchor) 1))
+end

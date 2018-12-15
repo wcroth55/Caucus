@@ -1,0 +1,17 @@
+#
+#---BADICONS.CML.    Reset Icons field, and go to Caucus Center
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+eval $set_user_data($userid() icons)
+set icon   $(img)
+set nch    $unique()
+
+"%location($(mainurl)/center.cml?$(nch)+0+x+x+x+x+x+x)
+#==============================================================

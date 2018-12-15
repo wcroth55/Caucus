@@ -1,0 +1,119 @@
+#
+#---editRespLatLongOnMap.cml  Edit a response's latitude/longitude on a google map.
+#
+#   arg(1) unique
+#   arg(2) item id, or "x" means new item, change form values in opener
+#   arg(3) resp num
+#   arg(4) allowed editing?
+#   arg(5) lat/long
+#   arg(6) location name, url-encoded
+#
+# CR 08/12/10 New file.
+#----------------------------------------------------------------------------
+
+"Content-type: text/html
+"
+
+"<html>
+"<head>
+   include $(main)/css.i
+"</head>
+"<body>
+
+   if $not_empty($form(latlong))
+
+      if $equal($arg(2) x)
+         "<script language="javascript">
+         "   opener.document.ebox.location.value = '$form(locName)';
+         "   opener.document.ebox.latlong.value  = '$form(latlong)';
+         "</script>
+      end
+      else
+         include $(main)/getCurrentVersionOfResponse.i $arg(2) $arg(3)
+         set query UPDATE resps SET lat_long='$form(latlong)', location='$form(locName)' \
+                    WHERE items_id=$arg(2) AND rnum=$arg(3) AND version=$(currentVersion)
+         set h $sql_query_open ($(query))
+         eval  $sql_query_close($(h))
+      end
+
+      if $not_empty($form(reuseLoc))
+         set respIp $sql_query_select (\
+             SELECT ip FROM resps WHERE items_id=$arg(2) AND rnum=$arg(3) AND version=$(currentVersion))
+         set query REPLACE INTO usersip2latlong (userid, ip, latlong, location, added)  \
+                    VALUES ('$userid()', '$(respIp)', '$form(latlong)', '$form(locName)', now())
+         set h $sql_query_open ($(query))
+         eval  $sql_query_close($(h))
+      end
+      "<script language="javascript">
+          if $not_equal ($arg(2) x)
+      "      opener.location.reload();
+          end
+      "   self.close();
+      "</script>
+   end
+
+   else
+
+   "   <div id="map_canvas" style="width: 350px; height: 200px"></div>
+   
+   "   <form name="resp" method="post" action="editRespLatLongOnMap.cml?$unique()+$arg(2)+$arg(3)" />
+          "<br>
+          "<table cellspacing="0" cellpadding="0">
+          "<tr>
+          "<td>Lat/Long is:&nbsp;</td>
+          "<td><input type="text" name="latlong" value="$arg(5)" /></td>
+          if $arg(4)
+             "<td>&nbsp;<input type="button" onClick="document.resp.submit();" value="Save" /></td>
+          end
+          "<tr>
+          "<td>Location is:</td>
+          "<td><input type="text" name="locName" 
+          "          value="$escquote($unquote($url_decode($arg(6))))" /></td>
+          if $and ($arg(4) $not_equal($arg(2) x))
+             "<td>&nbsp;<input type="button" 
+             "   onClick="document.resp.latlong.value='none'; document.resp.submit();"
+             "   value="Remove" /></td>
+          end
+          "</table>
+          if $arg(4)
+             "<p/>
+             "<table cellspacing="0" cellpadding="0">
+             "<tr>
+             "<td>Use these values for new responses?&nbsp;</td>
+             "<td><input type="checkbox" name="reuseLoc" value="1" /></td>
+
+             "</table>
+          end
+   "   </form>
+   
+   "   <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=$config(GoogleMapKey)"
+   "           type="text/javascript"></script>
+   "   <script type="text/javascript">
+   "
+   "   var addrpnt;
+   "   var map;
+   "   var zoom = 3;
+   "   var usersLatLng = document.resp.latlong;
+   "   var usersLat =  37.4419;   // default to center of US.
+   "   var usersLng = -95.1419;
+   "   if (usersLatLng.value.indexOf(',') > 0) {
+   "      var ll = usersLatLng.value.split(',');
+   "      usersLat = ll[0] - 0;
+   "      usersLng = ll[1] - 0;
+   "      zoom = 12;
+   "   }
+   
+   include $(main)/googleMaps.i
+   
+   "    function newpoint( ) {
+   "       map.setCenter(addrpnt.getPoint()) ;
+   "       var latlong = addrpnt.getLatLng();
+   "       usersLatLng.value = latlong.lat() + "," + latlong.lng();
+   "    }
+   
+   "    initialize();
+   "    </script>
+end
+
+"</body>
+"</html>

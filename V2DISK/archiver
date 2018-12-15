@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+#---ARCHIVER.   Archive a conference.
+#
+#   Invoked as:
+#      archiver   confid  cnum   cname  clib
+#
+#   Arguments:
+#      confid     $1  full pathname of Caucus home directory.
+#      cnum       $2  conference number
+#      cname      $3  conference name
+#      clib       $4  full pathname of "LIB" upload file library directory
+#
+#   Purpose:
+#      Archive a compressed copy of conference CNUM.
+#
+#   How it works:
+#     
+#   Returns (writes to stdout):
+#      0  on success
+#      1  on bad arguments
+#      2  cnum does not exist.
+#      3  archive cname already exists
+#
+#   History of revisions:
+#: CR 10/25/97 12:18 New script.
+#: CR  6/24/99 15:48 Use gzip instead of compress; comment
+#----------------------------------------------------------------------------
+#
+#
+
+if test "x$4" = "x"; then
+   echo "1"
+   exit
+fi
+
+#---Make sure conference directory exists.
+if test ! -d $1/C$2; then
+   echo "2"
+   exit
+fi
+
+#---Error if archive already exists by this name.
+if test -f $1/ARCHIVE/$3; then
+   echo "3"
+   exit
+fi
+
+cd $1/C$2
+rm  -rf        LIBRARY
+if test -d $4; then
+   ln  -s   $4 LIBRARY        >/dev/null  2>/dev/null
+else
+   mkdir       LIBRARY        >/dev/null  2>/dev/null
+fi
+tar  chf   $1/ARCHIVE/$3.t .  >/dev/null  2>/dev/null
+gzip       $1/ARCHIVE/$3.t    >/dev/null  2>/dev/null
+if test -f $1/ARCHIVE/$3.t.gz; then
+   mv      $1/ARCHIVE/$3.t.gz  $1/ARCHIVE/$3
+else
+   mv      $1/ARCHIVE/$3.t     $1/ARCHIVE/$3
+fi
+
+rm  -rf     LIBRARY
+
+echo "0"
+#----------------------------------------------------------------------------

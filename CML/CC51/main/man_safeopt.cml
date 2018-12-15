@@ -1,0 +1,103 @@
+#
+#---MAN_SAFEOPT.CML.   Manage File Safe display options.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 09/23/01 From old man_safe.cml
+#: CR 04/23/02 Add filesafe.
+#---------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_safeopt.cml
+end
+
+include $(main)/secure.i manage filesafeManage
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_safe.cml \
+             $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+$arg(9) \
+                      # Manager Options: $(filesafe_name) )
+
+include $(main)/head.i $arg(3)  $quote($(filesafe_name) Options : $(filesafe_name))
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i  man_stat  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+    Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">\
+    $(filesafe_name) Options</A>
+
+"<FORM NAME="cc" METHOD=POST
+"    ACTION="man_safeoptf.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                  $arg(7)+$arg(8)+$arg(9)">
+"<BLOCKQUOTE>
+
+"<P>
+"<DIV align=center></DIV>
+"<P align=center><u>$(filesafe_name) Options</u></P>
+
+if $empty($site_data(0 - fsTitleSize))
+   eval $set_site_data(0 - fsTitleSize 1)
+end
+if $empty($site_data(0 - fsTitleColor))
+   eval $set_site_data(0 - fsTitleColor blue)
+end
+if $empty($site_data(0 - fsTitleFont))
+   eval $set_site_data(0 - fsTitleFont Arial)
+end
+if $empty($site_data(0 - fsSepColor))
+   eval $set_site_data(0 - fsSepColor red)
+end
+if $empty($site_data(0 - fsSepHeight))
+   eval $set_site_data(0 - fsSepHeight 5)
+end
+if $empty($site_data(0 - fsRowColor1))
+   eval $set_site_data(0 - fsRowColor1 $(def_rowcolor1))
+end
+if $empty($site_data(0 - fsRowColor2))
+   eval $set_site_data(0 - fsRowColor2 $(def_rowcolor2))
+end
+
+"<TABLE border=0>
+"<TR nowrap><TD>Section Title size:</TD>
+"<TD><input type="text" name="fsTitleSize" maxlength="15" size="15" value="$site_data(0 - fsTitleSize)">  (1,2,3...6)</TD></TR>
+
+"<TR  nowrap><TD>Section Title color:</TD><TD><input type="text" name="fsTitleColor" maxlength="15" size="15" value="$site_data(0 - fsTitleColor)"> (red, blue....or #CC0000, etc)</TD></TR>
+"<TR nowrap><TD>Section Title font:</TD><TD> <input type="text" name="fsTitleFont" maxlength="15" size="15" value="$site_data(0 - fsTitleFont)"> (arial, comic sans ms, etc...)</TD></TR>
+
+"<TR nowrap><TD>Row Color 1:</TD>
+"<TD> <input type="text" name="fsRowColor1" maxlength="15" size="15" 
+"    value="$site_data(0 - fsRowColor1)"> (red, blue, etc.)</TD>
+"</TR>
+
+"<TR nowrap><TD>Row Color 2:</TD>
+"<TD> <input type="text" name="fsRowColor2" maxlength="15" size="15" 
+"    value="$site_data(0 - fsRowColor2)"> (red, blue, etc.)</TD>
+"</TR>
+
+"<TR nowrap><TD>Separator Color:</TD><TD> <input type="text" name="fsSepColor" maxlength="15" size="15" value="$site_data(0 - fsSepColor)"> (red, blue....or #CC0000, etc)</TD></TR>
+"<TR nowrap><TD>Separator Height:</TD><TD> <input type="text" name="fsSepHeight" maxlength="15" size="15" value="$site_data(0 - fsSepHeight)"> (1,2,3...)</TD> </TR>
+"</TABLE><BR>
+
+
+"<INPUT NAME=submit TYPE=SUBMIT VALUE="Submit Changes"><BR>
+
+
+"</DIV></div>
+"</body>
+"
+"</BLOCKQUOTE>
+
+"</FORM>
+
+"<HR>
+include $(main)/errors.i
+"</div>
+"</body>
+"</HTML>

@@ -1,0 +1,35 @@
+#
+#---badgoto.cml.   Display error message warning of "bad" goto button press.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i badgoto.cml
+end
+
+include $(main)/head.i $arg(3)  $quote(Cannot "Go To" Selected Conference or Item)
+
+"<BODY $(body_bg) onUnload="pop_close('all');">
+
+include $(main)/header.i  badgoto  Goto Failed
+
+"<H2>Cannot "Go To" Selected Conference or Item</H2>
+
+"$(bad)
+
+#"<P>
+#"cnum=$(cnum)<BR>
+#"goto=$(goto)<BR>
+#"$it_parse ($(cnum) $(goto))
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

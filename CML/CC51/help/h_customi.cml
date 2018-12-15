@@ -1,0 +1,67 @@
+#
+#---H_CUSTOMI.I    Help about "Customize : Conference Information" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_customi.cml $quote(Help on Customize Conference Information)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize Information page provides a conference 
+"organizer with control over how this conference is described
+"'outside' the conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).&nbsp;
+"Click on <U>Conference Information</U>.
+
+"<P>
+"<B>What is on the Customize Greeting and Introduction Page?</B><P>
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+"<P>&nbsp;<P>
+
+"<FONT SIZE=+2><B>The Description</B></FONT><BR>
+"The description is a brief phrase that appears as part of any
+"list of conferences, such as on the $(center_name) page.&nbsp;
+"It helps people know (or remember) just what your conference is about.
+
+"<P>
+"<HR>
+"<FONT SIZE=+2><B>The Introduction </B></FONT><BR>
+"In this section, Caucus shows you a text box containing
+"the conference <B>Introduction</B>.&nbsp;
+"The Introduction appears when a person is considering
+"joining a conference&#151;i.e., the very first time that
+"they click on your conference.&nbsp;
+"Use the Introduction to describe the purpose of
+"the conference, and why someone should (or should not)
+"join the conference.
+"<P>
+"You may enter or edit the text in this box, just like you
+"would a response on an Item page.&nbsp;
+"You can just use a simple text Introduction, or, 
+"like an item or response, you can include any
+"kind of Web data&#151;see
+"<A HREF="$(helpurl)/h_itemcont.cml">More You Can Do</A>.&nbsp;
+"You may also use the <B>attach</B> button to attach a file to
+"the introduction, in the same way that you would attach a file
+"to an item or a response.
+"<P>
+
+"<HR>
+"<P>
+"<B>Make These Changes</B> button:&nbsp; 
+"Once you have made changes to the text on this page,
+"you <B>must press this button</B>
+"to save them.&nbsp;
+include $(help)/hb.i

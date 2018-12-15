@@ -1,0 +1,188 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.25: SQL Interface</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.25:&nbsp; SQL Interface</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref424.html">PREV</A>]
+   [<A HREF="ref426.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus 4.55 adds an SQL ("Structured Query Language") interface to 
+relational databases.&nbsp;
+The interface uses ODBC to connect to the desired database, so
+in theory any modern database should be useable.&nbsp;
+In practice, only an MySQL interface has been implemented thus far.
+
+
+<p>
+The database connection details are controlled by the Caucus
+"swebd.conf" file, in particular the parameters
+<ul>
+<li><b>ConnectString</b><br>
+    which defines the ODBC driver type,
+    the database name, and the access userid and password)
+<p>
+<li><b>ODBCINI</b><br>
+    which defines the location of the ODBC initialization file.
+</ul>
+
+<p>
+The rest of this page describes the CML functions that
+provide the SQL interface.
+
+<DL>
+<p>
+<dt><a name="sql_query_open">$sql_query_open (statement)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>"Opens" (executes) an SQL query <i>statement</i>, 
+    and returns (evaluates to) a handle.&nbsp;
+    If there was a syntactic or operational error in the query,
+    it returns a handle value < 0.&nbsp;
+    (A query that returns no data, but was syntactically correct,
+     still returns a handle >= 0.)
+    <p>
+    A query may be any valid SQL statement (that can be passed through
+    ODBC), including:
+    <ul>
+    <li>SELECT
+    <li>INSERT
+    <li>DELETE
+    <li>UPDATE
+    <li>CREATE TABLE
+    <li>DROP TABLE
+    </ul>
+    <p>
+   and so on.
+
+    <p>
+    Note that the column names (or aliases) in a SELECT query are used
+    <b>as the names of the matching CML variables</b>.&nbsp;
+    For example, in this query:
+    <pre>
+   SELECT e.userid, e.event, time t FROM events e
+    </pre>
+    each time $sql_query_row() (see below) is called, the e.userid
+    data is automatically placed in CML variable "userid", the
+    e.event data is placed in variable "event", and the e.time
+    data is placed in variable "t".
+    <p>
+    This means that all columns in a query <b>must</b> have
+    a column name 
+    <b>or</b> an alias.&nbsp; 
+    (Any leading table name or alias before the "." is stripped off
+     to determine the CML variable name.)
+     <p>
+     Thus, for example, queries like:
+<pre>
+   SELECT *         FROM events
+   SELECT count(*)  FROM events
+   SELECT max(item) FROM events
+</pre>
+while strictly legal, will never return any data, because there's no
+variable(s) to put the data <b>into</b>.&nbsp; Instead use queries like:
+<pre>
+   SELECT field1, field2, <i>(and so on)</i> FROM events
+   SELECT count(*)  thecount          FROM events
+   SELECT max(item) themax            FROM events
+</pre>
+
+<p>
+Subqueries (queries within the WHERE clause of a query) are
+fully supported, as long as MySQL 4.1 or higher is installed.
+
+<p>
+<dt><a name="sql_query_row">$sql_query_row (handle)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Fetches a row of data from the query open on <i>handle</i>.&nbsp;
+   The results for the row are placed in the matching CML variables,
+   as described above.
+   <p>
+   Evalutes to 1, or 0 if no (more) rows were found.&nbsp;
+   Intended for use with SELECT queries only (although it will
+   return 0 with no harm done if called on other kinds of queries).
+
+<p>
+<dt><a name="sql_query_count">$sql_query_count (handle)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Evaluates to the "count" of rows affected by the original query.&nbsp;
+   If SELECT, this is the number of rows found.&nbsp;
+   If INSERT, DELETE, or UPDATE, it is the number of rows affected.
+
+<p>
+<dt><a name="sql_query_close">$sql_query_close (handle)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Closes a query open on <i>handle</i>.&nbsp;
+   Queries may be closed at any point, even if all of the
+   data has not been read.&nbsp;
+   Queries <b>should</b> be closed when no longer in use.&nbsp;
+   <p>
+   Don't forget to close non-SELECT queries, even though
+   they don't have calls to $sql_query_row().&nbsp;
+   If you're feeling brave (foolish?), you can even do things like:
+<pre>
+   eval $sql_query_close ($sql_query_open (DROP TABLE sasquatch))
+</pre>
+   which will work properly even if there's no table "sasquatch".
+ 
+
+<p>
+<dt><a name="sql_query_select">$sql_query_select (select-statement)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Executes <i>select-statement</i>, and returns all rows all at once.&nbsp;
+(No $sql_query_row() or $sql_query_close() is needed.)
+<p/>
+This is very useful for simple SELECT statements, where you
+know that you will want all of the results.&nbsp; For example:
+<pre>
+   for a b in $sql_query_select (SELECT a, b FROM X)
+      "a=$unquote($(a)), size=$sizeof($unquote($(a)))&lt;br&gt;
+      "b=$unquote($(b)), size=$sizeof($unquote($(b)))&lt;br&gt;
+   end</pre>
+will produce 2 lines of text for each row found by the SELECT query.&nbsp;
+Note the required unquoting of the results (in case they contain
+multiple words).
+ 
+
+<p>
+<dt><a name="sql_sequence">$sql_sequence (name)</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   href="ref402.html#protect">{protected}</A></B>
+<dd>Returns the "next" number in a sequence named <i>name</i>.
+   <p>
+   Different RDBMS's implement the notion of a "sequence" differently,
+   so the specific implementation is hidden behind this function.&nbsp;
+   Essentially, it provides a way to return a guaranteed unique number
+   within a space <i>name</i>.&nbsp;
+   <p>
+   (The MySQL implementation uses a table
+   called sequence_<i>name</i>, with one row and one column.&nbsp;
+   The table is created automagically as needed.)
+
+
+</DL>
+</BLOCKQUOTE>
+<P>
+<HR>
+</BODY>
+</HTML>

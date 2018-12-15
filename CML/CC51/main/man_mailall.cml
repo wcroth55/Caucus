@@ -1,0 +1,193 @@
+#
+#---MAN_MAILALL.CML.   Manager sending e-mail to everyone (on the site,
+#                      in a conference, or in a group).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 04/05/02 Add E-mail users option.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 12/06/02 Add option to see list of recipients first.
+#: CR 01/09/06 Rewrite for C5.
+#: CR 01/24/06 Make user USER type groups work as well.
+#: CR 03/27/10 Add support for attaching a file.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_mailall.cml
+end
+
+#---Requires "become organizer" manager option (rationale: such managers
+#   can become organizer, and thus send to everyone in every conf.)
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges \
+                                systemBulletins
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_mailall.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: E-mail Users )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : E-mail Users)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_mailall </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">E-mail Users</A>
+
+"<form name="seelist"  method="post" 
+"    action="man_mailalls.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                     $arg(7)+$arg(8)" target="seelistwin">
+"<input type="hidden" name="justme"   value="">
+"<input type="hidden" name="everyone" value="">
+"<input type="hidden" name="type"     value="">
+"<input type="hidden" name="range"    value="">
+"<input type="hidden" name="name"     value="">
+"</form>
+
+"<script type="text/javascript" language="javascript">
+"   function submitMe() {  document.eg.submit(); }
+"</script>
+
+
+"<blockquote>
+
+"<b>You may use this page to send a brief e-mail to (choose one):</b>
+"<p>
+
+"<form name="eg" method="POST" action="man_mailall.cml?$(nch)+$(nxt)+$arg(3)+\
+                 $arg(4)+$arg(5)+_+_+_">
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=bottom>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>Just me (to test)</td>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>Everyone on this site</td>
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td colspan=5>Everyone in a conference or group:</td>
+
+"<tr>
+"<td></td>
+"<td><input type=checkbox name="justme"></td>
+"<td></td>
+"<td><input type=checkbox name="everyone"></td>
+
+"<td></td>
+"<td>
+include $(main)/groupselector.i eg eg CONF _ _ 1
+"</td>
+"<td></td>
+
+"<tr><td></td>
+"<td colspan=7>(<a href="#" 
+"       onClick="if (validate(false)) showlist();"
+"   >See list of recipients</a>)</td>
+
+"</table>
+"</form>
+#"egType=$(egType)<br>
+#"egRange=$(egRange)<br>
+#"egName=$(egName)<br>
+
+#---Validation function: make sure only one category selected, and
+#   that there is some e-mail text.
+"<script type="text/javascript" language="javascript">
+"function validate(checktext) {
+"   var sel = 0;
+"   sel += (document.eg.justme.checked           ? 1 : 0);
+"   sel += (document.eg.everyone.checked         ? 1 : 0);
+"   sel += ($if ($not_equal ($(egName) _) 1 0));
+"   if (sel != 1) {
+"      confirm ("Please choose exactly one of 'Just me',\n 'Everyone " +
+"               "on this site', or a group.");
+"      return (false);
+"   }
+"   if (checktext  &&  document.email.etext.value.length == 0) {
+"      confirm ("Please enter the text of your message.");
+"      return  (false);
+"   }
+
+"   var eg = document.eg;
+"   var ds = document.seelist;
+"   var de = document.email;
+
+"   de.justme.value   = ds.justme.value   = '';
+"   de.everyone.value = ds.everyone.value = '';
+"   de.type.value     = ds.type.value = '';
+"   de.name.value     = ds.name.value = '';
+"   if      (eg.justme.checked)    de.justme.value   = ds.justme.value   = '1';
+"   else if (eg.everyone.checked)  de.everyone.value = ds.everyone.value = '1';
+"   else {
+"      de.type.value  = ds.type.value  = '$(egType)';
+"      de.range.value = ds.range.value = '$(egRange)';
+"      de.name.value  = ds.name.value  = '$(egName)';
+"   }
+"   return true;
+"}
+
+"function showlist() {
+"   var sl = window.open ("", "seelistwin", 
+"        "menubar=1,toolbar=1,resizable=1,scrollbars=1,width=600,height=350");
+"   sl.focus();
+"   document.seelist.submit();
+"}
+"</script>
+
+"<p>
+"<form ENCTYPE="multipart/form-data" method="post"
+"      onSubmit="return validate(true);"
+"      name="email" 
+"      action="man_mailallf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+$arg(8)+x">
+"<input type="hidden" name="justme"   value="">
+"<input type="hidden" name="everyone" value="">
+"<input type="hidden" name="type"     value="">
+"<input type="hidden" name="range"    value="">
+"<input type="hidden" name="name"     value="">
+
+"Enter the subject and text of your e-mail in the boxes below, and press
+"<b>Send</b>.&nbsp;
+"Please use this ability with discretion, and only for
+"urgent matters that affect everyone (that you select)!
+
+"<p>
+#---Don't let them send unless the sender has a valid e-mail address!
+set e-mail $user_info ($userid() email)
+if %bad_email_address($(e-mail))
+   "<b>Warning:</b>&nbsp; Your e-mail address appears to be incorrect.&nbsp;
+   "Please click on your name to correct it.
+end
+else
+   "<table cellspacing=0 cellpadding=0 border="0">
+   "<tr>
+   "<td><b>Subject:</b>&nbsp;</td>
+   "<td><input type=text name="subject" size="$(cols)"></td>
+   "<tr valign=top>
+   "<td><b>Text:</b></td>
+   "<td><textarea wrap="virtual" name="etext" rows=$(rows) cols=$(cols)
+   "  ></textarea>
+   "<tr><td>&nbsp;</td>
+   "<tr><td></td><td><input type="file"   name="upload">&nbsp;&nbsp;&nbsp;
+   " (Optionally attach a file.)
+   "</td>
+   "<tr><td>&nbsp;</td>
+   "<tr><td></td><td><input type="submit" name="submit" value="Send"></td>
+   "</table>
+   "<p>
+end
+
+
+"</blockquote>
+
+"</form>
+
+
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

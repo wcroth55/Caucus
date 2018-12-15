@@ -1,0 +1,86 @@
+Caucus 5.1   Optional OpenId Integration
+Last revision: 15 February 2010
+
+I. Introduction
+OpenId (http://openid.net) is a sort of mass single-signon project 
+that is widespread, open-source, convenient, and relatively safe.  
+It involves using a (or setting up your own) OpenId server, that 
+users login to.  Once there, their browser gets a cookie that 
+OpenId-compliant applications can use to detect a valid login has 
+already occurred, and take users straight into the application 
+w/o further authentication. 
+
+Caucus supports OpenId's, although it requires some additional
+software packages and configuration.  This document describes
+the precise steps involved.
+
+II. Install optional development packages
+Depending on your specific linux/unix distribution, you
+may need to install some optional development packages
+and libraries.  For example, on a vanilla CentOS 5.4
+distribution, it was necessary to do these additional
+installs:
+
+   yum install gcc-c++.i386
+   yum install openssl.i386
+   yum install openssl-devel.i386
+   yum install curl-devel.i386
+   yum install expat-devel.i386
+   yum install libtidy-devel.i386
+   yum install httpd-devel.i386
+   yum install sqlite-devel.i386
+   yum install pcre-devel.i386
+   yum install mysql-devel.i386
+
+III. Install Libopkele
+
+Download and install a 2.x version of libopkele from 
+http://kin.klever.net/libopkele/.
+
+You may need to add the (generated) libopkele.pc to the
+PKG-CONFIG_PATH.  For more information, execute the command
+   pkg-config libopkele --libs
+
+IV. Install the Apache module mod_auth_openid, from
+http://trac.butterfat.net/public/mod_auth_openid.
+
+V. Configure your Caucus Apache virtualhost to use
+mod_auth_openid.  Assuming, for example, that you have
+installed Caucus in /home/caucus, then your virtualhost
+file would contain something like this:
+
+   DocumentRoot /home/caucus/public_html
+   ScriptAlias /openid/   /home/caucus/OPENID/
+   ScriptAlias /swebs/    /home/caucus/SWEB/
+   ScriptAlias /reg/      /home/caucus/REG/
+   ScriptAlias /caucus/   /home/caucus/REG/start.cgi/
+   ScriptAlias /caucus    /home/caucus/REG/start.cgi
+
+   <Directory /home/caucus/SWEB>
+      Options All
+      AllowOverride All
+      allow from all
+   </Directory>
+
+   <Directory /home/caucus/OPENID>
+      Options All
+      AllowOverride All
+      allow from all
+      AuthOpenIDEnabled  On
+      AuthOpenIDLoginPage     /openid.html
+   </Directory>
+
+Note in particular the /openid/, /home/caucus/OPENID,
+and AuthOpenID... parts.
+
+VI. Using Caucus with OpenId.
+Just point your browser at yourcaucushost.com/openid.html,
+and login via the (lower) OpenId box.  This assumes that
+you already have an OpenId from an OpenId identify provider.
+
+VII. Setting up your own OpenId provider.
+This is outside the scope of this document, however, you
+can find details for one way of setting up an OpenId
+provider at http://thedance.net/~roth/TECHBLOG/openid.html.
+
+

@@ -1,0 +1,64 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>quizmap&nbsp;&nbsp;&nbsp;</span>Maps sets of problems to a quiz.  This tells us which quizzes "own" or "contain" which problems.  Each row relates (connects) one problem to one quiz.  
+<p/><b>Categories: </b>
+<a href='_Quizzes.html'>Quizzes</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>qkey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row1'>
+<td>pkey</td>
+<td>int(11) </td>
+<td>I </td>
+<td>No</td>
+<td></td>
+<td></td>
+<tr valign=top class='row0'>
+<td>sortorder</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> sort order of this problem in the quiz  <br></td>
+<tr valign=top class='row1'>
+<td>score</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> score for this problem in this quiz (overrides quizproblems.score)  <br></td>
+<tr valign=top class='row0'>
+<td>skippable</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Is this problem skippable?  <br></td>
+<tr valign=top class='row1'>
+<td>editable</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Can Taker come back and edit their answer?  <br></td>
+</table>
+</body>
+</html>

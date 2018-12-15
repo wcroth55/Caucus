@@ -1,0 +1,43 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>confhidden&nbsp;&nbsp;&nbsp;</span> User wants to hide a conf (not show in conf list)  
+<p/><b>Categories: </b>
+<a href='_Conferences.html'>Conferences</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+Each row marks a user's request to "hide" a conference from their normal  conference list.  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>userid</td>
+<td>varchar(240) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row1'>
+<td>cnum</td>
+<td>varchar(10) </td>
+<td>(pk) </td>
+<td>No</td>
+<td>''</td>
+<td></td>
+<tr valign=top class='row0'>
+<td>hidden</td>
+<td>tinyint(4) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 1 => hidden  <br></td>
+</table>
+</body>
+</html>

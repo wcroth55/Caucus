@@ -1,0 +1,20 @@
+#
+#---addUser2GroupOnClick:  implementation of %addUser2GroupOnClick() macro.
+#
+#   arg(2)  group owner (type)
+#   arg(3)  group name
+#   arg(4)  IFS item number.
+#
+# CR 09/22/09 grouprules.grkey is now auto-increment.
+#---------------------------------------------------------
+
+#"Content-type: text/plain
+#"
+set _q INSERT INTO grouprules \
+   (grkey, owner, name, userid, access)  VALUES \
+   (NULL, '$arg(2)', '$arg(3)', '$userid()', $priv(minimum))
+set _h $sql_query_open ($(_q))
+eval   $sql_query_close($(_h))
+eval $group_update_rule ($userid() $quote ($arg(2) $arg(3)))
+
+"%location($(mainurl)/ifspage.cml?$unique()+$(nxt)+x+x+x+x+$arg(4)+0)

@@ -1,0 +1,155 @@
+#
+#---man_createf.cml.    Handles manager conference creation
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/18/02 16:40 If creation failed, set cnum to 'x'.
+#: CR 01/27/03 Add conference aliases.
+#: CR 12/22/03 Initialize conf_var 'modified' (time last modified)
+#: CR 04/20/04 Add new course-conf related options.
+#: CR 05/04/04 Reset courselist_time on creation.
+#: CR 05/11/04 Course confs go to controlpanel for customization.
+#: CR 07/12/04 Always make current user an organizer of a restored conf.
+#: CR 01/28/05 Add autojoin.
+#: CR 10/29/05 Adapt archive restoration for C5.
+#: CR 11/21/05 Replace group_update() with group_update_rule().
+#: CR 03/06/06 Fix creation of dedicated filesafe so that $(newname) is defined!
+#: CR 11/28/06 Fix creation of dedicated filesafe to inherit conf access.
+#: CR 12/15/06 Create filesafe, do not allow colons in name.
+#: CR 08/25/07 Do not allow + or & in conference names.
+#: CR 01/10/08 Pass exact pathname for java, to unarchiver.sh.
+#: CR 07/14/09 Handle "keep archived dates" checkbox option.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#: CR 12/15/13 Change set time=now query to use a JOIN -- much faster!
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_create.cml
+end
+
+include $(main)/secure.i manage conferenceCreate conferenceAllPrivileges
+
+set nch $unique()
+
+set cname $form(cname)
+set aname $lower($replace(32 _ $(cname)))
+
+set cnum 0
+for badChar in + &
+   set badPos $str_index  ($(badChar) $(aname))
+   if $gt_equal ($(badPos) 0)
+      set cnum -4
+      break
+   end
+end
+
+if $equal ($(cnum) 0)
+   set cnum $create_conf($replace(32 _ $(cname)) $form(primary) \
+                           $replace(10 32 $form(orgs)))
+end
+
+if $equal($(cnum) 0)
+   set bad_conf_name You are not authorized to create new conferences.
+   set cnum x
+   "%location($(mainurl)/manage.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -1)
+   set bad_conf_name A conference called <i>$(cname)</i> already exists. \
+       Please choose another name.
+   set cnum x
+   "%location($(mainurl)/man_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -2)
+   set bad_conf_name The user $form(primary) could not be added as the \
+         primary organizer.
+   set cnum x
+   "%location($(mainurl)/man_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $equal($(cnum) -4)
+   set bad_conf_name A conference name must less than 80 characters long, \
+          must begin with a letter, and may only include letters, numbers, \
+          a dash (-), a period (.) or an underscore (_).
+   set cnum x
+   "%location($(mainurl)/man_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+
+elif $greater ($(cnum) 0)
+
+   set courselist_time 0
+
+   #---Create new, empty filesafe, and its initial grouprules row,
+   #   making creator the primary, and inheriting the conference.
+   set newname $replace (: _ filesafe_$(aname))
+   eval $set_site_data  (0 - FN_$(newname) $(newname))
+
+   set query INSERT INTO grouprules (grkey, owner, name, userid, access) \
+             VALUES (NULL, 'Filesafe', '$(newname)', '$userid()', 100)
+   eval %sql($(query))
+#  eval $group_update_rule ($userid() $quote(Filesafe $(newname)))
+
+   set query INSERT INTO grouprules \
+             (grkey, owner, name, subowner, subname, access) \
+             VALUES (NULL, 'Filesafe', '$(newname)', 'CONF', '$(cnum)', -1)
+   eval %sql($(query))
+   eval $group_update ($quote(Filesafe $(newname)))
+
+   #---Restore from an archive?
+   set archive_form $word (1 $form(archive) 0)
+   if $not_equal ($form(archive) 0)
+      set rc $xshell (1 1 1 $caucus_path()/UNARCHIVER/unarchiver.sh \
+          $caucus_path() $(cnum) $form(archive) $plus(0 $form(restoregrades)) \
+          $config(java)/java)
+      if $not ($plus (0 $form(keepDates)))
+         set query UPDATE resps r JOIN conf_has_items h \
+                       ON (r.items_id = h.items_id) \
+                      SET r.time = now() \
+                    WHERE cnum = $(cnum)
+         set h $sql_query_open($(query))
+         eval  $sql_query_close($(h))
+      end
+   end
+
+   #---Set the initial "allow e-notification" status.
+   eval $set_site_data ($(cnum) - en_allow \
+                       $if ($equal ($form(yesnotify) on) 1 0))
+
+   #---Set initial "show member's thumbnails in responses?" switch.
+   eval $set_site_data ($(cnum) - showThumbNails \
+                       $if ($equal ($form(yesthumbnail) on) 1 0))
+
+   if 0$form(coursetools)
+      eval $set_site_data ($(cnum) - confType Course)
+   end
+
+   #---Initialize conference creation time.
+   eval $set_site_data  ($(cnum) - modified $time())
+
+
+   #--- Take them to the customization pages, if requested.
+   if $equal($form(customize) on)
+      "%location($(mainurl)/custom.cml?$(nch)+$arg(2)+$(cnum)+x+x+x+x+x+x)
+      "
+      quit
+   end
+
+   set result Conference <B>$(cname)</B> successfully created.
+
+   "%location($(mainurl)/$page_return ($arg(2) # \
+                         manage.cml?$(nch)+$arg(2)+x+x+x+x+x+x))
+end
+
+else
+   set bad_conf_name Unknown Error '$(cnum)'.
+   "%location($(mainurl)/man_create.cml?$(nch)+$arg(2)+x+x+x+x+x+x+x)
+   "
+end
+#------------------------------------------------------

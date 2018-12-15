@@ -1,0 +1,114 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>user_iface&nbsp;&nbsp;&nbsp;</span>Which user fields appear in which interface  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<a href='_Interfaces.html'>Interfaces</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ One row per field, per interface.  For each interface, records  which fields show up (are accessible) on which pages, how, and in what order.  (This replaces the old way of handling the definition of the new user  registration page.)  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(240) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> field name (with 'iface' combines to make a primary key)  <br></td>
+<tr valign=top class='row1'>
+<td>iface</td>
+<td>varchar(64) </td>
+<td>I </td>
+<td></td>
+<td>NULL</td>
+<td> interface name (e.g. "CC51")  <br></td>
+<tr valign=top class='row0'>
+<td>format</td>
+<td>varchar(64) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> how an input field should appear: none, text-line, text-box, checkbox, pull-down, or upload  <br></td>
+<tr valign=top class='row1'>
+<td>width</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> width of input field (for text-line or text-box)  <br></td>
+<tr valign=top class='row0'>
+<td>choices</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> list of choices for pull-downs, separated by newlines  <br></td>
+<tr valign=top class='row1'>
+<td>required</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Is this field required for this interface?  1=yes  <br></td>
+<tr valign=top class='row0'>
+<td>position</td>
+<td>float </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> order of fields for pages in this interface  <br></td>
+<tr valign=top class='row1'>
+<td>label</td>
+<td>mediumtext </td>
+<td></td>
+<td></td>
+<td></td>
+<td> Label that appears next to a field  <br></td>
+<tr valign=top class='row0'>
+<td>on_reg</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Should this field appear on a registration page?  <br></td>
+<tr valign=top class='row1'>
+<td>on_public</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Should this field appear on a public "display user" page?  <br></td>
+<tr valign=top class='row0'>
+<td>on_self</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Should this field appear on a page where the user can modify their own info?  <br></td>
+<tr valign=top class='row1'>
+<td>on_mgr</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Should this field appear on a page where a manager can see or modify another user's info?  <br></td>
+<tr valign=top class='row0'>
+<td>macro</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> Name of macro to be applied to this data when it is displayed  <br></td>
+</table>
+</body>
+</html>

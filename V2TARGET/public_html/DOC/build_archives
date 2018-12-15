@@ -1,0 +1,7 @@
+rm -f     cmlref.t*  cmlref.zip
+tar cvf   cmlref.t *.html *.gif build* update *.css
+gzip      cmlref.t
+                                                                                
+zip       cmlref.zip *.html *.gif build* update *.css
+                                                                                
+chmod 755 cmlref.t.gz cmlref.zip

@@ -1,0 +1,34 @@
+#
+#---PERSONR.CML.   Save person window resize information, then
+#                  reload page we just came from.
+#
+#  arg(1)  
+#  arg(2)  
+#  arg(3)
+#  arg(4)
+#  arg(5)  
+#  arg(6)  
+#  arg(7)
+#  arg(8)
+#  arg(9)
+#  arg(10)  (with leading underscore, due to bug about empty $arg()'s.)
+#  arg(11)  new x window size value
+#  arg(12)  new y window size value
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+#---If arg(11) and arg(12) are non-empty, and are numbers, save
+#   the resized value as persistent variables.
+if $and ($not_empty ($arg(11))   $equal ($is_num($arg(11)) $strlen($arg(11))) \
+         $not_empty ($arg(12))   $equal ($is_num($arg(12)) $strlen($arg(12))) )
+   eval $set_user_data ($userid() xs_person $arg(11))
+   eval $set_user_data ($userid() ys_person $arg(12))
+end
+
+"%location(person.cml?$arg(1)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                      $arg(7)+$arg(8)+$arg(9)+$str_sub(1 1000 $arg(10)))
+

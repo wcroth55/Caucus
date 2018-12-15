@@ -1,0 +1,416 @@
+div.section p,div.chapter p {
+  font-family: sans-serif;
+  font-size:100%;
+  display: block;
+  max-width:720px;
+}
+
+div.part h1, 
+div.chapter h1, div.section h1, 
+div.chapter h2, div.section h2, 
+div.chapter h3, div.section h3, 
+div.chapter h4, div.section h4, 
+div.chapter h5, div.section h5, 
+div.chapter h6, div.section h6, 
+div.chapter p.title {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+div.chapter code,div.section code {
+  color: #0e4075;
+  font-weight: normal;
+  font-family: monospace, fixed;
+   font-size:95%;
+}
+div.chapter pre, div.section pre {
+  color: #a1520f;
+  background-color: white;
+  font-family: monospace, fixed;
+  font-size:95%;
+}
+.type {
+  font-family:monospace, fixed;
+  font-size:95%;
+}
+
+div.part h1, div.chapter h1, div.book div.titlepage h1.title {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 250%;
+  line-height: 100%;
+  font-weight: bold;
+}
+
+div.col66 div.book div.titlepage h1.title {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 150%;
+  font-weight: bold;
+}
+
+div.chapter div.titlepage h2 {
+  font-size:200%;
+  font-weight: normal;
+  color:black;
+  background-color:white;
+}
+
+div.section div.titlepage h2 {
+  font-size:180%;
+  font-weight: bold;
+  color:black;
+  background-color:white;
+}
+div.section div.titlepage h3 {
+  font-size:160%;
+  font-weight: bold;
+  color:black;
+  background-color:white;
+}
+div.section div.titlepage h4 {
+  font-size:140%;
+  font-weight: bold;
+  color: black;
+  background-color:white;
+}
+div.section div.titlepage h5 {
+  font-size:120%;
+  font-weight: bold;
+  color: black;
+  background-color:white;
+}
+div.section div.titlepage h6 {
+  font-weight: normal;
+  color:black;
+  background-color:white;
+}
+
+.errorcode {
+  font-family: courier;
+  color: #7b3d23;
+}
+
+.errorname {
+  font-family: courier;
+  font-weight: bold;
+  color: #7b3d23;
+}
+
+.errortext {
+  font-family: courier;
+  color: #7b3d23;
+  font-variant: small-caps;
+}
+
+.errortype {
+  font-family: courier;
+  color: #7b3d23;
+  font-style: italic;
+}
+
+div.note {
+  border-left: 5px solid black;
+  padding-left: 5px;
+  margin-right: 1in;
+}
+
+div.warning {
+  border-left: 5px solid red;
+  padding-left: 5px;
+  margin-right: 1in;
+}
+
+div.caution {
+  border-left: 5px solid yellow;
+  padding-left: 5px;
+  margin-right: 1in;
+  }
+  
+  p.mnmas b {
+  display:block;
+  color: green;
+  }
+  
+  p.mnmas {
+  color: green;
+  border: 1px solid green;
+  border-left: 5px solid green;
+  padding-left: 5px;
+  }
+
+  p.mnmas-kb b {
+  display:block;
+  color: #6633cc;
+  }
+  
+  p.mnmas-kb {
+  color: #6633cc;
+  border: 1px solid green;
+  border-left: 5px solid green;
+  padding-left: 5px;
+  }
+  
+  p.mccge-warning b {
+  padding-right:0.5em;
+  }
+  
+  p.mccge-warning {
+  color: blue;
+  border: 1px solid blue;
+  border-left: 5px solid blue;
+  padding-left: 5px;
+  }
+
+p.depnote b {
+  display:block;
+  color: red;
+}
+
+p.depnote {
+  color: red;
+  border: 1px solid red;
+  border-left: 5px solid red;
+  padding-left: 5px;
+}
+
+div.warning h3, div.note h3{
+  font-size: 90%;
+}
+
+div.chapter pre.programlisting, div.section pre.programlisting {
+  background: #eeeeee;
+  color:black;
+  display:block;
+  max-width:720px;
+  font-size:90%;
+  padding:2px;
+}
+ 
+.guibutton {
+  font-family: Helvetica, Arial, sans-serif;
+  background: #dddddd;
+  display:inline;
+  border: 1px solid #555555;
+  padding:1px;
+  line-height:1.2em;
+  white-space:nowrap;
+}
+
+.guilabel {
+  font-family: Helvetica, Arial, sans-serif;
+  background: #dddddd;
+  font-weight: bold;
+  display:inline;
+  padding:1px;
+  line-height:1.2em;
+  white-space:nowrap;
+}
+
+.guimenu {
+  font-family: Helvetica, Arial, sans-serif;
+  background: #dddddd;
+  font-weight: bold;
+  border: 1px solid #555555;
+  text-decoration: underline;
+  display:inline;
+  padding:1px;
+  line-height:1.2em;
+  white-space:nowrap;
+}
+
+strong.keycap {
+  background: #eeeeee;
+  display:inline;
+  border: 1px solid #000000;
+  font-variant: small-caps;
+  padding:1px;
+  line-height:1.2em;
+}
+#subfld h1 {
+  font-size: 90%;
+  font-weight: bold;
+}
+span.section a span strong.command {
+  color: black;
+  text-decoration: underline;
+}
+dt span code {
+  font-weight: bold;
+}
+li div.itemizedlist ul li p {
+  font-size: 95%;
+}
+li p {
+  font-size: 100%;
+}
+ol li p {
+  font-size: 95%;
+}
+ul li p {
+  font-size: 95%;
+}
+ul li p em {
+  font-size: 100%;
+}
+li div ol li p {
+  font-size: 105%
+}
+li div ul li p {
+  font-size: 105%
+}
+code {
+  font-size: 95%;
+}
+p strong code {
+  font-size: 95%;
+  font-weight: normal;
+}
+pre strong code {
+  font-weight: normal;
+  font-size: 100%;
+}
+
+em {
+  font-style: italic;
+  font-size: 100%;
+}
+em code {
+  font-size: 110%;
+}
+code em code {
+  font-size: 100%;
+}
+span.type {
+  font-family:monospace, fixed;
+}
+span.bold strong {
+  font-style: italic;
+  font-weight: bold;
+}
+span.emphasis em {
+  font-style: italic;
+  font-weight: normal;
+}
+span.section span strong.command {
+  font-family: monospace;
+  font-weight: bold;
+}
+span.section code.literal, div.section code.literal, div.section code.classname, div.example code.literal {
+  font-family: monospace, fixed;
+  font-weight: bold;
+  color: #026789;
+  font-size:95%;
+}
+td code.literal {
+font-size:100%;
+}
+p.deprecated span.bold strong {
+  color:red;
+  font-weight: bold;
+  font-style: normal;
+}
+div.section div.titlepage h1 code, div.section div.titlepage h2 code, div.section
+div.titlepage h3 code, div.section div.titlepage h4 code, div.section
+div.titlepage h5 code, div.section div.titlepage h1 code {
+  font-size:100%;
+}
+/* Colours and borders */
+strong.command {
+  font-family:monospace, fixed;
+  font-size:90%;
+  color: #990000;
+  font-weight: normal;
+}
+strong.userinput code {
+  color: #0e4075;
+}
+code.filename {
+  color: #3352ff;
+}
+span.emphasis em {
+  color: #003333;
+}
+span.bold strong {
+  color: #003333;
+}
+
+span.section span strong.command {
+  color: #026789;
+}
+
+h3.title code.literal {
+  color: black;
+}
+div.section table, div.chapter table, div.informaltable table {
+  max-width:660px;
+  border: none;
+}
+table tr {
+  vertical-align: top;
+}
+td {
+  font-family:helvetica, arial, sans-serif;
+  font-size: 95%;
+  padding:0px 5px 0px 5px;
+  border: outset 0.1em white;
+}
+th, div.informaltable td strong {
+  font-family:helvetica, arial, sans-serif;
+  color:black;
+  font-weight:bold;
+  font-style:normal;
+}
+div.col66 p, div.col66 pre.programlisting, div.col66 table, div.col66 div.informaltable table {
+ min-width: 600px;
+ max-width: 660px;
+}
+p.es { /* Enterprise Server only */
+  color:#cc6600;
+  font-weight: bold;
+  font-style: normal;
+}
+p.cs { /* Community Server only */
+  color:#ff6600;
+  font-weight: bold;
+  font-style: normal;
+}
+
+table.docs-document-list {
+  border-style: none;
+  font-size: 10px;
+  font-family: helvetica, arial, sans-serif; 
+  border: none;
+}
+
+table.docs-document-list tr.title {
+  text-align: center;
+  vertical-align: bottom;
+  font-weight: bold;
+}
+
+table.docs-document-list tr.even {
+  vertical-align: bottom; 
+  background-color: #efefef;
+  border: 0px;
+}
+
+table.docs-document-list tr.odd {
+  vertical-align: bottom; 
+  background-color: white;
+  border: 0px;
+}
+
+table.docs-document-list td { 
+  padding:0px 5px 0px 5px;
+  border: none;
+}
+
+table.docs-document-list td.title { 
+  text-align: left;
+  vertical-align: bottom;
+  border: 0px;
+}
+
+table.docs-document-list td.link { 
+  width: 70px;
+  text-align: center;
+  border: 0px;
+}

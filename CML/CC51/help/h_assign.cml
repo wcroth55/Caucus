@@ -1,0 +1,82 @@
+#
+#---h_assign.cml  Help about the Assignments page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/03/04 New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_assign.cml $quote(Help on Assignments)
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page displays course assignments created by the
+"organizer or instructors for this conference.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"<img $(src_assign) align=right>
+"From any page "inside" a course conference, click on
+"the "Assignments" button on the Caucus toolbar.
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"Regular ("include"d) members of a conference will see
+"a list of the current assignments.&nbsp;
+"They may click on a column header (title, instructor,
+"or due date) to re-sort the list of assignments by
+"that column.&nbsp;
+"Click on the "blue'd" text in the right-hand column
+"to see the full text of the assignment.
+
+"<p/>
+"<B>Instructors</B><BR>
+"If you are an organizer or instructor, you may also edit
+"the assignments, or create new ones.&nbsp;
+"Click in a cell to begin editing it, and just type.&nbsp;
+"You can use the Del and Backspace keys to edit.&nbsp;
+"You can skip from one cell to the next by pressing the
+"&lt;tab&gt; key.&nbsp;
+"When you have finished your changes, press the Enter key,
+"or click on "Save Changes".&nbsp;
+"<p/>
+"Click on the "blue'd" text to edit the full text
+"of the assignment itself.
+"<p/>
+"You may enter dates in almost any format (such as "5/23/05" or 
+"5/23/2005" or "May 23, 2005"),
+"and Caucus will
+"automatically reformat them.
+"<p/>
+"<img $(src_key) align=right hspace=5><img $(src_trash) align=right>
+"The trash-can icon deletes an assignment.&nbsp;
+"The key icon displays the unique assignment number, which you
+"can use in a conference item to link directly to the assignment.
+
+"<p/>
+"<B>Creating a new Assignment</B><BR>
+"Click in the blank title field at the bottom of the list.&nbsp;
+"Enter a title, then press &lt;tab&gt; and enter the remaining
+"fields one by one.&nbsp;
+"(You are the default instructor, but you can change it to another
+"organizer or instructor in the conference by typing their Caucus
+"userid in the instructor cell.)
+"<p/>
+"When you've entered everything but the assignment text, press
+"Enter.&nbsp; 
+"Now click on the "empty" link that appears in the text column
+"to proceed to enter the assignment text.
+"<p/>
+"The "Start date" is the first day on which regular members
+"of the conference will be able to see the assignment.&nbsp;
+"The "End date" is the last day on which it is visible.&nbsp;
+"You can build an assignment and keep it hidden while you work
+"on it, by setting the "Start date" to (say) sometime next year.&nbsp;
+"Then when you are ready to make it visible, change the Start date
+"to its proper value.
+
+
+include $(help)/hb.i

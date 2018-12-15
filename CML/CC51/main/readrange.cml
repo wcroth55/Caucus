@@ -1,0 +1,41 @@
+#
+#---READRANGE.CML    Redirect to read conference arg(1), 
+#                    items arg(2) through arg(3).
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i readrange.cml
+end
+
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+set vi_markseen 1
+
+set ilist $plusmod ($(ilist) 1 $(ilistmax))
+
+set temp
+count i $arg(2) $arg(3)
+   set temp $(temp) $arg(1) $(i) 0
+end
+set ilist$(ilist)   $(temp) $(nxt)
+
+if $empty ($word (2 $(ilist$(ilist))))
+   "%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+   return
+end
+
+set cn $word (1 $(ilist$(ilist)))
+set in $word (2 $(ilist$(ilist)))
+set rn $word (3 $(ilist$(ilist)))
+
+"%location($(mainurl)/viewitem.cml?$(nch)+$(nxt)+$(cn)+$(in)+$(rn)+\
+                   x+1+ilist$(ilist)#here)
+#---------------------------------------------------------------

@@ -1,0 +1,182 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.23: Array Manipulation</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.23:&nbsp; Array Manipulation</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref422.html">PREV</A>]
+   [<A HREF="ref424.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus version 4.3 adds a set of functions for manipulating
+"array objects".&nbsp;
+These functions can be used, among many other possibilities, 
+to add simple spreadsheet-like tables to Caucus.
+
+<P>
+Caucus arrays can have an arbitrary number of dimensions.&nbsp;
+The number of dimensions is fixed when the array is created;
+but the size of each dimension may be changed dynamically.&nbsp;
+In the descriptions below, <B>d<sub>i</sub></B> means
+a set of dimensions d<sub>1</sub>, d<sub>2</sub>, etc.&nbsp;
+The dimensions appear in what is called "odometer ordering",
+meaning the rightmost dimension changes most rapidly.&nbsp;
+<P>
+Thus, for example, a table "xyz" of 4 rows and 10 columns is a
+2-dimensional array, represented by dimensions [4 10], and
+would be created by calling <NOBR>$array_create (xyz 4 10).</NOBR>
+When we look at such a table, we ordinarily "read" its cells
+proceeding from left to right, and <B>then</B> top to bottom.&nbsp;
+This gives us our "odometer ordering" because we move fastest through
+the columns.
+
+<DL>
+
+<P><DT><A NAME="array_create">$array_create (name d<sub>i</sub>)</A> 
+<DD>Creates a permanent array called <I>name</I> with
+dimensions <I>d<sub>i</sub></I>.&nbsp;
+Returns "1" if successful, "0" if the named array already exists.
+
+<P><DT><A NAME="array_delete">$array_delete (name)</A> 
+<DD>Permanently deletes array <I>name</I>.
+
+<P><DT><A NAME="array">$array (name d<sub>i</sub>)</A> 
+<DD>Evaluates to the value of cell <I>d<sub>i</sub></I> of array
+<I>name</I>.&nbsp;
+If <I>name</I> is not already loaded into memory, 
+loads the entire array into memory.&nbsp;
+If the array or cell does not exist, evalues to nothing.&nbsp;
+Array elements are numbered from 0 to the size of the dimension - 1.
+
+<P><DT><A NAME="array_clear">$array_clear (name)</A> 
+<DD>"Clears" (removes) array <I>name</I> from memory.&nbsp;
+(This means that the next call to $array(<I>name</I>) will force
+it to be reloaded from disk.)&nbsp;
+If many arrays are in use, clearing an array is useful to improve
+performance.
+
+<P><DT><A NAME="array_set">$array_set (name d<sub>i</sub> string)</A> 
+<DD>Sets the value of cell <I>d<sub>i</sub></I> of array <I>name</I>
+to <I>string</I>.&nbsp;
+Like $array(), loads the array first if necessary.
+
+<P><DT><A NAME="array_insert">$array_insert (name d n)</A> 
+<DD>Inserts a new row or column in dimension <I>d</I>,
+just before index <I>n</I>.&nbsp;
+For example, in a 2-dimensional array X, $array_insert (X 2 5)
+inserts a new, empty, column (dimension 2) 
+just before the current column 5.&nbsp;
+(Column 5 becomes column 6, 6 becomes 7, etc.)&nbsp;
+$Array_insert (X 1 3) would insert a new <B>row</B> before row 3.
+Like $array(), loads the array first if necessary.
+<P>
+(Strictly speaking, $array_insert() inserts an array of one lower
+dimension at the index given.&nbsp;
+So a vector gets a new cell inserted, a table gets a new row or
+column, a cube gets a new plane, etc.)
+
+<P><DT><A NAME="array_remove">$array_remove (name d n)</A> 
+<DD>Removes (deletes) a row or column at dimension <I>d</I>,
+index <I>n</I>.&nbsp;
+Like $array(), loads the array first if necessary.
+
+<P><DT><A NAME="array_size">$array_size (name [d])</A> 
+<DD>Evaluates to the size of dimension <I>d</I>.&nbsp;
+If <I>d</I> is not specified, evaluates to the number of 
+dimensions.&nbsp;
+(Dimension numbers start at 1, unlike row, column, or cell indices.)&nbsp;
+Like $array(), loads the array first if necessary.
+
+<P><DT><A NAME="array_store">$array_store (name)</A> 
+<DD>Writes the current in-memory contents of array <I>name</I>
+to disk.&nbsp;
+<B>Note:</B> you <B>must</B> call $array_store() in order to permanently
+save changes made by $array_set(), $array_insert(), 
+or $array_remove()!
+
+<P><DT><A NAME="array_eval">$array_eval (name d<sub>i</sub>)</A> 
+<DD>
+Evaluates to the contents of cell <I>d<sub>i</sub></I> of array <I>name</I>,
+<B>including</B> evaluating any CML functions or macros in the text of that 
+cell,
+<B>also including</B> evaluating any of the "special array functions"
+that appear in the cell.&nbsp;
+$Array_eval() automatically performs a recursive evaluation,
+so that (in particular) $cell() evaluations can refer to other
+$cell() evaluations.&nbsp;
+(Recursion depth is limited to 20, to prevent infinite loops in
+case a cell accidentally refers to itself.)
+
+Like $array(), loads the array first if necessary.
+
+</DL>
+
+<P>
+<B>Note:</B>&nbsp;
+the rest of the functions on this page are the "special array functions"
+mentioned in the description of $array_eval().&nbsp;
+These functions look and act like regular CML functions,
+except that they <B>also</B> implicitly know which cell they are
+being evaluated on.&nbsp;
+<P>
+In the descriptions of these functions, <B>c<sub>i</sub></B>
+is a cell reference.&nbsp;
+A cell reference may be either an absolute number such as "5", 
+<B>or</B> a relative reference, such as "R2" or "R-1".&nbsp;
+Relative references are, not surprisingly, relative to the current
+cell.&nbsp;
+Thus R2 is the cell two cells higher in a dimension than the current
+cell; R-1 is one cell lower.&nbsp;
+So, for example, in a two-dimensional array, 
+a specific <B>c<sub>i</sub></B> might
+be "5&nbsp;R-1", meaning the cell in row 5 and the column one
+less than the current column.&nbsp;
+These relative references are crucial for implementing spreadsheet-like
+capabilities.
+
+<DL>
+<DT><A NAME="cell">$cell (c<sub>i</sub> [c<sub>j</sub> ...])</A> 
+<DD>Evaluates to the value of cell <I>c<sub>i</sub></I>,
+<I>c<sub>j</sub></I>, etc., separated by blanks.&nbsp;
+
+<P>
+<DT><A NAME="cells">$cells (c<sub>i</sub> c<sub>j</sub>)</A> 
+<DD>Evaluates to the values of cells <I>c<sub>i</sub></I>
+through <I>c<sub>j</sub></I>.&nbsp;&nbsp;
+Only one dimension may vary between i and j, e.g. in a table
+this can only evaluate to the cells in a row or column range.
+<P>
+Here's a particularly useful example that uses $cells() -- 
+suppose array x, cell (6 3) (row 6, col 3) contains the text:
+<PRE>
+   $plus ($cells (0 R0  R-1 R0))
+</PRE>
+Then <TT>$array_eval (x 6 3)</TT> evaluates to the sum of all the values
+in the same column (3), from row 0 to the row before
+the current row (5).&nbsp;
+This is the classic spreadsheet columnar sum operator.
+
+
+
+
+</DL>
+</BLOCKQUOTE>
+<P>
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,35 @@
+#
+#---H_MYSAFE.I    Help about the top-level FileSafe page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  5/11/0l New file.
+#---------------------------------------------------------------
+
+include $(help)/ht.i h_mysafe.cml $quote(Help on My $(filesafe_name))
+
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"This page is the "top-level" FileSafe page.&nbsp;
+"It lists all of the individual $lower($(filesafe_name))(s) that you are 
+"allowed to use.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From any page, click on the "FileSafe" button (usually in the
+"top right-hard corner of the page).
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"Click on any $lower($(filesafe_name)) name to see what is inside it,
+"or (if you are allowed) to add files to it.
+
+"<p>
+"<b>For More Information</b><br>
+"See the Help page on the
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x">$(filesafe_name)</A>.
+
+include $(help)/hb.i

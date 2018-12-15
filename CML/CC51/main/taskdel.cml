@@ -1,0 +1,29 @@
+#
+#---taskdel.cml  Delete a task.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   ... usual
+#   9  tid
+#   
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/18/05 New file.
+#------------------------------------------------------------------------
+
+set h $sql_query_open (UPDATE tasks SET deleted = 1 WHERE tid=$arg(9))
+eval  $sql_query_close($(h))
+
+#---For now, *don't* delete task_links to this task.
+#set h $sql_query_open (DELETE FROM task_links WHERE tid=$arg(9))
+#eval  $sql_query_close($(h))
+
+set nch $unique()
+set arglist $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+"Location: $(mainurl)/tasks.cml?$(nch)+$(arglist)
+"

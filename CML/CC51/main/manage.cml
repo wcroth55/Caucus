@@ -1,0 +1,467 @@
+#
+#---MANAGE.CML.   Menu for Caucus Managers
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/22/00 20:21 Add bulletin feature.  See man_bull.cml.
+#: CR 05/06/00 11:32 New User Follow-up option.
+#: CR 02/12/01 09:30 Dynamic tables.
+#: CR 01/21/01 11:09 Distinct options for default vs interface new user reg.
+#: CR 04/05/02 Add E-mail users option.
+#: CR 04/23/02 Add filesafe.
+#: CR 03/02/03 Add create new interface, edit CML files.
+#: CR 04/07/03 Add add-ons for batch registration, user/group edit matrix.
+#: CR 05/19/03 Rearrange into 4 sections (add "Look & Feel" & announcements).
+#: CR 06/13/03 Add usage statistics.
+#: CR 07/18/03 Add usage statistics wizard.
+#: CR 12/20/03 Use %datetz() to display proper time zone info.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 01/06/06 Add "manage all user groups" choice.
+#: CR 02/17/06 Add "New User Followup" choice.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i manage.cml
+end
+
+include $(main)/requiredinfo.i
+
+set pagename <span class="pageTitle">Caucus&nbsp;Management</span>
+
+set nch   $unique()
+set nxt   $page_save (1 manage.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Caucus Management)
+
+#---Clean out variables used by sub-pages.
+set create_error
+set save_create_userid
+
+set delete_error
+set save_delete_userid
+
+set password_error
+set save_password_userid
+
+#-------------------------------
+include $(main)/head.i $arg(3)  $quote(Caucus Management)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i      manage  Caucus Management
+
+set bad_conf_name
+
+"<P>
+"<BLOCKQUOTE>
+"<DL>
+"<DT><B>Server Information:</B>
+"<DD>
+"This is Caucus version $version().$(i_version).&nbsp;
+"There are currently $lice_act_users() registered users.
+
+"</DL>
+
+if $not_empty($(result))
+   "<P><TABLE BORDER=0 WIDTH="80%" CELLPADDING=10>
+   "<TR VALIGN=top $(body_fg)><TD>
+   "<P><DL>
+   "<DT><B>Result of last management action:</B>
+   "<DD>$(result)
+   "</DL>
+   "</TD><TR></TABLE>
+   set result
+end
+
+"<P>
+"<DL>
+"<DT><B>Management Areas:</B>
+"<DD>
+"There are four broad areas that can be managed:
+"<A HREF="#conf">conferences</A>,
+"<A HREF="#users">users</A>, 
+"<A HREF="#feel">look &amp; feel</A>, and
+"<A HREF="#oper">operation</A>.&nbsp;
+
+"If an option is shown as a link, you have permission to use
+"that option.
+
+#------------------------------------------------------------------
+"<P>
+"<DT><A NAME="conf"><B>Conferences</B></A><BR>
+"<DD>
+"<DL>
+
+
+if %mgr_in_group ($userid() conferenceCreate conferenceAllPrivileges)
+   "<DT><b><A HREF="man_create.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+      $arg(6)+$arg(7)+$arg(8)">Create a conference</A></B>
+end
+else
+   "<DT><B>Create a conference</B>
+end
+"<DD>Create a new conference and choose the primary organizer,
+"or restore a conference from the archive.
+"<P>
+
+if %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges)
+   "<DT><b><A HREF="man_cname.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+     $arg(6)+$arg(7)+$arg(8)">Rename Conference</A></B>
+end
+else
+   "<DT><B>Rename Conference</B>
+end
+"<DD>Change the name of an existing conference.<P>
+
+if %mgr_in_group ($userid() conferenceArchive conferenceAllPrivileges)
+    "<DT><B><A HREF="man_archive.cml?$(nch)+$(nxt)+\
+             $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">\
+             Archive a conference</A></B>
+ end
+ else
+   "<DT><B>Archive a conference</B>
+ end
+"<DD>Save a compressed copy of a conference in the archive.
+"<P>
+
+if %mgr_in_group ($userid() conferenceDelete conferenceAllPrivileges)
+   "<DT><b><A HREF="man_remove.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+       $arg(6)+$arg(7)+$arg(8)">Delete a conference</A></B>
+end
+else
+   "<DT><B>Delete a conference</B>
+end
+"<DD>Completely remove a conference and its contents from the system.<P>
+
+if %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges)
+   "<DT><b><A HREF="man_org.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+     $arg(6)+$arg(7)+$arg(8)">Conference Settings</A></B>
+end
+else
+   "<DT><B>Conference Settings</B>
+end
+"<DD>Change a conference's primary organizer,  add yourself as an organizer,
+" allow e-mail notification.
+
+include $(main)/local_man_confs.i
+
+"</DL>
+"</DD>
+
+#-------------------------------------------------------------
+"<P>
+"<DT><A NAME="users"><B>Users</B></A><BR>
+"<DD>
+"<DL>
+if %mgr_in_group ($userid() groupEditAll)
+   "<DT><B><A HREF="man_mgrs.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+         $arg(6)+$arg(7)+$arg(8)">Manage the manager groups</A></B>
+end
+else
+   "<DT><b>Manage the manager groups</B>
+end
+"<DD>Define who can exercise manager privileges and what they can do.<P>
+
+
+"<p/>
+"<dt><b><a href="grouppick.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+                           Caucus4+_+_">Manage all user groups</a></b>
+"<dd>View and edit all user groups (conference membership, System groups, etc.)
+
+"<p/>
+if %mgr_in_group ($userid() userCreate)
+   "<DT><b><A HREF="man_ucr.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+       $arg(6)+$arg(7)+$arg(8)">Create individual user accounts</A></B>
+end
+else
+   "<DT><B>Create individual user accounts</B>
+end
+"<DD>Create userids, and optionally register user names and
+"other information.
+"<P>
+
+#---Batch registration of users (add-on).
+if 0$(mod_batch)
+   if %mgr_in_group ($userid() userCreate)
+      "<DT><b><A HREF=man_batch.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+          $arg(6)+$arg(7)+$arg(8)>Batch creation of user accounts</A></B>
+   end
+   else
+      "<DT><B>Batch creation of user accounts</B>
+   end
+   "<DD>Create batches of users from a spreadsheet.
+   "<p>
+end
+
+if %mgr_in_group ($userid() userDelete passwordChangeUsers \
+                            passwordChangeManagers passwordChangeAnyone)
+   "<DT><b><A HREF="man_users.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+       $arg(6)+$arg(7)+$arg(8)">Manage individual user accounts</A></B>
+end
+else
+   "<DT><B>Manage individual user accounts</B>
+end
+"<DD>Delete userids or change passwords,
+"depending on your privileges.
+"<P>
+
+if %mgr_in_group ($userid() userDelete)
+   "<DT><b><A HREF="man_date.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+        $arg(7)+$arg(8)">Manage users by date</A></B>
+end
+else
+   "<DT><B>Manage users by date</B>
+end
+"<DD>List and optionally delete users by date of last access.
+
+"<p/>
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_userface.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+                       $arg(5)+$arg(6)+$arg(7)+$arg(8)"
+   "          >Select the $(iface) user information fields</A></b>
+end
+else
+   "<dt><b>Modify the $(iface) registration interface</b>
+end
+"<DD>Control precisely what data is known about a user,
+"and how it appears on the 
+"registration page and the personal information page.<p>
+
+"<p/>
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_userfollow.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+                       $arg(5)+$arg(6)+$arg(7)+$arg(8)"
+   "          >New User Registration Followup for $(iface)</A></b>
+end
+else
+   "<dt><b>New User Registration Followup</b>
+end
+"<dd>Select follow-up options for what happens when a new 
+"user registers with Caucus.
+
+
+"<P>
+if %mgr_in_group ($userid() userReports)
+   "<DT><b><A HREF="man_ureport.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(8)">Produce User Reports</A></B>
+end
+else
+   "<DT><B>Produce User Reports</B>
+end
+"<DD>Create certain types of user reports,
+"and receive them via e-mail.
+
+"<P>
+if %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges)
+   "<DT><b><A HREF="man_mailall.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(8)">E-mail Users</A></B>
+end
+else
+   "<DT><B>E-mail Users</B>
+end
+"<DD>Send e-mail to everyone on the site, in a conference, or
+"in a group.&nbsp; (Requires "become organizer" privilege.)
+
+"<P>
+if %mgr_in_group ($userid() userReports)
+   "<DT><b><A HREF="man_statwiz.cml?$(nch)+$(nxt)+x+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(8)+x+x+x">Usage statistics wizard</A></B>
+end
+else
+   "<DT><B>Usage statistics wizard</B>
+end
+"<DD>Run a 'wizard' to display standard usage statistics.
+
+"<p>
+if %mgr_in_group ($userid() userReports)
+   "<DT><b><A HREF="man_stats.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+   $arg(6)+$arg(7)+$arg(8)">Usage statistics query-writer</A></B>
+end
+else
+   "<DT><B>Usage statistics query-writer</B>
+end
+"<DD>Build your own usage statistics queries and display the results.
+
+include $(main)/local_man_users.i
+
+"</DL>
+
+
+#-------------------------------------------------------------
+"<P>
+"<DT><A NAME="feel"><B>Look &amp; Feel</B></A><BR>
+"<DD>
+"<DL>
+
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_cc.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)">Modify the $(iface) interface look and feel</A></B>
+end
+else
+   "<DT><B>Modify the $(iface) interface look and feel</B>
+end
+#"<DD>Control precisely what things appear in what order on the
+#"$(center_name) page.
+"<dd>Modify the look and feel of the $(center_name) and other pages
+"for the '$(iface)' interface.
+
+
+"<p>
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_mkiface.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)">Create a new interface</A></B>
+end
+else
+   "<DT><B>Create a new interface</B>
+end
+"<dd>Create a new interface, or switch to an existing one.
+
+
+"<p/>
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_fields.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+    $arg(6)+$arg(7)+$arg(8)">Create site-wide user fields</a></b>
+end
+else
+   "<DT><b>Create site-wide user fields</b>
+end
+#"<DD>Control precisely what things appear in what order on the
+#"$(center_name) page.
+"<dd>Add to the list of information fields maintained about users
+"    site-wide.
+
+"<p>
+if %mgr_in_group ($userid() systemEditSwitches)
+   "<DT><b><A HREF="man_switch.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+        $arg(6)+$arg(7)+$arg(8)">Edit the Caucus "switches"</A></B>
+end
+else
+   "<DT><B>Edit the Caucus "switches"</B>
+end
+"<DD>Set the value of many "switches" that control the way Caucus behaves,
+"across all interfaces.
+
+#"<P>
+#if %mgr_in_group ($userid() systemEditSwitches)
+#   "<DT><b><A HREF="man_popular.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#       $arg(6)+$arg(7)+$arg(8)">Edit the Popular Conference list</A></B>
+#end
+#else
+#   "<DT><B>Edit the Popular Conference list</B>
+#end
+#"<DD>Set the conference choices offered to new users.<P>
+
+"<P>
+if %mgr_in_group ($userid() systemEditCML)
+   "<DT><b><A HREF="man_editcml.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)">Edit CML files</A></B>
+end
+else
+   "<DT><B>Edit CML files</B>
+end
+"<DD>Directly edit the CML files that define the interface.&nbsp;
+" Not for the faint-of-heart!
+
+
+"</dl>
+
+#-------------------------------------------------------------
+"<P>
+"<DT><A NAME="oper"><B>Operation</B></A><BR>
+"<DD>
+"<DL>
+
+#---8704 = 512 (edit switches) + 8192 (shutdown caucus)
+if %mgr_in_group ($userid() systemBulletins)
+   "<DT><b><A HREF="man_bull.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)">Display bulletin to all users</A></B>
+end
+else
+   "<DT><B>Display bulletin to all users</B>
+end
+"<DD>Display a (very short) pop-up bulletin to all Caucus users.
+
+"<p>
+#---512 (edit switches)
+set ann_cnum $word (1 $cl_list (system_announcements) 0)
+if $and ($gt_equal (%access($(ann_cnum)) $priv(instructor))  \
+          %mgr_in_group ($userid() systemBulletins))
+   "<DT><b><A HREF="additem.cml?$(nch)+$(nxt)+$(ann_cnum)+x+x+x+x+x"
+   "  >Make announcements</a></b> to all (or some) users.
+end
+else
+   "<DT><B>Make announcements</b> to all (or some) users.&nbsp;&nbsp;
+   "(Not allowed -- you may not have 'edit switches' privilege,
+   "or 'include' access to System Announcements, or the conference
+   "may not exist.)
+   "<p>
+end
+"<DD>Make an announcement for all users, or all users in a group
+"or conference.&nbsp; Creates an announcement item in 
+"the %conference (system_announcements) conference.
+    
+
+#---8704 = 512 (edit switches) + 8192 (shutdown caucus)
+"<p/>
+if %mgr_in_group ($userid() systemBulletins)
+   "<DT><b><A HREF="man_en.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)">Site-wide E-mail Notification</A></B>
+end
+else
+   "<DT><B>Site-wide E-mail Notification</B>
+end
+"<dd>Control e-mail notifications about new material on the entire site.
+
+#---Comment out creating dynamic tables for now (C5.00).  Will return
+#   this at a later time.
+#"<P/>
+#if 1
+#   "<DT><b><A HREF="man_table.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+#            $arg(6)+0+">Create a dynamic table</A></B>
+#end
+#else
+#   "<DT><B>Create a dynamic table</B>
+#end
+#"<DD>Create a spreadsheet-like table that can be used anywhere
+#"in Caucus.
+
+"<P>
+if %mgr_in_group ($userid() interfaceManage)
+   "<DT><b><A HREF="man_safe.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+            $arg(6)+$arg(7)+$arg(8)+everyone">Manage $(filesafe_name)</A></B>
+end
+else
+   "<DT><B>Manage $(filesafe_name)</B>
+end
+"<DD>Manage the sections in the $(filesafe_name).
+
+"<P>
+if $equal ($word (1 $opsys()) unix)
+   if %mgr_in_group ($userid() systemShutdown)
+      "<DT><b><A HREF="man_shut.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+\
+               $arg(6)+$arg(7)+$arg(8)">Shutdown Caucus</A></B>
+   end
+   else
+      "<DT><B>Shutdown Caucus</B>
+   end
+   "<DD>Shutdown all Caucus processes and users, and optionally
+   "restart the Caucus server.
+end
+
+include $(main)/local_man_oper.i
+
+"</DL>
+"</DD>
+
+"</DL>
+"</BLOCKQUOTE>
+#-------------------------------------------------------------
+
+"<P>
+"<HR>
+"</div>
+"</body>
+"</HTML>

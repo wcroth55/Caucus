@@ -1,0 +1,249 @@
+Caucus 5.1   Build & Installation Instructions
+Last revision: 12 December 2014
+
+I. INTRODUCTION
+Caucus is a sophisticated web-based group discussion and e-learning 
+tool, with a history that stretches back to 1986.  It provides 
+multi-tiered asynchronous discussion groups, classes, assignments,
+quizzes, file storage areas, user tracking, and grading, all with a 
+high degree of security, flexibility, and customizability.
+
+Caucus runs as a CGI application on top of most web servers 
+(such as Apache), and uses MySQL as its data store.
+
+Caucus can run on just about every flavor of Unix.  There was also
+(briefly) a Windows NT version, although it is no longer supported
+or recommended.  Most of the NT code remains in the code base,
+and in theory could be resurrected.
+
+Caucus version 5 was released as "open source" in October 2005, 
+and may be used by anyone for any purpose.  It is distributed
+in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS 
+FOR A PARTICULAR PURPOSE.  
+
+For more information, see www.caucus.com.  If you are actively
+using or testing Caucus, there is a conference (discussion forum)
+called "Caucus5 Open Source", specifically for questions and
+comments about this build and install procedure.
+
+Caucus is Copyright (C) 1986-2010 CaucusCare.com, a registered DBA
+in the state of Michigan of the United States of America.  Version
+5 was released under the GPL and the CDDL; see the license.txt
+files in the source directories, or the web site, for details.
+
+
+II. REQUIREMENTS
+Caucus requires the following packages:
+
+   1. MySQL  4.1 or higher.  See www.mysql.com.
+   2. MySQL development package (libraries and include files)
+   3. A web server (Apache is recommended)
+
+Caucus also requires the OpenLDAP libraries, but they are included
+(and built from source) by this package.  We currently use OpenLDAP
+version 2.3.11.
+
+Caucus can also be configured to use OpenId's; see the separate
+document OPENID.TXT for more details.  In that case it will
+need additional software libraries installed.
+
+
+III. OVERVIEW
+
+There are two phases:
+  1. Build kit
+  2. Install kit
+
+Caucus is frequently installed multiple times on a single box
+(each install in its own unix userid as a "virtual host").  Thus 
+a "kit" (caucus5.tar) is built once from source, and then 
+potentially installed multiple times.
+
+
+IV. BUILD PHASE
+
+   0. Unpack source and cd to build directory.  (Solaris 9 may require
+      gzcat instead of zcat.)
+
+         zcat caucus5.102.102.tar.gz | tar xvf -
+         cd   caucus5.102.102
+
+   1. Configure for this operating system.  (Run "./configure --help"
+      for a list of options.)
+
+         ./configure
+
+      Currently Linux (Redhat and Debian), Solaris 9, and MacOS X are supported. 
+      Other flavors of unix will require only minor changes to the configure
+      script.
+
+   2. Build the install kit, in the file caucus5.tar.
+
+         make
+
+
+V. BUILD PHASE NOTES
+
+   0. Run "./configure --help" to see a list of all configuration options.
+      In particular, if your MySQL is installed in an unusual location,
+      you may need to set the --mysqllib or --mysqlinc options.
+
+   1. Linux Distributions:
+
+      a. Most RedHat distributions (RHEL, Fedora Core) work
+         fine with just "./configure".  64-bit versions should use either
+            ./configure --mysqllib=/usr/lib64/mysql/libmysqlclient.a
+         or
+            ./configure --mysqllib=/usr/lib64/mysql
+
+      b. Debian seems to need:
+            ./configure --nosasl2 --nomd5
+
+   2. For RHEL 7 and CentOS 7 on 64 bit systems, we recommend:
+            export CPPFLAGS="-D_GNU_SOURCE"
+            ./configure --nosasl2 --mysqllib=/usr/lib64/mysql/libmysqlclient.so \
+               --otherlib=/lib64/libcrypto.so
+
+   3. For Solaris and MacOSX, we recommend
+            ./configure
+
+   4. If you get a fatal error message during the build that says
+      "storage size of peercred isn't known", do:
+
+           export CPPFLAGS="-D_GNU_SOURCE"
+           ./configure
+           make
+
+   5. If you have problems linking Caucus, see the file
+      CV2/sweb/makefile (produced by configure), and edit 
+      the list of libraries to match the locations on your system.  
+      Please let us know what you did, and we will incorporate 
+      the necessary changes in the next release.
+
+   6. If you have difficulty linking with LDAP, or if the LDAP
+      compilation fails (during configure or make), wipe everything
+      and start with a fresh build, and use "./configure --noldap".
+      (This disables the LDAP authentication options... but very few
+      people use them anyway.)
+
+
+VI. INSTALL PHASE
+
+   1. Create two unix userids, e.g. "caucus" and "caucus_mail"
+      at /home/caucus and /home/caucus_mail.  Caucus_mail and
+      caucus must share the same, unique, group.  For example:
+
+         useradd -u 555 -d /home/caucus                caucus
+         useradd -u 556 -d /home/caucus_mail -g caucus caucus_mail
+
+      The second userid *must* be the first userid + "_mail".  However,
+      the second userid is only required if you intend to support 
+      the Caucus "email participation" features.
+
+   2. Select a virtual hostname (if possible), e.g. caucus.yourserver.com.
+
+   3. Login to "caucus".
+
+   4. tar xvf /wherever-you-put/caucus5.tar
+
+   5. ./install
+      (Follow the instructions.  You will need the root MySQL password.
+      For the first install of Caucus on a server, accept the defaults
+      when offered.  Use the virtual hostname from step 2.)
+
+   6. /home/caucus/SWEB/swebd /home/caucus/SWEB/swebd.conf
+      (Starts the Caucus "daemon" process.)
+
+      For a permanent installation, you should set Caucus up to be 
+      started at boot time.  Add something like the following to
+      /etc/rc.d/rc.local (or equivalent start-up script):
+
+         rm -f /home/caucus/SOCKET/sweb
+         rm -f /home/caucus/SOCKET/sweb0*
+         /home/caucus/SWEB/swebd  /home/caucus/SWEB/swebd.conf
+
+   7. Configure your web server.  For Apache, the best approach is
+      to define a virtual host as below:
+
+      <VirtualHost your-ipaddress>
+         ServerName caucus.yourserver.com
+         DocumentRoot /home/caucus/public_html
+
+         <Directory /home/caucus/SWEB>
+            Options All
+            AllowOverride All
+            allow from all
+            Require all granted
+         </Directory>
+         
+         <Directory /home/caucus/REG>
+            Options All
+            AllowOverride All
+            allow from all
+            Require all granted
+         </Directory>
+         
+         <Directory /home/caucus/public_html>
+            Options -Indexes
+         </Directory>
+         
+         ScriptAlias  /sweb/   /home/caucus/SWEB/
+         ScriptAlias  /reg/    /home/caucus/REG/
+         
+      </VirtualHost>
+
+   8. Restart (or reload) your web server.
+
+   9. Test Caucus.  Point your browser at http://caucus.yourserver.com,
+      and click on "New User Registration".  Register yourself as the
+      "primary manager" userid that you supplied (in response to the
+      install script prompt) in step 5.
+
+  10. If Caucus does not run, create an empty file called "debug" in
+      the SOCKET directory.  Then try stopping, restarting, and entering
+      Caucus.  You should see several .log files in the SOCKET directory
+      that will contain more information.
+
+  11. Configure Caucus email participation features.  Like step 1, this 
+      is only required if you intend to use these features.  This step must
+      be done once (and only once!), regardless of how many separate installs
+      of Caucus you have on your server.
+
+      a. Create a userid, e.g. "nosuchuser", that is to be used to receive
+         (and forward) email that is sent to non-existent addresses.
+
+      b. Configure postfix (or sendmail or whatever) to send all email
+         for non-existent users, to this userid.  For example, in postfix,
+         just add lines at the bottom of /etc/postfix/main.cf that say 
+
+            luser_relay = nosuchuser
+            local_recipient_maps =
+
+         Then restart the postfix service.
+
+      c. Login as 'nosuchuser', and type:
+
+            /home/caucus/SCRIPTS/makeForwardCaucusMail
+
+         This will setup a forwarding filter so that all email bound for
+         Caucus items goes to the right place.  Any other "junk" email
+         will be discarded.
+
+      
+VII. PLUG-INS.
+
+   1. When uploading & attaching files to a discussion, Caucus uses the
+      "free" version of XUpload to show an optional progress meter.
+      (Thank you, SibSoft!)
+
+      You may also purchase a license for the professional version of
+      XUpload from their website, at a cost of (May 2011) US $37.
+      See http://www.sibsoft.net/xupload.html.
+
+      If you have the professional license, we will provide you,
+      at no charge, the modified files needed to fully
+      integrate it with Caucus.  Contact info@caucus.com.
+      The professional license includes the ability to upload
+      multiple files simultaneously from a single page.
+      

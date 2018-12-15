@@ -1,0 +1,94 @@
+#
+#---peoplegallery.cml  Implementation of %peoplegallery() macro.
+#
+#   arg(2)  groupType
+#   arg(3)  groupName
+#   arg(4)  1 => show everyone, 0 => only those with pictures.
+#   arg(5)  width (in # of people), 0 means use default
+#   arg(6)  $quote'd title.
+#
+#:CR 03/22/06 New script.
+#:CR 07/02/08 Fix bug in the way the width argument is handled.
+#:CR 03/18/09 Make each person a clickable pop-up link.
+#---------------------------------------------------------------------
+
+set groupType $if ($equal($arg(2) System) Caucus4 $arg(2))
+set width     $plus($arg(5) 0)
+set width     $if ($(width) $arg(5) 5)
+set onlyPix   $ifthen ($not($arg(4)) \
+                       AND (u.picture is NOT NULL OR u.picture!=''))
+set emptySize $max (10 $min ($replace(x 32 $site_data (0 - SWdefault_thumbnail))))
+
+set query SELECT u.userid, u.fname, u.lname, u.picture  \
+            FROM user_info u, groups g \
+           WHERE u.active >= 10 \
+             AND u.userid  = g.userid   $(onlyPix) \
+             AND g.owner='$(groupType)' AND g.name='$arg(3)' \
+             AND g.access >= $priv(minimum) \
+           ORDER BY lname, fname
+
+set title $unquote($arg(6))
+
+"Content-type: text/html
+"
+"<html>
+"<head>
+"<title>$($(title))</title>
+include $(main)/css.i
+"</head>
+
+"<body>
+include $(main)/popup.i
+"<center>
+"<h2>$(title)</h2>
+"<p/>
+
+set count -1
+set parity 0
+set imgRow
+set namRow
+"<table cellspacing=0 cellpadding=0>
+
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set count $plusmod ($(count) 1 $(width))
+   if $not($(count))
+      set parity $minus (1 $(parity))
+      "<tr valign=bottom class="gallerylist$(parity)">$(imgRow)
+      "<tr valign=top class="gallerylist$(parity)">$(namRow)
+      set imgRow
+      set namRow
+   end
+
+   if $empty($(picture))
+      set imgRow $(imgRow) \
+          <td></td>\
+          <td><img $(src_clear) width=$(emptySize) height=$(emptySize)></td>\
+          $newline()
+   end
+   else
+      set imgRow $(imgRow) \
+          <td></td>\
+          <td align="center">\
+             <a href="#" onClick="pop_up('person', '$(userid)'); return false;">\
+                <img src="/~$caucus_id()/LIB/PICTURES/$(userid)/_thumb.jpg" \
+                   class="imgRow" border="0"></a></td>$newline()
+   end
+
+   set namRow $(namRow) \
+       <td>&nbsp;&nbsp;</td><td align=center>\
+          <a href="#" onClick="pop_up('person', '$(userid)'); return false;">\
+             $(fname) $(lname)</a></td>$newline()
+end
+eval  $sql_query_close($(h))
+
+set parity $minus (1 $(parity))
+"<tr valign=bottom class="gallerylist$(parity)">$(imgRow)
+"<tr valign=top class="gallerylist$(parity)">$(namRow)
+"</table>
+
+"</center>
+"</div>
+"</body>
+"</html>
+#---------------------------------------------------------------------

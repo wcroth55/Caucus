@@ -1,0 +1,16 @@
+#!/bin/sh
+
+CLASSPATH=./jdom.jar:mysql-connector-java-3.1.8-bin.jar
+export CLASSPATH
+
+javac *.java
+
+mkdir com                         2>/dev/null
+mkdir com/caucus                  2>/dev/null
+mkdir com/caucus/caucusunarchiver 2>/dev/null
+
+mv *.class com/caucus/caucusunarchiver
+
+jar cfm CaucusUnarchiver.jar Manifest.txt com/caucus/caucusunarchiver/*.class
+
+echo " "

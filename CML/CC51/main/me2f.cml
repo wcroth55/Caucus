@@ -1,0 +1,57 @@
+#
+#---ME2F.CML.  Process form from section 2 of ME.CML (password change)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/14/02 15:30 Add intg_ integration calls.
+#---------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i me.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+if $or ($empty($form(newpw1))  $empty($form(newpw2)) )
+   set bad_pw Passwords may not be blank!
+   "%location($(mainurl)/me.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+              $arg(6)+$arg(7)+$arg(8)#ii)
+   return
+end
+
+if $not_equal($form(newpw1) $form(newpw2))
+   set bad_pw New passwords did not match!
+   "%location($(mainurl)/me.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+              $arg(6)+$arg(7)+$arg(8)#ii)
+   return
+end
+
+#set success $passwd ($userid() $form(newpw1) $form(oldpw))
+
+#---If old password verifies (or verification not allowed), change
+#   to new password.
+set success $pw_verify ($userid() $form(oldpw))
+if $gt_equal (0 $(success))
+   set success $pw_change ($userid() $form(newpw1))
+end
+if $not_equal ($(success) 0)
+   set bad_pw Unknown Error $(success)!
+   if $equal ($(success) 4)
+      set bad_pw Your old password is incorrect.
+   end
+   "%location($(mainurl)/me.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+              $arg(6)+$arg(7)+$arg(8)#ii)
+   return
+end
+else
+   #---Integration: user changed own password.
+   include $(main)/intg_encpass.i  $userid()    encpass
+   include $(main)/intg_change.i   $userid()  $(encpass)
+end
+
+"%location($(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#-----------------------------------------------------------

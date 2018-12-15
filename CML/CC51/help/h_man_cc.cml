@@ -1,0 +1,112 @@
+#
+#---H_MAN_CC.I    Help about "Manage: Caucus Center Layout" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#-------------------------------------------------------------
+
+set help_not_found 0
+include $(help)/ht.i h_man_cc.cml $quote(Help on Caucus Center Layout)
+
+"<B>What Is It?</B><BR>
+"The Caucus Center Layout page allows authorized managers to customize the
+"look and feel of the $(center_name) page, including which functions
+"appear on that page.
+"<P>
+"This is particularly useful (and easy) way to customize a Caucus
+"Center for a particular client, event, or purpose -- without actually
+"editing any of the CML files that make up the standard Caucus
+"interface.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Control the $(center_name) Layout</U>.
+
+
+"<P>
+"<B>What Can I Do From Here?</B><BR>
+"The $(center_name) page is broken up into several different pieces,
+"each of which you can change.  These pieces include:
+
+"<P>
+"<UL>
+"<LI>The name of the $(center_name) page.&nbsp;
+"This appears not just on the page, but on the compass bar on
+"<B>every</B> page.
+
+"<P>
+"<LI>A choice as to whether the "$(center_name)" label should or should
+"not appear on that page.&nbsp;
+"(Sometimes the label is redundant and takes up unnecessary space on
+"the page.)
+
+"<p>
+"<li>A choice (fill in the URL) for where the Quit button goes after
+"leaving Caucus.&nbsp; (Overrides any selection made on the managers
+"'edit switches' page.)
+
+"<p>
+"<li>A choice for which button toolbar (Quit, Search, etc.) should
+"appear.&nbsp; Choose from a pull-down menu of CML files that
+"define the look and feel of those buttons.
+
+"<P>
+"<LI>A logo for the $(center_name) page.&nbsp;
+"If defined, it appears in the top left-hand corner of the page.
+
+"<P>
+"<LI>A logo for all <B>other</B> pages in Caucus.&nbsp;
+"This also appears in the top-left hand corner.&nbsp;
+"Usually the two logos ($(center_name) page, and all other pages)
+"are similar, but the $(center_name) page logo can be bigger or
+"flashier in some way.
+
+"<P>
+"<LI>Below the name and logos are the standard Caucus toolbar and
+"compass (location) bar.&nbsp;
+"These cannot be changed from here.
+
+"<P>
+"<LI>Below the toolbar and compass bar are an arbitrary number of functional 
+"blocks.&nbsp; They comprise the rest
+"of the $(center_name) page.&nbsp;
+"Typically these appear vertically, top down,, one after the other -- 
+"although with creative use of HTML tables, they can also appear 
+"horizontally, left to right.
+
+"<P>
+"While the previous options are primarily cosmetic, the functional blocks
+"offer the greatest ability to change the actual functioning of the
+"$(center_name) page.&nbsp;
+"Each block can be one of:
+
+"<OL>
+"<P>
+"<LI>Arbitrary CML text.&nbsp;
+"Use this to insert short strings of HTML or CML code in the page.
+"<LI>The standard "Personal Conference List".
+"<LI>A link to "all conferences" on this host.
+"<LI>A "Join conference by name" box -- where the user can type
+"the name of the desired conference.
+"<LI>The standard list of "popular conferences", as selected by the manager.
+"<LI>The standard list of the user's individual notebook entries
+"(that the user asked to be shown on the $(center_name) page.
+"<LI>The standard Caucus banner, with copyright and version information.
+"<LI>The CML text of <B>any</B> item in the special <B>Interface Storage
+"$(main)</B> conference.&nbsp;
+"Use this option when you need larger or longer strings of CML text
+"on the $(center_name) page.&nbsp;
+"Each item becomes an easy-to-manipulate working area for different pieces
+"of the $(center_name) page, where you can edit, attach files, 
+"preview the results, etc. etc.
+"</UL>
+
+"</UL>
+include $(help)/hb.i
+
+

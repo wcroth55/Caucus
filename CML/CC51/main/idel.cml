@@ -1,0 +1,32 @@
+#
+#---idel.    Delete an item or response.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viewitem.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch    $unique()
+
+if $equal ($arg(5) 0)
+   include $(main)/deleteItem.i $arg(3) $arg(4)
+#  eval $item_del ($arg(3) $arg(4))
+end
+else
+   include $(main)/deleteResponse.i $arg(4) $arg(5) $time() 1
+#  eval $resp_del ($arg(3) $arg(4) $arg(5))
+end
+
+#---Open question as to whether we should (irreversibly) delete attached files.
+#include $(main)/rlibdel.i $arg(3) $arg(4) $arg(5)
+
+"%location($(mainurl)/$page_return($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x))
+#--------------------------------------------------------

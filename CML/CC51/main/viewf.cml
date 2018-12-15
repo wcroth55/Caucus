@@ -1,0 +1,158 @@
+#
+#---VIEWF.CML.  Viewitem form processing.  Figure out where to go next!
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/16/02 Update conf var 'modified' (time-last-modified)
+#: CR 01/12/03 Add ebox stuff (clear post_view, post_go if $form(pass)).
+#: CR 11/09/04 Post-process richtext for blueing URLS.
+#: CR 09/21/05 Rearrange test for Pass vs Post; see detailed comments
+#                 in case of future weirdness.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   set tx_resp $form(tx_resp)
+   set tp_resp $form(tp_resp)
+   include $cml_dir()/startup.i
+end
+
+include $(main)/secure.i member $arg(3)
+
+set nch    $unique()
+
+#===FIRST: add response, and/or set "forgotten" status if appropriate.
+
+#---Determine which "post" button (if any) was hit.
+#   Note (9/21/05) that the "if 0$form(pass)" test used to be *after* the 
+#   "set post" line.  It appears that at one time this was a fix for some bug, 
+#   but now it has the effect of cancelling a post by someone who hit BACK,
+#   entered text, and pressed Post&view or post&go.  Monitor this for
+#   any future weirdness.
+if 0$form(pass)
+   set post_view 0
+   set post_go   0
+end
+set post_view $not_empty ($form(submitpv))
+set post_go   $not_empty ($form(submitpg))
+set post      $or ($(post_view) $(post_go))
+
+#---If there is any response text (that is not a repeat), add it as a response.
+if $and ($(post)  $not_empty ($form(tx_resp)) \
+         $not_equal (x$form(unique_box) x$(last_unique))  )
+   set textprop $minus ($tablefind ($form(tp_resp) format literal html cml) 1)
+   if $equal ($(textprop) 1)
+      eval $set_wrap ($plus ($(cols) 1))
+   end
+
+   #---Special filtering for ebox_ek (Ekit) generated text.
+   set temp $form(tx_resp)
+   if $(ebox_ek)
+      set ekfilter head,prohibit,all html,prohibit,tag body,prohibit,tag
+      set temp $cleanhtml (ekfilter $(temp))
+      set temp $words (1 $minus ($sizeof($(temp)) 1) $(temp))
+   end
+
+   #---Special filtering for ebox_rt (richtext) generated text.
+   if $(ebox_rt)
+      set temp $addtarget ($(temp))
+      set temp     $h2url ($(temp))
+   end
+
+   set bits $sql_query_select (\
+                SELECT r.bits FROM resps r WHERE r.items_id=$arg(4) AND r.rnum=0 AND r.version= \
+                  (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+            )
+   set bits $plus(0 $(bits))
+   if $bit_and (32 $(bits))
+      set newr $resp_add($arg(3) $arg(4) _         $(textprop) 0 0 $(temp))
+#     eval $append (/tmp/caucus anon resp id=$arg(4) newr=$(newr)$newline())
+   end
+   else
+      set newr $resp_add($arg(3) $arg(4) $userid() $(textprop) 0 0 $(temp))
+   end
+   eval $set_wrap (0)
+   set last_unique $form(unique_box)
+   include $(main)/updateRespEditIdAndTime.i $arg(4) $(newr) 1
+
+   include $(main)/ebox_chosen.i
+
+   #---If response add succeeded, log event, and rename dir for 
+   #   uploaded files.
+   if $greater ($(newr) 0)
+      eval $logevent (addresp $(iface) $minus ($time() $(time_read))  \
+                      $strlen($(temp)) $arg(3) $arg(4) $(newr))
+      set libbase $caucus_lib()/ITEMS
+      eval $rename ($(libbase)/$arg(4)/P$userid() $(libbase)/$arg(4)/$(newr))
+
+      #---And update time-last-modified for the conference.
+      eval $set_site_data  ($arg(3) - modified $time())
+   end
+end
+
+#---Set "forgotten" status based on form check box and previous state.
+if $equal ($form(forget) on)
+   eval $item_set_seen ($arg(3) $arg(4) $userid() -2)
+end
+
+#===SECOND: Decide where to go from here.
+
+set caller  $page_caller (1 $arg(2))
+
+##---Upload goes to its own special page.
+##   (Save the response text and type, if the user had started one, because
+##   upload is going to add to the text.)
+#if $not_empty ($form(upload.x))
+#   set tx_resp $form(tx_resp)
+#   set tp_resp $form(tp_resp)
+#   "%location($(mainurl)/upload.cml?$(nch)+$arg(2)+\
+#              $arg(3)+$arg(4)+-1+x+$arg(7)+$arg(8))
+#   return
+#end
+
+#---Shrink or Expand...
+if $not_empty ($form(shrink.x)$form(expand.x))
+   include $(main)/boxsizef.i resp #textbox 0
+   return
+end
+
+
+#---Post+View goes to (end of) same item.
+if $(post_view)
+#  set vi_rnum $min ($it_resps($(vi_cnum) $(vi_inum)) $plus ($(vi_rlast) 1))
+   set vi_rnum $min ($(lastresp) $plus ($(vi_rlast) 1))
+   "%location($(mainurl)/viewitem.cml?$(nch)+$(caller)+\
+                $arg(3)+$arg(4)+$(vi_rnum)+x+$arg(7)+$arg(8)#here)
+   return
+end
+
+#---Post+Go marks new response as seen.  (Counter-intuitive, but most
+#   users want it that way, sigh.)
+if $(post_go)
+   eval $item_set_seen ($arg(3) $arg(4) $userid() $(newr))
+end
+
+#---Both Post+Go and Pass go on to the next item, if any.
+#   Determine what that is.
+
+set vi_index $plus ($arg(7) 3)
+set vi_temp  $rest ($(vi_index)  $($arg(8)) )
+set vi_markseen 1
+
+#---If no more items, go to CML page "hidden" at end of triplet list,
+#   or if that's not there, to the original caller of viewitem.cml.
+if $empty ($word (2 $(vi_temp)))
+  set target $if ($empty($(vi_temp)) $(caller) $(vi_temp))
+  "%location($(mainurl)/$page_return ($(target) # center.cml?$(nch)+0+x+x+x+x+x+x))
+  return
+end
+
+#---On the other hand, if there is another item, go there!
+set vi_cnum $word( 1 $(vi_temp) )
+set vi_inum $word( 2 $(vi_temp) )
+set vi_rnum $word( 3 $(vi_temp) )
+
+"%location($(mainurl)/viewitem.cml?$(nch)+$(caller)+\
+           $(vi_cnum)+$(vi_inum)+$(vi_rnum)+x+$(vi_index)+$arg(8)#here)
+#-----------------------------------------------------------------------

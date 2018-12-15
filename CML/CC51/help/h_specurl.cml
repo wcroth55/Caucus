@@ -1,0 +1,89 @@
+#
+#---H_SPECURL.CML.   Help about Special Caucus URLs
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_specurl.cml $quote(Help on Special Caucus URLs)
+"<P>
+
+"<B>What Is A Caucus URL?</B><BR>
+"You can use a full or relative URL in a Caucus discussion 
+"<B>or</B> Web page to link to 
+"any part of (another) Caucus discussion.&nbsp;
+"For example, the full URL:
+"<UL>
+#"&nbsp;&nbsp;&nbsp;<FONT COLOR=blue><U>
+"$(http)://$host()/caucus/demonstration
+"</UL>
+"points to the <B>Demonstration</B> conference on your host.
+
+
+"<P>
+"<B>How Do I Use It?&nbsp; (In a Conference)</B><BR>
+"You can type a Caucus URL inside any item or response, 
+"and Caucus will automatically "blue" it (make it a live link)
+"to point to that item or response.&nbsp;
+"<i>("Word-wrapped" or "literal" responses only.)</i>
+
+"<P>
+"Here are some examples of "relative" URLs that you could use
+"inside a conference:
+
+"<P>
+"<UL>
+"<LI>$(http):/caucus<BR>
+"    (Goes to the $(center_name))
+"    <P>
+"<LI>$(http):/caucus/demonstration<BR>
+"    (Goes to the <B>Demonstration</B> home page.)
+"    <P>
+"<LI>$(http):/caucus/demo/9<BR>
+"    (Goes to item 9 in the <B>Demonstration</B> conference -
+"    note that you can abbreviate the conference name so long as
+"    it is unique.)
+"    <P>
+"<LI>$(http):/caucus/demo/9:12<BR>
+"    (Goes to response 12, item 9, in <B>Demonstration</B>.)
+"</UL>
+
+"<P>
+"A "relative" URL has only the one slash ("$(http):/"),
+"because it is <B>relative</B> to the current host.&nbsp;
+"If your conferences were on the host computer called
+""yourhost.com", then
+"<UL>
+"$(http):/caucus
+"&nbsp;&nbsp;&nbsp;&nbsp; and &nbsp;&nbsp;&nbsp;&nbsp;
+"$(http)://yourhost.com/caucus
+"</UL>
+"would be identical.&nbsp;
+"(The full form just takes longer to type.)
+
+"<P>
+"<B>How Do I Use It?&nbsp; (In a Web Page)</B><BR>
+"You can also use "full" URLs (with the complete "$(http)://yourhost.com"
+"part) to link to Caucus discussions from <B>any</B> web page.&nbsp;
+"A person who clicks on those links, however, must already have a
+"user ID and password with Caucus.&nbsp;
+"(Because the first thing they will
+"see is a dialog box asking for their user ID and password.)
+
+"<P>
+"Thus, for example, in the HTML codes in a Web page, you could
+"have something like:
+"<UL>
+"See my 
+"&lt;A HREF="$(http)://yourhost.com/caucus/techsuppt/5"&gt;
+"Technical Support Item&lt;/A&gt; for details.
+"</UL>
+"that would take a person directly to item 5 in the
+"<B>Techsuppt</B> conference on yourhost.com.
+
+
+"<P>
+include $(help)/hb.i
+#-----------------------------------------------------------------------

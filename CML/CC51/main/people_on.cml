@@ -1,0 +1,52 @@
+#
+#---PEOPLE_ON.CML.   Who's logged in
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: MH 10/16/02 New file.
+#: CR 10/19/05 Turn off trailer bar unless requested.
+#: CR 04/05/08 Add allIfaces option.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i people_on.cml
+end
+
+set name Who's On
+set nch  $unique()
+set nxt  $page_save (1 people_on.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # $(name))
+
+include $(main)/head.i $arg(3)  $quote($(name))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i   people_on $(name)
+
+"<p/>
+
+set showAllIfaces $equal($arg(9) 1)
+include $(main)/onnow.i 0 $ifthen ($(showAllIfaces) allIfaces)
+
+
+if $and ($not ($(showAllIfaces)) \
+         $mgr_in_group ($userid() interfaceManage systemAllPrivileges))
+   "<p/>
+   "&nbsp;<br>
+   "See all users on-line now, 
+   "<a href="people_on.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)+1"
+   "    >across all interfaces</a>.
+   "<p/>
+end
+
+if $and ($(trailerbar) $greater ($sizeof($(users)) 25))
+   include $(main)/trailer.i   people_on $(name)
+end
+
+"</div>
+"</body>
+"</HTML>
+#-----------------------------------------------------------------------

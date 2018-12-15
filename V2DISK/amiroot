@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+#---AMIROOT.  Detects if the user is root or has su'ed to root.
+#  If so, it complains and returns an exit status of 0.
+#  Otherwise, it silently  returns an exit status of 1.
+#
+#: CR 10/04/92 17:51 1st carvmark.
+
+echo hi >superuser.j1
+if ls -l superuser.j1 | grep root >/dev/null ; then
+   echo
+   echo "Do not run the Caucus utilities as root or superuser."
+   echo
+   rm -f superuser.j*
+   exit  0
+else
+   rm -f superuser.j*
+   exit  1
+fi

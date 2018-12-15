@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+#---MKHTACCESS.  Make .htaccess file.
+#
+#   Input arguments:
+#     $1    Caucus home directory
+#--------------------------------------------------------
+
+echo "AuthUserFile   $1/caucus_passwd"
+echo "AuthGroupFile  /dev/null"
+echo "AuthName       \"Caucus\""
+echo "AuthType       Basic"
+echo ""
+echo "<Limit GET>"
+echo "   require valid-user"
+echo "</Limit>"
+echo ""
+echo "<Limit POST>"
+echo "   require valid-user"
+echo "</Limit>"
+
+#--------------------------------------------------------

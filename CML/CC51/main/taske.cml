@@ -1,0 +1,328 @@
+#
+#---taske.cml    Edit Individual task page.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   ... usual
+#   9  task-key
+#   
+# Notes:
+#   3. Clone task?
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/04/05 New file.
+#: CR 10/05/05 Major revamp of form submission for C5.
+#: CR 10/06/09 Remove $sql_sequence(tasks)
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i taske.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch     $unique()
+set cnum    $arg(3)
+set cname   %displayed_conf_name ($(cnum))
+set arglist $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set thekey $word (1 $arg(9) 0)
+
+#---Get info on this task.
+set tkey 0
+set tid  0
+set title (New Task)
+set lead 
+set assigner 
+set tgroup
+set towner
+set target
+set priority
+set category
+set status
+set updated
+set text
+set texttype  html
+set query SELECT tkey, tid, title, lead, assigner, tgroup, target, \
+                 priority, category, status, updated, text, \
+                 texttype, towner \
+            FROM tasks WHERE tkey = $(thekey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+if $and ($not_empty ($(tgroup)) $empty($(towner)))
+   set towner Caucus4
+end
+
+#---Make sure user has access to this task (to prevent arg(9) spoofing).
+set display $or ($equal (x$userid() x$(lead)) $equal (x$userid() x$(assigner)) \
+                 $equal ($arg(9) 0))
+if $not ($(display))
+   set display $gt_equal ($group_access ($userid() $(towner) $(tgroup)) $priv(include))
+end
+if $not ($(display))
+   "%location($(mainurl)/tasks.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                          $arg(6)+$arg(7)+$arg(8))
+   "
+   quit
+end
+
+#========================================================================
+#---Handle form processing first, if this was a submit from itself.
+
+if $or ($not_empty ($form(submitpv))  0$form(changed))
+   set title     $escsingle($form(title))
+   set lead      $escsingle($form(lead))
+   set assigner  $escsingle($form(assigner))
+   set towner    $form(egType)
+   if $equal ($(towner) USER)
+      set towner $form(egRange)
+   end
+   set tgroup    $escsingle($form(egName))
+   set priority  $form(priority)
+   set category  $word (1 $form(category) 0)
+   set status    $escsingle($form(status))
+   set text      $escsingle($form(tx_resp))
+   set target    $escsingle($word(1 $replace(10 32 %yyyymmddOf($form(target)))))
+   set texttype  $form(tp_resp)
+
+   if $greater (0$form(tkey) 0)
+      set query UPDATE tasks SET current = 0 WHERE tkey=$form(tkey)
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+      set tid $form(tid)
+   end
+   else
+      set tid  $sql_sequence(tid)
+   end
+
+   set query \
+      INSERT INTO tasks (tkey, tid, title, lead, assigner, tgroup, deleted,  \
+         priority, category, towner, status, updated, text, current, target, \
+         texttype) \
+      VALUES (NULL, $(tid), '$(title)', '$(lead)', '$(assigner)', \
+             '$(tgroup)', 0, $(priority), $(category),  '$(towner)',   \
+             '$(status)', now(), '$(text)', 1, '$(target)', '$(texttype)')
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   set thekey $sql_last_insert()
+
+   #---"Make changes" button takes us to the show-the-task page.
+   if $not_empty ($form(submitpv))
+      "%location($(mainurl)/taskx.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                     $arg(6)+$arg(7)+$arg(8)+$(thekey))
+      "
+      quit
+   end
+end
+#======================================================================
+
+
+#---Build page name & begin display.
+
+set tname  $upper1($(tasks_name))
+set pname  Edit: $(title)
+set pagename <span class="pageTitle"><B>$(pname)</B></span><BR>
+
+set nxt   $page_save (1 taske.cml $(arglist)+$arg(9) # $(tname))
+
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(tname)) 0 0 1
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/header.i  tasks </a><a href="tasks.cml?$(nch)+$(arglist)"\
+         >$(tname)s</a>&nbsp;$(compass_arrow)&nbsp;\
+         <a href="taskx.cml?$(nch)+$(arglist)+$arg(9)">%nbsp($(title))</a>\
+         &nbsp;$(compass_arrow)&nbsp;<a href="#">Edit</a>
+
+#========================================================================
+#---Build the editable form.
+
+set plaintextOnly $tablefind (x$(texttype) xformat xliteral)
+include $(main)/ebox_type.i  $(plaintextOnly)
+
+set lead     $word (1 $(lead)     $userid())
+set assigner $word (1 $(assigner) $userid())
+
+"<script type="text/javascript" language="javascript">
+"   function wasChanged() {
+"      document.ebox.changed.value = '1';
+#      confirm ("changed");
+"   }
+"</script>
+
+"<p/>
+"<form name="ebox" method="post"
+"      onSubmit="return ebox_submit();"
+"      action="taske.cml?$(nch)+$(arglist)+$(thekey)">
+"<input type="hidden" name="tkey"    value="$(tkey)">
+"<input type="hidden" name="tid"     value="$(tid)">
+"<input type="hidden" name="changed" value="0">
+"<script type="text/javascript" language="javascript">
+"   function submitMe() {  ebox_submit();   document.ebox.submit(); }
+"</script>
+
+"<table border=0>
+"<tr>
+"<td>Category:</td>
+"<td><select name="category" tabindex="7" onChange="wasChanged();">
+   set query SELECT category ckey, catname FROM task_cats ORDER BY catname
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+      "<option value="$(ckey)" 
+      "    $ifthen ($equal (x$(ckey) x$(category)) selected) 
+      "  >$(catname)
+   end
+   eval  $sql_query_close($(h))
+"  </select></td>
+
+"<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td>Target Date:&nbsp;</td>
+"<td><input type="text" size=20 value="%monthDayYear($(target))" 
+"           name="target" tabindex="5" onChange="wasChanged();"></td>
+
+"<tr>
+"<td>Title:</td>
+"<td><input type="text" size=30 value="$escquote($(title))" name="title"
+"        tabindex="1" onChange="wasChanged();"></td>
+
+eval $mac_define (psel \$ifthen (\$equal(x\$(priority) x@1) selected))
+"<td></td>
+"<td>Priority:</td>
+"<td><select name="priority" tabindex="6" onChange="wasChanged();">
+"    <option value="1" %psel(1)>(none)
+"    <option value="9" %psel(9)>Urgent
+"    <option value="7" %psel(7)>High
+"    <option value="5" %psel(5)>Med
+"    <option value="3" %psel(3)>Low
+"    </select></td>
+#          &nbsp; &nbsp; Low &nbsp; Med &nbsp; High &nbsp; Urgent &nbsp;))
+#            1      2     3    4     5    6     7     8      9      10
+#<td><input type="text" size=20 value="$(priority)" name="priority" 
+#       tabindex="6"></td>
+
+"<tr>
+"<td>Lead userid:</td>
+"<td><input type="text" size=20 value="$(lead)" name="lead" tabindex="2" onChange="wasChanged();"></td>
+
+"<td></td>
+"<td>Status:</td>
+"<td><input type="text" size=20 value="$(status)" name="status" 
+"       tabindex="8" onChange="wasChanged();"></td>
+
+"<tr>
+"<td>Assigner userid:&nbsp;</td>
+"<td><input type="text" size=20 value="$(assigner)" name="assigner" 
+"       tabindex="3" onChange="wasChanged();"></td>
+
+set skip_these conf_exc conf_inc conf_ins conf_org conf_rdo
+include $(main)/sortedgroups.i
+"<td></td>
+
+set teType  $(towner)
+set teRange _
+set teName  $(tgroup)
+if $equal ($lower($(towner)) $(towner))
+   set teType  USER
+   set teRange $(towner)
+end
+if $equal ($(towner) Caucus4)
+   set teRange $(tgroup)
+end
+
+"<tr>
+"<td>Group:</td>
+"<td colspan=7><table cellspacing=0 cellpadding=0><tr>
+   include $(main)/groupselector.i eg ebox $(teType) $(teRange) $(teName)
+" </table>
+"</td>
+#   "<option>(none)
+#   for gname in $(sorted_groups)
+#      set gprefix $str_sub (0 8 $(gname))
+#      if $not ($tablefind ($(gprefix) $(skip_these)))
+#         "<option $ifthen ($equal ($(gname) $(tgroup)) selected)>$(gname)
+#      end
+#   end
+#   "</select
+"</table>
+
+"<p/>
+"<table border=0>
+"<tr>
+"<td>Item Links:&nbsp;&nbsp;</td>
+"<td
+      set query SELECT cnum ci, inum ii, rnum ri FROM task_links \
+                 WHERE tid = $(tid)  ORDER BY ci, ii, ri
+      set h2 $sql_query_open ($(query))
+      set ci0 0
+      while  $sql_query_row  ($(h2))
+         if $not_equal ($(ci0) $(ci))
+            ">$ifthen($(ci0) $(whitespace) )<nobr><a 
+            "   href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x#here"
+            "   >%displayed_conf_name($(ci)) $item_label($(ci) $(ii)):$(ri)</a>&nbsp;<a 
+            " href="taskdelink.cml?$(nch)+$(nxt)+$(tid)+$(ci)+$(ii)+$(ri)"
+            "   ><img $(src_trash2) border=0></a></nobr
+            set ci0 $(ci)
+         end
+         else
+            ">, 
+            "<a href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x#here"
+            "    >$item_label($(ci) $(ii)):$(ri)</a>&nbsp;<a 
+            "      href="taskdelink.cml?$(nch)+$(nxt)+$(tid)+$(ci)+$(ii)+$(ri)"
+            "    ><img $(src_trash2) border=0></a
+         end
+      end
+      eval   $sql_query_close($(h2))
+      "$ifthen ($(ci0) >)
+"</td>
+"</table>
+
+"<p/>
+"<table border=0>
+"<tr>
+"<td colspan=2 align=top>
+   "<table $(eboxbg) cellpadding=2 cellspacing=0>
+   "<tr><td colspan=3><img $(src_clear) width=1 height=2></td>
+   if $(ebox_ta)
+      include $(main)/abox_ta.i $word (1 $(texttype) html)   text i_resp
+   end
+   else
+      include $(main)/abox_rt.i $word (1 $(texttype) html)   text i_resp
+   end
+   "<tr><td colspan=3><img $(src_clear) width=1 height=2></td>
+   "</table>
+"</td>
+
+set ci0 0
+set whitespace &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#<tr><td><img $(src_clear) width=1 height=10></td>
+
+"<tr><td>
+   "<img $(src_clear) width=1 height=3><br><nobr>
+   "<input type="submit" name="submitpv" value="Make Changes">&nbsp; 
+   "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+   "<input type=button name="submit3" value="Cancel"
+   "  onClick="location.href='taskx.cml?$(nch)+$(arglist)+$arg(9)';">
+   "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+   "<input type="button" name="submit4" value="Delete"
+   "   onClick="if (confirm('OK to delete this task?')) \
+                   location.href='taskdel.cml?$(nch)+$(arglist)+$(tid)';"
+   "  ></nobr>&nbsp;&nbsp;
+
+"</td>
+
+"</table>
+"</form>
+
+"$errors()
+"</div>
+"</body>
+"</html>

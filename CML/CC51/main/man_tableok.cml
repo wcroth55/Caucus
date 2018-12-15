@@ -1,0 +1,49 @@
+#
+#---MAN_TABLEOK.CML.   Manager created a table.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/12/01 09:30 Dynamic tables.
+#---------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_tableok.cml
+end
+
+#--- Any manager should be allowed to create a table.
+include $(main)/secure.i manage systemEditSwitches
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_tableok.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Table Created)
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Table Created)  
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_tableok </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Table Created
+
+
+"<BLOCKQUOTE>
+
+"<P>
+"Your table <B>$arg(8)</B> was successfully created.&nbsp;
+"You may 
+"<A HREF="#" onClick="return tablepop('$arg(8)');"
+">edit</A> it now.
+"</BLOCKQUOTE>
+
+
+"<P>
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

@@ -1,0 +1,88 @@
+#
+#---chatlist.cml.   List all chatlogs for a specific chatroom.
+#
+#   Argument usage:
+#     $arg(9)       room (0=current conf, n=conf# n, anything else is room name)
+#
+#: CR 06/18/03 New file.
+#: CR 08/11/03 Skip over empty (0 byte) chatlogs.  Use proper room name.
+#: CR 08/22/03 Parse userid and text from either side of ">" in chat log text.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i chatlist.cml
+end
+ 
+include $(main)/secure.i $if ($equal ($arg(3) x) open   member $arg(3))
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt   $page_save (1 chatlist.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Chat&nbsp;Logs )
+
+#---Determine room name
+if $equal ($arg(9) 0)
+   set room $cl_name ($arg(3))
+end
+elif $numeric ($arg(9))
+   set room $cl_name ($arg(9))
+end
+else
+   set room $arg(9)
+end
+
+include $(main)/head.i $quote(Chat Logs: $upper1($(room)))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/header.i  chatlogs  Chat Logs: $upper1($(room))
+
+"<P>
+"<blockquote>
+"This is the archived history for chat room 
+"<b>$upper1($(room))</b>.&nbsp;
+"Click on the time a particular chat started, to see 
+"the complete log of the conversation.
+"<p>
+
+
+#---Assemble the list of epoch times of the chatlogs for the chosen room.
+set chatlist
+for chatlog size in $dirlist (1 $caucus_path()/CHATLOGS)
+   if $and ($equal ($str_index ($(room). $(chatlog)) 0) \
+            $greater ($(size) 0))
+      set chatlist $(chatlist) $word (2 $replace (. 32 $(chatlog)))
+   end
+end
+
+#---Display links to each room, sorted by epoch time (descending).
+"<table cellspacing=2 cellpadding=0 border=0>
+"<tr>
+"<td><b>Time&nbsp;chat&nbsp;started</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+"<td><b>Convener and first comment</b></td>
+for epoch in $num_sort (-1 $(chatlist))
+   set fd $open ($caucus_path()/CHATLOGS/$(room).$(epoch).chatlog r)
+   if $greater ($(fd) 0)
+      "<tr valign=top>
+      "<td><a href="$(mainurl)/chatlog.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+\
+                    $arg(5)+$arg(6)+$arg(7)+$arg(8)+$(room).$(epoch).chatlog"
+      "    ><nobr>$dateof($(epoch))</a></nobr>&nbsp;&nbsp;</td>
+      eval $readln ($(fd) line)
+      eval $close  ($(fd))
+      include $(main)/chatloguid.i $quote($(line))
+      "<td>%person($(uid)):&nbsp;&nbsp;
+#     "<td>%person($word (2 $replace (> 32 $(line)))):&nbsp;&nbsp;
+      "$str_sub ($plus ($str_index (> $(line)) 1) 100000 $(line))</td>
+#     "$rest (3 $(line))</td>
+   end
+end
+"</table>
+
+
+"</blockquote>
+"<HR>
+"</BODY>
+"</HTML>
+#-----------------------------------------------------------------------

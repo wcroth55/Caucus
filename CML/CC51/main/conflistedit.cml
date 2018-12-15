@@ -1,0 +1,339 @@
+#
+#---conflistedit.cml   Edit Conference list
+#
+#   arg(8)
+#      m => my conferences
+#        mb => my confs, set for brief summary
+#        md => my confs, set for detailed summary
+#      o => other conferences
+#      a => all conferences
+#
+#  Notes:
+#      The "all conferences" choice could be made faster by constructing
+#      a query join that gets the primary organizer, rather than calling the
+#      relevant functions.  ("speed")
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  9/14/05 New file.
+#: CR  9/21/05 Add detail setting for new items/resps.
+#: CR 12/16/05 Don't show confs entries with cnum <= 0.
+#: CR 12/23/05 Don't show confs entries with cnum <= 0 in 'm' lists!
+#: CR 01/04/06 Skip interface_storage, including mixed-case variants.
+#: CR 01/09/06 Add Join button for "Other confs", "All confs"
+#: CR 02/06/06 Add "check all boxes" option.
+#: CR 09/23/07 Skip "private" confs in "list all confs" if user does not have access.
+#: CR 11/05/07 Remove javascript dependencies.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i conflistedit.cml
+end
+
+include $(main)/requiredinfo.i
+
+set pagename Edit&nbsp;Conference&nbsp;List
+
+set args37 $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)
+set nch   $unique()
+set nxt   $page_save (1 conflistedit.cml \
+                      $arg(2)+$(args37)+$arg(8) \
+                      # Edit&nbsp;Conference&nbsp;List)
+
+include $(main)/head.i $arg(3)  $quote(Edit&nbsp;Conference&nbsp;List) checkall.js
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i      manage  Edit&nbsp;Conference&nbsp;List
+
+#---If we got any ordering changes from conflistorder.cml, save
+#   them in conforder here.
+count x 1000 2000
+   set digits $str_sub (1 3 $(x))
+   if $empty ($form(order$(digits)))
+      break
+   end
+   set cnum  $word (1 $form(order$(digits)))
+   set alpha $rest (2 $form(order$(digits)))
+   set query INSERT INTO conforder (userid, cnum, alpha) \
+                VALUES ('$userid()', '$(cnum)', '$(alpha)')
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+   if $less ($(h) 0)
+      set query UPDATE conforder SET alpha='$(alpha)' \
+                 WHERE userid='$userid()' AND cnum='$(cnum)'
+      set h $sql_query_open ($(query))
+      eval  $sql_query_close($(h))
+   end
+end
+
+"<p/>
+"<blockquote>
+"<b>
+
+#---Detect and act on brief vs detailed summary switch.
+set arg8 $str_sub (0 1 $arg(8))
+if $equal ($arg(8) mb)
+   eval $set_user_data ($userid() item_detail 0)
+end
+elif $equal ($arg(8) md)
+   eval $set_user_data ($userid() item_detail 1)
+end
+set detail $word (1 $user_data ($userid() item_detail) 0)
+
+if $equal ($(arg8) m)
+   "<u>My&nbsp;Conferences</u> |
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+o">Other Conferences</a> |
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+a">All Conferences</a></b>
+
+   "<p/>
+   "How should new items &amp; responses be shown on the $(center_name)?&nbsp;
+   if $(detail)
+      " <a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+mb"
+      "   >Brief summary</a> |
+      " <u>Detailed summary</u>.
+   end
+   else
+      " <u>Brief summary</u> |
+      " <a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+md"
+      "   >Detailed summary</a>.
+   end
+
+#  set query  \
+#     SELECT c.name, c.cnum, 10 access, h.hidden FROM confs c, groups g \
+#       LEFT JOIN confhidden h \
+#         ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+#      WHERE  g.userid = '$userid()'  AND  g.active > 0  AND g.access >= 10 \
+#        AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+#      ORDER BY c.name
+
+   set query  \
+      SELECT a.name, a.cnum, a.hidden, a.access, o.alpha FROM \
+         (SELECT c.name, c.cnum, h.hidden, g.access FROM (confs c, groups g) \
+            LEFT JOIN confhidden h \
+              ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+           WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+             AND  c.deleted = 0 \
+             AND  g.owner = 'CONF'  AND  c.cnum = g.name  AND  c.cnum > 0) a \
+        LEFT JOIN conforder o \
+          ON (o.userid = '$userid()'  AND o.cnum = a.cnum) \
+       ORDER BY ifnull(o.alpha, a.name)
+
+   "<p/>
+   set text \
+      You are a member of all of the conferences listed below.&nbsp; \
+      You may select individual conferences with the checkboxes \
+      $ifthen ($(use_javascript) \
+         (or <a href="#" onClick="return checkall(document.confedit);"\
+         >check all boxes</a>),) \
+      and then use the buttons to \
+      "hide" them from your list, "unhide" (restore)  \
+      previously hidden conferences, or permanently delete them from \
+      your list.&nbsp; \
+      $ifthen ($(use_javascript) \
+         You may also <a href="conflistorder.cml?$(nch)+$(nxt)+$(args37)+m" \
+         ><nobr>change the order</nobr></a> in which they appear.)
+  
+end
+
+elif $equal ($(arg8) o)
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+m">My Conferences</a> |
+   "<u>Other Conferences</u> |
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+a">All Conferences</a></b>
+  set query  \
+      SELECT c.name, c.cnum, g.access, h.hidden FROM (confs c, groups g) \
+        LEFT JOIN confhidden h \
+          ON (h.userid = '$userid()'  AND  g.name = h.cnum) \
+       WHERE  g.userid = '$userid()'  AND  g.active > 0  \
+         AND  c.deleted = 0 \
+         AND  g.access > 0  &&  g.access < $priv(writeonly) \
+         AND  g.owner = 'CONF'  AND  c.cnum = g.name  AND  c.cnum > 0 \
+       ORDER BY c.name
+   "<p/>
+   set text \
+      You are <b>not</b> a member of the conferences below, \
+      but you may join individual conferences by clicking on their \
+      names.<p/>\
+      You may select individual conferences with the checkboxes \
+      $ifthen ($(use_javascript)\
+         (or <a href="#" onClick="return checkall(document.confedit);"\
+         >check all boxes</a>),)\
+       and then use the buttons to \
+      "join" them, \
+      "hide" them from your list, "unhide" (restore)  \
+      previously hidden conferences, or permanently delete them from \
+      your list.&nbsp;
+end
+
+elif $equal ($(arg8) a)
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+m">My Conferences</a> |
+   "<a href="conflistedit.cml?$(nch)+$(nxt)+$(args37)+o">Other Conferences</a> |
+   "<u>All Conferences</u></b>
+   set query \
+     SELECT a.name, a.cnum, a.access, a.private, h.hidden FROM \
+        (SELECT c.name, c.cnum, g.access, c.private, c.deleted FROM confs c LEFT JOIN \
+           (SELECT name, access FROM groups WHERE userid = '$userid()' \
+               AND active > 0  AND  owner = 'CONF') g \
+                ON (c.cnum = g.name) ) a \
+       LEFT JOIN confhidden h \
+         ON (h.userid='$userid()'  AND  h.cnum = a.cnum) \
+      WHERE a.cnum > 0  AND a.deleted = 0 \
+      ORDER BY a.name
+
+   "<p/>
+  
+   set text \
+      You may enter conferences shown in blue by clicking on them.&nbsp; \
+      If you need access to the (black) conferences, you can contact the \
+      organizer by clicking on their name.&nbsp; \
+      You may select individual conferences with the checkboxes \
+      $ifthen ($(use_javascript)\
+         <nobr>(or <a href="#" onClick="return checkall(document.confedit);"\
+         >check all boxes</a>)</nobr>,) \
+       and then use the buttons to \
+      "hide" them from your list, "unhide" (restore)  \
+      previously hidden conferences, or permanently delete them \
+      (makes them "black").
+end
+
+set found 0
+set lastOrg _
+set lastOrgText
+"<form method="post" name="confedit"
+"      action="conflisteditf.cml?$(nch)+$(nxt)+$(arg37)">
+"<table cellspacing=0 cellpadding=0 border=0>
+
+   set ismgr %mgr_in_group ($userid() conferenceChange conferenceAllPrivileges \
+                            interfaceManage)
+
+   set private 0
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+      set access 0$(access)
+
+      #---Skip interface_storage confs, unless appropriate manager or organizer.
+      if $or ($equal ($str_index (interface_storage $lower($(name))) 0) \
+              $equal (system_announcements          $lower($(name))))
+         if $and ($not($(ismgr))  $less ($(access) $priv(instructor)))
+            continue
+         end
+      end
+
+
+      set dname  $replace (_ 32 $(name))
+      set hidden 0$(hidden)
+      if $(hidden)
+         set dname <span class="confHidden">($(dname))</span>
+      end
+      set found  1
+
+      if $not_empty ($(text))
+         "<tr valign=top><td colspan=8>$(text)</td>
+         set text
+         "<tr><td>&nbsp;</td>
+      end
+  
+      "<tr valign=top>
+
+      #---Member conferences.
+      if $gt_equal ($(access) $priv(minimum))
+         "<td width=2><input type="checkbox" name="ibox" value="$(cnum)"
+         "   ></td>
+         "<TD><A HREF="confhome.cml?$(nch)+$(nxt)+\
+                    $(cnum)+x+x+x+x+x" %help(h_cname)>$(dname)</A></TD>
+         "<TD>&nbsp;&nbsp;</TD>
+         "<td>$site_data ($(cnum) - description)</td>
+      end
+
+      #---Non-member (but still accessible) conferences
+      elif $greater ($(access) 0)
+         "<td width=2><input type="checkbox" name="ibox" value="$(cnum)"></td>
+         "<TD><A HREF="confhome.cml?$(nch)+$(nxt)+\
+                    $(cnum)+x+x+x+x+x" %help(h_cname)>$(dname)</A></TD>
+         "<td width=15>&nbsp;</td>
+         "<td>$site_data ($(cnum) - description)</td>
+      end
+
+      #---Inaccessible conferences
+      elif $equal ($(private) 0)
+         "<td></td>
+         "<td>$(dname)</td>
+         "<td width=15>&nbsp;</td>
+         "<td>$site_data ($(cnum) - description)</td>
+         "<td>&nbsp;</td>
+         set thisOrg $co_org($(cnum))
+         if $not_equal ($(thisOrg) $(lastOrg))
+            set lastOrg $(thisOrg)
+            set lastOrgText %person($(lastOrg))
+         end
+         "<td>$(lastOrgText)</td>
+      end
+   end
+   eval $sql_query_close($(h))
+
+"</table>
+
+"<p/>
+if $(found)
+   "<table cellspacing=0 cellpadding=0 border=0>
+  
+   if $not_equal ($(arg8) m)
+      "<tr valign=top>
+      "<td><input type="submit" name="submit" Value="Join"></td>
+      "<td></td>
+      "<td>Join me to the checked conferences, so that they show on the
+      "    $(center_name) page.&nbsp;</td>
+      "<tr><td><img $(src_clear) width=1 height=8></td>
+   end
+
+   "<tr valign=top>
+   "<td><input type="submit" name="submit" Value="Hide"></td>
+   "<td></td>
+   "<td>Hide the checked conferences, so that they do not show on the
+   "    $(center_name) page.&nbsp;
+      "(But I can "unhide" them later if I choose.)</td>
+  
+   "<tr><td><img $(src_clear) width=1 height=8></td>
+   "<tr valign=top>
+   "<td><input type="submit" name="submit" Value="UnHide"></td>
+   "<td></td>
+   "<td>Restore the checked "hidden" conferences.&nbsp;
+      "Hidden conferences appear on this page as
+      "<span class="confHidden">(name)</span>.</td>
+  
+   if $equal ($(arg8) m)
+      "<tr><td><img $(src_clear) width=1 height=8></td>
+      "<tr valign=top>
+      "<td><input type="submit" name="submit" Value="Resign"></td>
+      "<td>&nbsp;&nbsp;</td>
+      "<td>Remove me from the checked conferences, and move them to
+         "the "Other Conferences" list.&nbsp; If I rejoin them later,
+         "everything will be new again.</td>
+   end
+  
+   "<tr><td><img $(src_clear) width=1 height=8></td>
+   "<tr valign=top>
+   "<td><input type="submit" name="submit" Value="Delete"></td>
+   "<td>&nbsp;&nbsp;</td>
+   "<td>Permanently remove me from the checked conferences,
+      "and do not show them on the $(center_name) page.&nbsp;
+      "(Only the conference organizer can restore them if you change your
+      "mind later.&nbsp; See "All Conferences", above.)</td>
+   "</table>
+end
+else
+   "No matching conferences were found.
+end
+
+
+"</form>
+
+
+"</blockquote>
+"</div>
+"</body>
+"</HTML>

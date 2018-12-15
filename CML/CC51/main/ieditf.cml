@@ -1,0 +1,245 @@
+#
+#---ieditf.cml.  Handle edit-item form
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  3/20/00 20:31 Allow organizers to change author.
+#: CR 01/12/03 Add ebox stuff.  (Change $form(submit) to x$form(button))
+#: CR 08/26/03 Add "assignment item" editing handling.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  7/11/04 Add "reverse item" feature.
+#: CR  8/08/04 Add restricted date range for responding.
+#: CR 10/13/04 Add "delete range" of responses.
+#: CR 11/09/04 Post-process richtext for blueing URLS.
+#: CR 05/13/08 Add word, responses limits.
+#-----------------------------------------------------------
+
+include $(main)/secure.i member $arg(3)
+
+include $(main)/computeItemAccess.i $arg(3) $arg(4)
+#set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+if $empty ($(mainurl))
+   set tx_resp $form(tx_resp)
+   set tp_resp $form(tp_resp)
+   include $cml_dir()/startup.i imanage.cml +tx_resp+$(tp_resp)
+end
+ 
+
+set nch $unique()
+
+##---Upload goes to its own special page.
+##   (Save the response text and type, if the user had started one.)
+#if $not_empty ($form(upload.x))
+#   set tx_resp $form(tx_resp)
+#   set tp_resp $form(tp_resp)
+#   "%location($(mainurl)/upload.cml?$(nch)+$arg(2)+\
+#              $arg(3)+$arg(4)+$arg(5)+x+$arg(7)+$arg(8))
+#   return
+#end
+
+#---Shrink or Expand...
+if $not_empty ($form(shrink.x)$form(expand.x))
+   include $(main)/boxsizef.i resp # 0
+   return
+end
+
+#---Handle changing author (owner).
+if $and ($(is_ins))
+   if $not_equal (x$form(owner) x$(owner))
+      if $empty (%per_lname ($form(owner)))
+         set nosuch There is no userid '$form(owner)'.
+         "%location(imanage.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
+                                              $arg(7)+$arg(8)#textbox)
+         return
+      end
+#     eval $chg_author ($arg(3) $arg(4) 0 $form(owner) %per_name ($form(owner)))
+      eval $item_set ($arg(3) $arg(4)   userid $form(owner))
+      eval $resp_set (        $arg(4) 0 userid $form(owner))
+   end
+end
+
+#---Set item title
+if $and ( $equal($arg(5) 0)  $not_empty($form(title)) )
+#  eval $chg_title($arg(3) 0 $arg(4) $form(title))
+   eval $item_set ($arg(3) $arg(4) title $form(title))
+end
+
+#---Set item text
+if $and ($not_empty ($form(tx_resp) ) \
+         $not_equal ( x$form(unique_box) x$(last_unique))  )
+   set newprop $minus ($tablefind ($form(tp_resp) format literal html cml) 1)
+
+   if $equal ($(prop) 1)
+      eval $set_wrap ($plus ($(cols) 1))
+   end
+
+#  set prop $plus ($(prop) $bit_and ($bit_not(32) $re_bits($arg(3) $arg(4) 0)) \
+#                          $if (0$form(anon) 32 0) )
+
+   set newbits $plus ($bit_and($bit_not(32) $(bits)) \
+                      $if (0$form(anon) 32 0) )
+
+   #---Special filtering for ebox_ek (Ekit) generated text.
+   set temp $form(tx_resp)
+   if $(ebox_ek)
+      set ekfilter head,prohibit,all html,prohibit,tag body,prohibit,tag
+      set temp $cleanhtml (ekfilter $(temp))
+      set temp $words (1 $minus ($sizeof($(temp)) 1) $(temp))
+   end
+
+   #---Special filtering for ebox_rt (richtext) generated text.
+   if $(ebox_rt)
+      set temp $addtarget ($(temp))
+      set temp     $h2url ($(temp))
+   end
+
+   eval $resp_set ($arg(4) $arg(5) text $(temp))
+
+   if $equal (xfreeblog x$form(type))
+      set rc $resp_set ($arg(4) $arg(5) approved 1)
+   end
+
+   if $not_equal ($(newprop) $(prop))
+      eval $resp_set ($arg(4) $arg(5) prop $(newprop))
+   end
+   if $not_equal ($(newbits) $(bits))
+      eval $resp_set ($arg(4) $arg(5) bits $(newbits))
+   end
+   include $(main)/updateRespEditIdAndTime.i $arg(4) $arg(5) 0
+
+   eval $set_wrap (0)
+   set last_unique $form(unique_box)
+
+   #---If assignment, update userid, start/stop time, group/conf first.
+   if $equal ($arg(3) $(assign_cnum))
+      set temp $form  (userid) \
+               $epoch ($form(d0day)-$form(d0month)-$form(d0year)) \
+               $epoch ($form(d1day)-$form(d1month)-$form(d1year)) $form (who)
+
+      eval $set_site_data ($(assign_cnum) - assign$arg(4) $(temp))
+   end
+
+   include $(main)/ebox_chosen.i
+end
+
+if $not_equal (x$form(wordLimit) x$form(wordLimitOld))
+   eval $set_site_data ($arg(3) $arg(4) wordLimit $form(wordLimit))
+end
+
+if $not_equal (x$form(respLimit) x$form(respLimitOld))
+   eval $set_site_data ($arg(3) $arg(4) respLimit $form(respLimit))
+end
+
+#---Handle restricted date range
+if $(is_ins)
+   for rdate in rdate0 rdate1
+      if $or ($empty($form($(rdate)))  $equal ($form($(rdate)) (anytime)))
+         eval $set_site_data ($arg(3) $arg(4) $(rdate))
+      end
+      else
+         eval $set_site_data ($arg(3) $arg(4) $(rdate) \
+                  $plus(%epochOfyyyy(%yyyymmddOf($form($(rdate)))) 3601))
+      end
+   end
+   for rdate in visdate0 visdate1
+      set visdate $form($(rdate))
+      if $not_equal (x$(visdate) x$form($(rdate)old))
+         if $or ($empty($(visdate))  $equal ($(visdate) (anytime)))
+            eval $set_site_data ($arg(3) $arg(4) $(rdate))
+         end
+         else
+            eval $set_site_data ($arg(3) $arg(4) $(rdate) \
+                     $plus(%epochOfyyyy(%yyyymmddOf($(visdate))) 3601))
+         end
+
+         set  checkItemVis
+         eval $set_site_data ($arg(3) - lastDateItemVisChecked)
+      end
+   end
+end
+
+#---Handle Freeze
+if   $equal(x$form(button) xFreeze)
+   eval $item_set ($arg(3) $arg(4) frozen 1)
+end
+elif $equal(x$form(button) xThaw)
+   eval $item_set ($arg(3) $arg(4) frozen 0)
+end
+elif $equal(x$form(button) xReverse)
+   eval $set_site_data  ($arg(3) $arg(4) reverse 1)
+end
+elif $equal(x$form(button) xUnreverse)
+   eval $set_site_data  ($arg(3) $arg(4) reverse)
+end
+
+#---Handle Delete/Copy/Move
+
+#---setup variables to pass; load response list into $(checklist)
+set icnum $arg(3)
+set iinum $arg(4)
+set rpage imanage.cml
+#set rQuery  \
+#    SELECT r.rnum FROM resps r WHERE r.items_id=$(iinum) AND r.deleted=0 AND r.version= \
+#       (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+#     ORDER by rnum
+#set checklist $unquote ($sql_query_select ($(rQuery)))
+set checklist all
+
+if $equal(x$form(button) xDelete)
+   include $(main)/deleteItem.i $(icnum) $(iinum)
+#  include $(main)/rlibdel.i $(icnum) $(iinum) 0
+#  eval  $item_del ($(icnum) $(iinum))
+end
+
+elif $equal(x$form(button) xCopy)
+   include $(main)/indv_cop.i
+end
+
+elif $equal(x$form(button) xMove)
+   if $equal ($form(towhere) new)
+      include $(main)/moveItemToNewItem.i      $(icnum) $item_label($(icnum) $(iinum)) $form(sconf)
+   end
+   else
+      include $(main)/moveItemToExistingItem.i $(icnum) $item_label($(icnum) $(iinum)) $form(sconf) $form(itemno)
+      if $less ($(newItemLabel) 0)
+         "%location(imanage.cml?$unique+$arg(2)+$arg(3)+$arg(4)+3+$arg(6)+$arg(7)+$arg(8))
+         quit
+      end
+   end
+   "%location(confhome.cml?$unique()+$arg(2)+$form(sconf)+x+x+x+x+x)
+   quit
+end
+
+elif $equal (x$form(button) xDivide)
+   if $not_equal (x$form(dividedItem) x$site_data ($arg(3) $arg(4) dividedItem))
+      eval $set_site_data ($arg(3) $arg(4) dividedItem $form(dividedItem))
+   end
+end
+
+elif $equal(x$quote($form(button)) x$quote(Delete range))
+   if $and ($not_empty ($form(range0))   $numeric($form(range0)) \
+            $not_empty ($form(range1))   $numeric($form(range1)) \
+            $greater   ($form(range0) 0) \
+            $greater   ($form(range1) $form(range0)))
+      set deleteTime $time()
+      count rn $form(range0) $form(range1)
+         include $(main)/deleteResponse.i $(iinum) $(rn) $(deleteTime) 1
+#        eval           $resp_del ($(icnum) $(iinum) $(rn))
+#        include $(main)/rlibdel.i $(icnum) $(iinum) $(rn)
+      end
+   end
+end
+
+#---If the item is still here, return to it.
+if $not_empty(%item_lastresp($(iinum)))
+   "%location($(mainurl)/$page_return ($page_caller (1 $arg(2)) # \
+              confhome.cml?$(nch)+0+$(icnum)+x+x+x+x+x))
+end
+else
+   "%location(confhome.cml?$(nch)+0+$(icnum)+x+x+x+x+x)
+end
+
+#--------------------------------------------------------

@@ -1,0 +1,195 @@
+#
+#---MAN_UCR.CML.   Manager creating a user.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/30/00 13:03 Add textbox field type "_x".
+#: CR 05/07/00 20:42 Add space for urc macro field.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR 03/12/02 14:10 After user is created, return to man_ucr.cml
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR  3/01/05 Massive rewrite to use SQL. 
+#: CR 12/17/07 Warn user if personal info is entered, but no last name!
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_ucr.cml
+end
+
+include $(main)/secure.i manage userCreate
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_ucr.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: User Creation )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : User Creation)
+
+"<script type="text/javascript" language="javascript">
+"function check_idpw() {
+"   if (document.ucr.create_userid.value == "") {
+"      alert ("You must supply a userid.");
+"      return false;
+"   }
+if $pw_can_add()
+"   if (document.ucr.create_password.value == document.ucr.create_verify.value)
+"       document.ucr.submit();
+
+"   else alert("Passwords do not match.");
+end
+else
+"   document.ucr.submit();
+end
+"   return false;
+"}
+"function mustHaveLastname() {
+"   if (document.ucr.lname.value == '') {
+"      confirm ("You must enter a last name before you can set these values.");
+"   }
+"}
+"</SCRIPT>
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i man_ucr </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">User Creation</A>
+
+"<p/>
+set create_text a
+if $not_empty ($(man_ucr_success))
+   if $empty ($user_info ($(man_ucr_success) lname))
+      "<b>Userid $(man_ucr_success) was successfully created.</b>
+   end
+   else
+      "<b>%person($(man_ucr_success)) was successfully created.</b>
+   end
+   "<p>
+   set create_text (another)
+end
+
+if $pw_can_add()
+   "Use this page to create $(create_text) user, 
+   "and optionally register the user's
+   "name and other information.
+end
+else
+   "Use this page to register $(create_text) user's name and other information.
+end
+
+set man_ucr_success
+
+"<form NAME="ucr" METHOD=POST ENCTYPE="multipart/form-data"
+"    ACTION="man_ucrf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+$arg(8)+x">
+
+if $not_empty($(create_error))
+   "<B>Error: <FONT COLOR=RED>$(create_error)</FONT></B><P>
+   set create_error
+end
+
+"<TABLE BORDER=0>
+"<TR><TD></TD><TD><B>Userid:</B></TD>
+"<TD><INPUT TYPE=TEXT NAME=create_userid SIZE=30
+"          VALUE="$(save_create_userid)"></td>
+
+
+if $pw_can_add()
+#  "<TD><NOBR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+#  "    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</NOBR></TD>
+
+   "<TR><TD></TD><TD><B>Password:</B></TD>
+   "<TD><INPUT TYPE=PASSWORD NAME=create_password SIZE=14></TD>
+
+   "<TR><TD></TD><TD><B>Verification:</B>
+   "<TD><INPUT TYPE=PASSWORD NAME=create_verify SIZE=14></TD>
+
+   "<TR><TD></TD><TD>&nbsp;</TD>
+   "<TR><TD></TD><TD COLSPAN=4>
+   "The remaining fields are <B>optional</B>.&nbsp;
+   "You may enter a full name, and any other information.&nbsp;
+   "(Otherwise, the user
+   "will be asked for all of this information the first time
+   "they use Caucus.)
+end
+else
+   "<TD>(userid must already exist in the password database)</TD>
+end
+
+#============================================================================
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND on_mgr > 0 \
+           ORDER BY position
+set skipnames {none} {CML-line} {CML-box} {Password} {Verify-PW} {Error-msg} \
+              {Toolbar} userid laston
+include $(main)/reguser.i 0 1 $quote($(query)) $quote($(skipnames))  mustHaveLastname
+#"</table>
+
+#if $not_empty ($(regerrs))
+#   "<p/>
+#   "<TABLE BORDER>
+#   "<TR><TD>
+#   "  <TABLE><TR VALIGN=top>
+#   "    <TD><B><BLINK>Error:</BLINK></B></TD>
+#   "    <TD>$(regerrs)</TD>
+#   "  </TABLE></TD>
+#   "</TABLE>
+#   "<P>
+#end
+
+#============================================================================
+
+"<tr><td>&nbsp;</td>
+"<TR VALIGN=top><TD></TD><TD><B>&nbsp;<BR>Conferences:</B><P>
+"  You may pre-join this user to specific
+"      conferences; each conference will appear on the
+"      user's personal conference list.
+"      <P>
+"      Control-click on conference names to select more than one.</TD>
+"<TD COLSPAN=2>
+"  <TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0>
+"  <TR VALIGN=top><TD>
+     "<SELECT NAME="conflist" MULTIPLE SIZE=8 onChange="mustHaveLastname();">
+
+     for cnm in $cl_list()
+        set cname %displayed_conf_name ($(cnm))
+        "<OPTION VALUE="$(cnm) ">$(cname)</OPTION>
+     end
+     "</SELECT>
+"  </TD>
+"  <TD>&nbsp;</TD>
+"  </TABLE>
+"</TD>
+
+#---Uncomment these lines for non-javascript situations.
+if $not($(use_javascript))
+   "<TR><TD colspan=2>&nbsp;</TD>
+   "<TD COLSPAN=2><INPUT NAME=create TYPE=SUBMIT VALUE="Create this user"></TD>
+end
+"</TABLE>
+"</blockquote>
+
+"</FORM>
+
+if $(use_javascript)
+   "<FORM>
+   "<TABLE BORDER=0>
+   "<TR><TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   "<INPUT TYPE=BUTTON VALUE="Create this User" onClick="return check_idpw();">
+   "</TD>
+   "</TABLE>
+   "</FORM>
+end
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

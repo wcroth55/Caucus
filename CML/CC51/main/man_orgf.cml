@@ -1,0 +1,74 @@
+#
+#---man_orgf.cml.    Handles manager organizer changes
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  1/28/05 Add autojoin.
+#: CR 10/04/05 C5 changes.
+#: CR 11/07/05 Allow in page if conferenceAllPrivileges, groupEditNonManager
+#: CR 11/21/05 Replace group_update() with group_update_rule().
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#: CR 09/22/09 grouprules.grkey is now auto-increment.
+#---------------------------------------------------------------------
+
+#"Content-type: text/plain
+#"
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_org.cml
+end
+
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges \
+                                groupEditAll groupEditNonManager
+
+set nch   $unique()
+
+if $not_empty($form(cnum))
+   set list $form(cnum)
+end
+else
+   set list $cl_list()
+end
+
+
+for cnum in $(list)
+   #--- If the e-mail notification allowance has been changed, update it.
+   if $not_equal (x$site_data ($(cnum) - en_allow) x$form(en_allow$(cnum)))
+      eval $set_site_data ($(cnum) - en_allow $form(en_allow$(cnum)))
+   end
+
+   #--- If the primary organizer has been changed, update it.
+   if $not_equal($co_org($(cnum)) $form(primary$(cnum)))
+      if $not_empty($form(primary$(cnum)))
+         eval %sql(UPDATE grouprules SET userid='$form(primary$(cnum))' \
+                    WHERE owner='CONF' AND name='$(cnum)' AND access=$priv(primary))
+         eval $group_update_rule ($form(primary$(cnum)) $quote(CONF $(cnum)))
+      end
+   end
+
+   #--- If organizer status has been added, add a rule.
+   if $and ($less (%access($(cnum)) $priv(organizer)) \
+            $equal($form(org$(cnum)) on))
+      eval %sql(INSERT INTO grouprules (grkey, owner, name, userid, access) \
+                VALUES (NULL, 'CONF', '$(cnum)', '$userid()', $priv(organizer)))
+      eval $group_update_rule ($userid() $quote(CONF $(cnum)))
+   end
+
+   #--- If organizer status has been removed, remove any specific rule
+   #    that added user as org.  Otherwise, it's too tricky to handle.
+   elif $and ($gt_equal (%access($(cnum)) $priv(instructor)) \
+              $equal(x$form(org$(cnum)) x))
+      eval %sql(DELETE FROM grouprules \
+                 WHERE userid='$userid()' AND owner='CONF' \
+                   AND name='$(cnum)' AND access=$priv(organizer))
+      eval $group_update_rule ($userid() $quote(CONF $(cnum)))
+   end
+
+end
+
+"%location($(mainurl)/$page_return (\
+                   $arg(2) # manage.cml?$(nch)+0+$(cnum)+x+x+x+x+x))
+#------------------------------------------------------

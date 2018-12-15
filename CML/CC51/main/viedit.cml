@@ -1,0 +1,202 @@
+#
+#---VI EDIT.CML.   Edit a response, back to viewitem
+#
+#   Purpose
+#      Allow editing (or deleting) of a particular response (or item).
+#
+#    [ (9)    rt   variable contains response text (optional) ]
+#    [(10)    ty   type of response text in arg(9): 'format', 'html',
+#                                                   or 'literal'. ]
+#    [(11)    ??? ]
+#    [(12)    used by uploadf to force IE to scroll to #textbox. ]
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  3/20/00 Allow organizers to change author.
+#: CR  1/08/03 Many changes to incorporate ebox's.
+#: CR  2/05/03 Determine source of text to be edited, in ebox include.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  9/01/04 Add ebox_submit() call.
+#: CR 10/13/04 Don't allow richtext if browser can't handle it.
+#: CR 03/22/08 Correct "and return to..." to show item *label*.
+#--------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i viedit.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set label $item_label ($arg(3) $arg(4))
+
+set nch  $unique()
+set nxt  $page_save (1 viedit.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Edit Item $(label) Response $arg(5))
+
+#set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+include $(main)/head.i $arg(3)  $quote(Edit Response $(label):$arg(5)) 0 0 1
+
+include $(main)/body.i $arg(3)    onLoad="ebox_onload('');"  \
+                                onUnload="pop_close('all');"
+include $(main)/leftconf.i $arg(3) $arg(4)
+
+include $(main)/header.i    viedit  Edit Response
+
+include $(main)/computeItemAccess.i $arg(3) $arg(4)
+
+#---Fetch info needed for editing this response.
+include $(main)/getCurrentVersionOfResponse.i $arg(4) $arg(5)
+
+set q SELECT prop, text, userid owner FROM resps \
+       WHERE items_id=$arg(4) AND rnum=$arg(5) AND version = $(currentVersion)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set isWiki 0
+if $equal ($arg(5) 0)
+   set query SELECT type FROM items WHERE id=$arg(4)
+   set isWiki $equal (wiki $sql_query_select ($(query)))
+end
+
+if $or ($(isWiki) $gt_equal ($(itemAccess) $priv(include)))
+
+   "<A NAME="textbox"> </A>
+   
+   "<form METHOD=POST 
+   "      onSubmit="return ebox_submit();"
+   "      ACTION="vieditf.cml?$(nch)+$(nxt)+\
+                 $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)" name="ebox">
+   "<p/>
+   
+   
+   #---Determine type of ebox to use for editing; force to <textarea>
+   #   if type of response is "word-wrapped" or "literal".
+   set textprop $plus ($(prop) 1)
+   set plaintextOnly $less ($(textprop) 3)
+   include $(main)/ebox_type.i  $(plaintextOnly)
+   
+   "<table cellspacing=0 cellpadding=0 border=0>
+   "<tr>
+   "<td><img $(src_eboxtl)></td>
+   "<td $(eboxbg) colspan=2 rowspan=2><b>Choose from:</b></td>
+   "<td $(eboxbg) colspan=3 rowspan=2>
+      if $not_equal ($arg(5) 0)
+         "&nbsp;&nbsp;<img $(src_bullet)>&nbsp;<A 
+         " HREF="idel.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)"
+         "   >Delete the entire response</A>
+      end
+   "</td>
+   "<td align=right><img $(src_eboxtr)></td>
+   
+   "<tr $(eboxbg)>
+   "<td><img $(src_clear) width=1 height=3></td>
+   "<td><img $(src_clear) width=1 height=3></td>
+   
+   if $(ebox_ta)
+      include $(main)/ebox_ta.i $if ($empty($arg(9)) 1 2) 0 0 i_resp 1 \
+                                $(plaintextOnly)
+   end
+   
+   elif $(ebox_ek)
+      include $(main)/ebox_ek.i $if ($empty($arg(9)) 1 2) 0 0 i_resp
+   end
+   
+   elif $(ebox_rt)
+      include $(main)/ebox_rt.i $if ($empty($arg(9)) 1 2) 0 0 i_resp 1
+   end
+   
+   if $or ($(is_ins) $(is_org))
+      "<tr $(eboxbg)><td>&nbsp;</td>
+      "<td colspan=5>
+         if $not_empty ($(nosuch))
+            "<B>$(nosuch)</B><BR>
+         end
+         set nosuch
+      "  <img $(src_bullet)>&nbsp;Change the owner to userid: 
+      "  <INPUT TYPE=TEXT NAME=owner VALUE="$(owner)" 
+      "      SIZE=12> (%per_name($(owner))).
+      "</td>
+      "<td>&nbsp;</td>
+   end
+   
+   #---Buttons below textarea box.
+   if $(ebox_ta)
+      "<tr $(eboxbg)><td>&nbsp;</td>
+      "<td colspan=5><table>
+         "<tr>
+         "<TD><INPUT TYPE="submit" NAME="submit" VALUE="Make These Changes"></TD>
+         "<TD>&nbsp;and return to item $item_label($arg(3) $arg(4)).</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "<TD>
+            include $(main)/boxsize.i 0
+         "</TD>
+   #     "<TR><TD></TD>
+   #     "<TR>
+   #     "<TD><INPUT TYPE="reset" VALUE="Undo Changes"></TD>
+         "</TABLE>
+      "</td>
+      "<td>&nbsp;</td>
+   end
+   
+   if $(ebox_rt)
+      "<tr $(eboxbg)><td>&nbsp;</td>
+      "<td colspan=5><table>
+         "<TR>
+         "<TD><INPUT TYPE=SUBMIT NAME="submitpv"
+         "          VALUE="Save Changes">&nbsp; </TD>
+         "<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+         "</table>
+      "<td>&nbsp;</td>
+   end
+   
+   "<tr valign=bottom>
+   "<td><img $(src_eboxbl)></td>
+   "<td $(eboxbg) colspan=5><img $(src_clear) width=1 height=1></td>
+   "<td align=right><img $(src_eboxbr)></td>
+   "</table>
+   
+   "</form>
+end
+
+if $(isWiki)
+   "<p/>
+   "<b>Wiki History:</b>
+   "<ul>
+   "<table cellspacing=0 cellpadding=0>
+   "<tr>
+   "<td><b>Edited</b></td> <td>&nbsp;&nbsp;&nbsp;</td>
+   "<td><b>By</b></td>
+   "<td>&nbsp;&nbsp;&nbsp;</td>
+   "<td><b>Partial text of item -- click to view</b></td>
+
+   set query SELECT edittime, time, editid, userid, text, version FROM resps \
+              WHERE items_id=$arg(4) AND rnum=0 AND version < $(currentVersion) \
+              ORDER BY version DESC
+   set h $sql_query_open ($(query))
+   while $sql_query_row  ($(h))
+      "<tr valign=top>
+      "<td><nobr>$words(1 2 $(edittime) $(time))</nobr></td>  <td></td> 
+      "<td><nobr>%person($word(1 $(editid) $(userid)))</nobr></td>
+      "<td></td>
+      "<td><a href="#" 
+      "   onClick="pop_up('wiki', '$(version)'); \
+                   return false;">$str_sub(0 100 $unhtml(, $(text)))</a>...</td>
+   end
+   eval  $sql_query_close($(h))
+   "</table>
+   "</ul>
+end
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+#--------------------------------------------------------------------------

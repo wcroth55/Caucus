@@ -1,0 +1,23 @@
+#
+#---custom4f.cml.  Handle conference customize forms.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 07/07/04 Add senders field.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i custom_email.cml
+end
+
+include $(main)/secure.i org $arg(3)
+
+set nch $unique()
+
+eval $set_site_data    ($arg(3) - email    $form(email))
+eval $set_site_data    ($arg(3) - senders  $form(senders))
+
+"%location($(mainurl)/$page_return ($arg(2) # custom.cml?$(nch)+0+x+x+x+x+x+x))
+#------------------------------------------------------

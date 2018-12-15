@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+#---masterLink    Link Caucus 5.1 files and directories to "master" copies
+#
+#-------------------------------------------------------------------
+
+master=/home/c20120517
+
+mkdir CML/ENOTIFY51  2>/dev/null
+mkdir CML/CSNAP51    2>/dev/null
+
+for x in public_html/CB51 public_html/caucus5.css public_html/GIF50 \
+         public_html/MATHSYM \
+         UNARCHIVER \
+         CML/CC51/main  CML/CC51/help CML/CC51/reg \
+         CML/ENOTIFY51/main \
+         CML/CSNAP51/main \
+         CML/updateDatabase.cml \
+         CML/convert51.cml \
+         SCRIPTS/import_export.sh \
+         unarchiver ; do
+
+   rm -rf $x
+
+   ln -s $master/$x $x
+done
+
+echo  >>public_html/local.css

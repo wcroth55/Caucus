@@ -1,0 +1,39 @@
+#
+#---H_GROUPS.I    Help about "Customize Users: Groups" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_groups.cml $quote(Help on Customize User Groups)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize Users: Groups page allows conference organizers to see the 
+"user groups available for them to use when defining their conference user
+"list.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).&nbsp;
+"Click on <U>Users</U>.&nbsp;
+"Just before the conference membership boxes, you'll see a
+"link for <U>User Groups on this system</U>.
+
+"<P>
+"<B>What is on the Customize Page?</B><BR>
+"The page contains a list of group names, each of which is a link. Some
+"groups may also have a brief description.
+
+"<P>If you click on one of the group names, the page will reload with that
+"group expanded so that you can see the users it includes.
+
+"<P>When you are done browsing the user groups, you can use the 
+"<U>Return to the Customize:Users page</U> link to continue defining your
+"user list.
+
+"<P>User groups can be created and modified by Caucus managers.
+include $(help)/hb.i

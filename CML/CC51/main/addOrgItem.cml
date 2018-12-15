@@ -1,0 +1,180 @@
+#
+#---addOrgItem.
+#
+#   arg(3)   conf num
+#   arg(4)   parent item id
+#
+#: CR 12/22/10 Add word, responses limits.
+#--------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i addOrgItem.cml
+end
+
+include $(main)/secure.i member $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set nxt0  $(nxt)
+set nxt   $page_save (1 addOrgItem.cml \
+                     $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                     # Add an Organzation item in $(cname))
+set arglist $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+#---Here for form processing
+if $not_empty($form(title))
+   set textprop 0
+   set bits     0
+   set parents  $arg(4) 0
+   set temp $form(addr1)$newline()\
+            $form(addr2)$newline()\
+            $form(city)$newline()\
+            $form(states)$newline()\
+            $form(postalCode)$newline()\
+            $form(countries)$newline()
+   
+   set newitem $item_add ($arg(3) $(parents) $userid() $form(title))
+   eval $set_user_info ($userid() School_or_Institution $(newitem))
+
+   eval $resp_add ($arg(3) $(newitem) $userid() $(textprop) $(bits) 0 $(temp))
+
+   set query UPDATE resps \
+                SET editid='$userid()', edittime=now(), \
+                    ip='$ip_addr()', lat_long='$form(latlong)', \
+                    location='$form(city) $form(states)' \
+              WHERE items_id=$(newitem) AND rnum=0 AND version=0
+   set h $sql_query_open ($(query))
+   eval  $sql_query_close($(h))
+
+   "%location($(mainurl)/confhome.cml?$(nch)+$(nxt)+$arg(3)+x+x+x+x+x)
+   "
+   quit
+end
+
+
+include $(main)/head.i $arg(3)  $quote(Create Organization Item in $(cname)) 0 0 1
+
+include $(main)/body.i $arg(3)   onUnload="pop_close('all');GUnload()"
+
+include $(main)/leftconf.i $arg(3)
+
+include $(main)/header.i     additem  Create Organization Item
+
+set is_org     $gt_equal (%access($arg(3)) $priv(instructor))
+
+"<script 
+"  src="http://maps.google.com/maps?file=api&amp;v=2.x&amp;key=$config(GoogleMapKey)"
+"  type="text/javascript"></script>
+
+"<script type="text/javascript" language="javascript">
+"   function askGoogleForLatLong() {
+"      if (! GBrowserIsCompatible()) {
+"         document.addOrg.latlong.value = '0,0';
+"         return;
+"      }
+
+"      var geocoder = null;
+"      var address 
+"         = document.addOrg.addr1.value + ','
+"         + document.addOrg.addr2.value + ','
+"         + document.addOrg.city.value + ','
+"         + document.addOrg.states.value + ' '
+"         + document.addOrg.postalCode.value + ','
+"         + document.addOrg.countries.value;
+"
+"      document.addOrg.address.value = address;
+"      geocoder = new GClientGeocoder();
+"      geocoder.getLatLng(address,
+"        function(point) {
+"          if (point) {
+"            var latlong = "" + point;
+"            latlong = latlong.replace("(", "").replace(")","").replace(" ","");
+"            document.addOrg.latlong.value = latlong;
+"          }
+"        }
+"      );
+"   }
+
+"   var intervalId = 0;
+"   function createItem() {
+"      if (! hasTitle())  return;
+"      askGoogleForLatLong();
+"      intervalId = setInterval ("submitFormWhenGoogleFinishes()", 1000);
+"   }
+
+"   function submitFormWhenGoogleFinishes() {
+"      if (document.addOrg.latlong.value != "") {
+"         clearInterval (intervalId);
+"         document.addOrg.submit();
+"      }
+"   }
+
+"   function hasTitle() {
+"      if (document.addOrg.title.value == "") {
+"         confirm ("Please fill in the fields for this organization.");
+"         return false;
+"      }
+"      return true;
+"   }
+"</script>
+
+"<form method="post" name="addOrg" 
+"      action="addOrgItem.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+x+x+x+x"
+"      onSubmit="return hasTitleText() && calculateLatLong();">
+
+"Use this page to create an item about an Organization.&nbsp;
+"The organization name will become the title of the new item
+"about the organization.
+   
+"<p/>
+   
+"<table>
+"<tr>
+"<td>Organization name:</td>
+"<td><input type="text" NAME="title" SIZE="60"/></td>
+
+"<tr>
+"<td>Address line 1:</td>
+"<td><input type="text" NAME="addr1" SIZE="60"/></td>
+
+"<tr>
+"<td>Address line 2:</td>
+"<td><input type="text" NAME="addr2" SIZE="60"/></td>
+
+"<tr>
+"<td>City:</td>
+"<td><input type="text" NAME="city" SIZE="20"/></td>
+
+"<tr>
+"<td>State:</td> <td>%states()</td>
+
+"<tr>
+"<td>Postal code:</td>
+"<td><input type="text" name="postalCode" size="8"/></td>
+
+"<tr>
+"<td>Country:</td>
+"<td>%countries()</td>
+
+"<tr><td>&nbsp;</td>
+"<tr>
+"<td></td>
+"<td><input type="button" value="Create Item" onClick="createItem();" /></td>
+
+"</table>
+
+"<input type="hidden" name="address" value=""/>
+"<input type="hidden" name="latlong" value=""/>
+
+"</FORM>
+
+include $(main)/errors.i
+
+"</div>
+"</body>
+"</HTML>
+
+
+

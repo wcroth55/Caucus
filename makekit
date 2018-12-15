@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+#---makekit.   Build kit file from primaries.
+#
+#: CR 10/31/05 New file.
+#: CR 06/25/06 Update for CC51.
+#: CR 10/01/07 Include CSNAP51 in build!
+#--------------------------------------------------------------
+
+here=`pwd`
+
+cp CV2/sweb/swebsock      SWEB/new_swebsock
+cp CV2/sweb/cpw2.c        V2DISK
+cp CV2/sweb/pwactions.c   V2DISK
+cp CV2/sweb/xorstr.c      V2DISK
+cp CV2/gen/getent.c       V2DISK
+cp CV2/sweb/wpwcopy.c     V2DISK
+cp CV2/sweb/sweba         V2DISK0/new_sweba
+cp CV2/sweb/swebd         V2DISK0/new_swebd
+cp CV2/sweb/swebs         V2DISK0/new_swebs
+cp CV2/zutil/forwardCaucusMail V2DISK
+
+cp CV2/metamail/mmencode  V2TARGET/SCRIPTS/mimencode
+cp CV2/metamail/splitmail V2TARGET/SCRIPTS
+cp CV2/metamail/metasend  V2TARGET/SCRIPTS
+cp CV2/metamail/README    V2TARGET/SCRIPTS
+cp CV2/metamail/send_tab_spreadsheet   V2TARGET/SCRIPTS
+cp CV2/zutil/forwardCaucusMail         V2TARGET/SCRIPTS
+
+strip V2DISK0/new_*
+strip SWEB/*
+
+
+#---Begin creating actual kit tar file.
+rm -f caucus5.tar
+
+#---If we can't do a wildcard 'ln', use 'cp' instead.
+rm -f                  V2TARGET/SWEB/*             >/dev/null
+rm -f                  V2TARGET/CML/NEW_*/[a-z]*  >/dev/null
+rm -f                  V2TARGET/public_html/NEW_GIF50/*  >/dev/null
+cp V2DISK/NEW_MISC/*   V2TARGET/NEW_MISC
+cp V2DISK/SCRIPTS/*    V2TARGET/SCRIPTS
+cp V2DISK/[a-z]*       V2TARGET
+
+
+#======Section E: Web Caucus ================================================
+   cp V2DISK0/new_swebd    V2TARGET/SWEB
+
+   cp V2DISK0/new_swebs    V2TARGET/SWEB
+   chmod 700  V2TARGET/SWEB/new_swebs
+   V2TARGET/SWEB/new_swebs
+
+   cp V2DISK0/new_sweba    V2TARGET/SWEB
+   rm -rf     V2TARGET/CML/CC51
+   rm -rf     V2TARGET/CML/CSNAP51
+   rm -rf     V2TARGET/CML/ENOTIFY51
+
+   cp SWEB/*             V2TARGET/SWEB
+   chmod 755             V2TARGET/SWEB/*
+   mkdir                 V2TARGET/CML/CC51
+   mkdir                 V2TARGET/CML/CSNAP51
+   mkdir                 V2TARGET/CML/ENOTIFY51
+   cp -r CML/CC51        V2TARGET/CML
+   cp -r CML/CSNAP51     V2TARGET/CML
+   cp -r CML/ENOTIFY51   V2TARGET/CML
+#  cp -r CML/EMAIL44     V2TARGET/CML
+#  cp CML/NEW_REPORT/*   V2TARGET/CML/NEW_REPORT
+   cp CML/*.cml          V2TARGET/CML
+   cp CML/*.i            V2TARGET/CML
+   cp GIF50/*            V2TARGET/public_html/NEW_GIF50
+   cp JAVA/CaucusUnarchiver.jar V2TARGET/UNARCHIVER
+
+
+#======Section G: Write kit to tar file.=============================
+
+# Archive V2TARGET files onto output file.
+(cd V2TARGET; tar cf ../caucus5.tar .)
+
+#======Section G: Cleanup. =================================================
+
+cd V2TARGET
+rm -f [a-o]* [q-z]* NEW_MISC/* SCRIPTS/* 2>/dev/null
+
+echo " "
+echo This Caucus Kit is complete.
+
+#============================================================================

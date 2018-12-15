@@ -1,0 +1,315 @@
+#
+#   RESET.CML     1st step in resetting a user's password.
+#
+#   Invoked as:
+#      reset1.cml
+#
+#   Arguments:
+#
+#   Purpose:
+#      1st step in resetting a forgotten/lost password.
+#
+#      "Forgot your password" link on static login page comes here.
+#      Asks user for their userid or email.  Sends an email to them, with a
+#      URL to reset2.cml -- where the actual password change happens.
+#
+#   How it works
+#      Records the password change request in a file in SOCKET, encoding
+#      a random number.  The email link embeds the random number, so
+#      only that link will succeed (and only for that userid).
+#
+#   Notes:
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/19/03 New script.  Complete rewrite of changing forgotten password.
+#: CR 10/13/04 Use CSS.
+#: CR 03/13/06 Allow userid *or* email address.
+#==========================================================================
+
+#---Determine iface (interface) dir, and location of "main" interface area.
+set iface   $str_sub (0 $str_revdex (/ $cml_dir()) $cml_dir())
+set regis   $cml_dir()
+set main    $(iface)/main
+
+include $(main)/switch.i
+
+#---Set sweb and reg, aliases for web server password & non-password
+#   Caucus environments.
+set sweb  sweb
+set reg   reg
+if $empty ($config())
+   set sweb $word (1 $config(sweb) $(sweb))
+   set reg  $word (1 $config(reg)  $(reg))
+end
+
+set dir    $cml_dir()
+
+set goodbye_url $word (1 $site_data (0 - if_$(iface)_quiturl) \
+                         $site_data (0 - SWgoodbye_url) \
+                         http://$host()/~$caucus_id()/caucus.html)
+
+#---Define any needed macros
+#     %leave(url)  terminate caucus process and goto URL
+eval $mac_define (leave leave.cml?@@)
+eval $mac_define (per_name  \$user_info (@1 fname) \$user_info (@1 lname))
+
+#---HREF:  handy shortcut for CML href's everywhere.
+set href   $(http)://$host()/$(reg)/swebsock/$pid()/$(dir)
+set img    $(http)://$host()/~$caucus_id()/GIF50
+set icon   $(img)
+set body_bg BGCOLOR="#FFFFFF"
+set center_name Caucus Center
+
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+
+#---css user & site (interface) properties
+set css_font  $site_data (0 - if_$(iface)_css_font)
+set css_size  $site_data (0 - if_$(iface)_css_size)
+set css_file  $site_data (0 - if_$(iface)_css_file)
+set ucss_font $user_data ($userid() cssfont)
+set ucss_size $user_data ($userid() csssize)
+include $(main)/browser_detection.i
+include $(main)/css.i
+
+#---If we somehow got here with a real userid, this file has been
+#   installed incorrectly.
+if $not_empty ($http_remote_user())
+   "<TITLE>Cannot Reset Passwords</TITLE>
+   "</HEAD>
+   "<BODY BGCOLOR="#FFFFFF">
+   "<H2>Cannot Reset Passwords</H2>
+   "<P>
+   "This file, reset.cml, has been installed improperly.&nbsp;
+   "The current userid appears to be $userid(), yet there should
+   "not <b>be</b> a current userid!
+   "<p>
+   "Please inform the Caucus manager.
+   "<HR>
+   "</BODY>
+   "</HTML>
+   eval $goodbye()
+   quit
+end
+
+#---If we got here with no sendmail, complain!
+if $empty ($config(sendmail))
+   "<TITLE>Cannot Reset Passwords</TITLE>
+   "</HEAD>
+   "<BODY BGCOLOR="#FFFFFF">
+   "<H2>Cannot Reset Passwords</H2>
+   "<P>
+   "Please inform the Caucus manager that no sendmail parameter
+   "has been defined.
+   "<HR>
+   "</BODY>
+   "</HTML>
+   eval $goodbye()
+   quit
+end
+
+#---If we somehow got here but can't reset passwords, complain and quit.
+if $not ($pw_can_reset())
+   "<TITLE>Cannot Reset Passwords</TITLE>
+   "</HEAD>
+   "<BODY BGCOLOR="#FFFFFF">
+   "<H2>Cannot Reset Passwords</H2>
+   "<P>
+   "The Caucus manager has turned off the ability to reset your
+   "password.&nbsp;
+   "<P>
+   "Please contact the manager of this host for more information.
+   "<P>
+   "<HR>
+   "</BODY>
+   "</HTML>
+   eval $goodbye()
+   return
+end
+
+
+#---OK, from here user should be able to reset their password.
+
+"<TITLE>Reset your password</TITLE>
+
+"<script language="javascript">
+"   function setfocus() {
+"      if (document.reset.userid != null)  document.reset.userid.focus();
+"      return;
+"   }
+"</script>
+"</HEAD>
+
+"<BODY $(body_bg) onLoad="setfocus();">
+
+"<blockquote>
+
+"<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%" BORDER=0>
+"<TR>
+"<TD><h2>Reset Your Password</H2></TD>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+"<TD ALIGN=RIGHT>
+"   <A HREF="http://www.caucuscare.com" TARGET="_blank"><IMG
+"       SRC="$(icon)/lcaucus0.gif"  ALT="Caucus"
+"       WIDTH=148 HEIGHT=40 BORDER=0
+"      ></A><A HREF="$(href)/goodbye.cml"><IMG
+"           SRC="$(icon)/bred1quit.gif"
+"           ALT="Quit" BORDER=0></A>
+"</TD></TR>
+"</TABLE>
+
+"<form METHOD=POST ACTION="$(href)/reset.cml?$unique()" NAME="reset">
+"<INPUT TYPE=HIDDEN NAME="submitted" VALUE="1">
+  
+  
+"<TABLE CELLSPACING=0 CELLPADDING=0 BORDER=0>
+
+if $not_empty ($form(submitted))
+   if $empty ($form(userid)$form(email))
+      "<TR><TD>
+      "<B><BLINK>Error!</BLINK></B>&nbsp; No userid or email 
+      "address was entered.&nbsp;
+      "Please try again.
+      "<p>
+      "<hr>
+      "</td>
+   end
+
+   elif $and ($not_empty($form(userid)) $not_empty($form(email)))
+      "<TR><TD>
+      "<B><BLINK>Error!</BLINK></B>&nbsp; Please enter <b>either</b>
+      "a userid <b>or</b> an email address, not both.&nbsp;
+      "Please try again.
+      "<p>
+      "<hr>
+      "</td>
+   end
+
+   else
+      set userid $form(userid)
+      if $not_empty ($form(email))
+         set q SELECT userid FROM user_info WHERE email='$form(email)' \
+                ORDER BY laston DESC LIMIT 1
+         set userid $sql_query_select($(q))
+      end
+
+      if $empty($(userid))
+         "<TR><TD>
+         "<B><BLINK>Error!</BLINK></B>&nbsp; No matching userid found
+         "for email address "$form(email)".&nbsp;
+         "Please try again.
+         "<p>
+         "<hr>
+         "</td>
+      end
+
+      elif $empty ($user_info ($(userid) email))
+         "<TR><TD>
+         "<B>Sorry!</B>&nbsp; Userid <b>$(userid)</b> does not
+         "have an e-mail address.&nbsp;
+         "If you entered the wrong userid, please try again.&nbsp;<br>
+         "Otherwise, you will have to contact a Caucus manager to
+         "change your password.
+         "<p>
+         "<hr>
+         "</TD>
+      end
+
+      elif $not ($pw_can_reset ($user_data ($(userid) auth_source)))
+         "<TR><TD>
+         "<B>Sorry!</B>&nbsp; The password for userid <b>$(userid)</b> 
+         "cannot be reset.
+         "<p>
+         "<hr>
+         "</TD>
+      end
+
+      #---OK, change the password!
+      else
+   
+         #---Select a random "code" number, write a file based on the number
+         #   containing the userid.  
+         eval $random()
+         set code $random (100000)
+         eval $xshell (0 1 1 echo $(userid) $time() \
+                               >$caucus_path()/SOCKET/pw.$caucus_id().$(code))
+         eval $xshell (0 1 1 chmod 600 \
+                                $caucus_path()/SOCKET/pw.$caucus_id().$(code))
+   
+         set newu \
+            To: $user_info ($(userid) email)$newline()\
+            Subject: Changing your Caucus password$newline()\
+            From: Caucus Administration$newline() \
+            $newline()\
+            Dear %per_name($(userid)): ($(userid))$newline()\
+            $newline()\
+            To finish changing your Caucus password, please click on$newline()\
+            (or otherwise send your browser to:)$newline()\
+            $newline()\
+            $(http)://$host()/$(reg)/swebsock/0/0/$(dir)/reset2.cml?$(code)\
+                      $newline()
+   
+         eval $write  (/tmp/_c_$(userid) $(newu))
+         eval $xshell (1 1 1 $config(sendmail) -t </tmp/_c_$(userid); \
+                                             rm -f /tmp/_c_$(userid))
+   
+         "Please check your e-mail as soon as possible.&nbsp;
+         "It will contain instructions to complete changing your password.
+         "<p>
+         "Return to <A HREF="$(href)/goodbye.cml">Caucus Start Page</a>.
+         "</td>
+         "</TABLE>
+         "</blockquote>
+         "</FORM>
+         "</body>
+         "</html>
+         eval $timeout(300)
+         quit
+      end
+   end
+end
+
+  
+"<TR>
+"<TD>
+   "Use this page if you've forgotten or lost your Caucus password,
+   "and want to change it.
+   "<p>
+   "You <b>must</b> already have an e-mail address registered with Caucus.
+   "<p>
+   "<table border=0>
+   "<tr><td></td><td>Enter your Caucus userid:&nbsp;</td>
+   "<td><input type=text size=20 name="userid">&nbsp;&nbsp;</td>
+
+   "<tr><td><b>or&nbsp;</td>
+   "<td> enter your email address:&nbsp;</td>
+   "<td><input type=text size=20 name="email">&nbsp;&nbsp;</td>
+
+   "<tr><td></td><td>and press</td>
+   "<td><INPUT TYPE=SUBMIT NAME=submit VALUE="Reset Password"></B></TD>
+   "</table>
+
+   "<p/>
+   "If you have entered a valid userid or email address,
+   "Caucus will send you an e-mail that will allow you
+   "to change your password.
+
+   "<p>
+   "&nbsp;<br>
+  
+"</TABLE>
+"</blockquote>
+  
+"</FORM>
+
+include $(main)/errors.i
+
+"</BODY>
+"</HTML>

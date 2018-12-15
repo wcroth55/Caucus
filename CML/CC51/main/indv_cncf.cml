@@ -1,0 +1,16 @@
+#
+#---INDV_CNCF.CML    Process form from INDV_CNC.I
+#                    (Create new category and add checked responses)
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------
+
+set category $replace(32 _ $form(category))
+
+eval $set_user_data($userid() mark_categories \
+               $user_data($userid() mark_categories) $(category) 0)
+
+include $(main)/indv_nbk.i
+#-----------------------------------------------------------

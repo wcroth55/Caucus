@@ -1,0 +1,129 @@
+#
+#---CONFERENCE.CML.   Display entire conference (all items, all responses)
+#                     on one page.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: GP 10/13/01 21:35 Gabor Por, adapted by C. Roth.
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 10/07/04 Apply stylesheet classes.
+#: CR 06/08/06 Rewrite for C5.1
+#: CR 08/24/09 Interface-specific showUserid controls "(userid)" display instead of show_id.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i conference.cml
+end
+ 
+set nch   $unique()
+set cnum  $arg(3)
+set cname  %displayed_conf_name ($(cnum))
+
+#---Verify that the user has access to this conference.
+if $not (%access($(cnum)))
+   "Location: $(mainurl)/$page_return ($arg(2) # center.cml?$(nch)+0+x+x+x+x+x+x)
+   "
+   return
+end
+
+##---Verify that the user is a member -- if not, go straight to "join" page.
+#if $not ($it_member($(cnum)))
+#   "Location: $(mainurl)/join.cml?$(nch)+$arg(2)+x+$(cnum)+x+x+x+x
+#   "
+#   return
+#end
+
+#------------------------------------------------------------------
+
+
+include $(main)/calculateShowUserid.i
+set org $co_org($(cnum))
+set pagename <span class="pageTitle"><B>$(cname) $(home)</B></span><BR>\
+         <A HREF="$(mainurl)/person.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x+$(org)">\
+         %per_name($(org))$if ($(showUserid) &nbsp;($(org))),</A> Organizer
+
+"Content-type: text/html
+"
+"<HTML>
+"<HEAD>
+"<TITLE>Full text of  $(cname)  conference </TITLE>
+
+include $(main)/css.i
+"</HEAD>
+
+#---Header
+include $(main)/body.i $arg(3)
+
+"<p/>
+include $(main)/confGreeting.i $(cnum)
+"<p/>
+
+#---Prepare comma-separated list of item_ids from triplet in inc(1).
+set ids
+for cn id rn in $(ilist$(ilist))
+   set ids $(ids) $(id)
+end
+set ids $commaList(number $(ids))
+
+#---Prepare sorting order.
+set orderBy h.item0, h.item1, h.item2, h.item3, h.item4, h.item5
+if   $equal ($inc(3) 2)
+   set orderBy u.lname, u.fname, $(orderBy)
+end
+elif $equal ($inc(3) 3)
+   set orderBy r.time DESC
+end
+
+#---Row for each item in '$inc(1)' list.
+set qkey
+set qlist \
+    SELECT h.items_id, h.item0, h.item1, h.item2, h.item3, h.item4, h.item5, \
+           h.hidden, h.retired, \
+           s.seen, s.forgot, u.userid uu, u.fname, u.lname, \
+           i.userid, i.title, i.frozen, i.lastresp, r.time, i.qkey \
+      FROM (resps r, items i, conf_has_items h) \
+      LEFT JOIN resps_seen s \
+        ON (s.userid = '$(who)' AND s.items_id = h.items_id) \
+      LEFT JOIN user_info u \
+        ON (i.userid = u.userid) \
+     WHERE h.cnum=$(cnum) AND h.items_id = i.id \
+       AND i.id IN ($(ids)) \
+       AND r.items_id = i.id  AND r.rnum = i.lastresp AND r.version = \
+              (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+     ORDER BY $(orderBy)
+
+if   $equal ($inc(3) 1)
+   include $(main)/ilistTitleSorter.i $(cnum)
+   set qlist \
+       SELECT h.items_id, h.item0, h.item1, h.item2, h.item3, h.item4, h.item5, \
+              h.hidden, h.retired, \
+              s.seen, s.forgot, u.userid uu, u.fname, u.lname, \
+              i.userid, i.title, i.frozen, i.lastresp, r.time, i.qkey \
+         FROM (resps r, items i, conf_has_items h, $(sorter) sr) \
+         LEFT JOIN resps_seen s \
+           ON (s.userid = '$(who)' AND s.items_id = h.items_id) \
+         LEFT JOIN user_info u \
+           ON (i.userid = u.userid) \
+        WHERE h.cnum=$(cnum) AND h.items_id = i.id \
+          AND i.id IN ($(ids)) \
+          AND r.items_id = i.id  AND r.rnum = i.lastresp AND r.version = \
+              (SELECT MAX(q.version) FROM resps q WHERE q.items_id=r.items_id AND q.rnum=r.rnum) \
+          AND sr.i0 = h.item0 AND sr.i1 = h.item1 AND sr.i2 = h.item2 \
+          AND sr.i3 = h.item3 AND sr.i4 = h.item4 AND sr.i5 = h.item5 \
+        ORDER BY sr.s0, sr.s1, sr.s2, sr.s3, sr.s4, sr.s5
+end
+
+set hlist $sql_query_open ($(qlist))
+while     $sql_query_row  ($(hlist))
+   "&nbsp;<br>
+   "<p/>
+   include $(main)/viewitema.i $(cnum) $(items_id)
+end
+eval $sql_query_close($(hlist))
+
+
+"</body>
+"</html>

@@ -1,0 +1,166 @@
+#
+#---PERINFO.CML.   Register personal information with Caucus.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 05/07/00 20:42 Add space for urc macro field.
+#: RL 07/05/00 12:00 Add _x processing.
+#: CR 01/21/01 11:26 Changes for interface-based new user reg page.
+#: CR  9/02/04 Use %urcregnums() to get REG field numbers.
+#: CR 02/24/05 Massive rewrite to use SQL.
+#: CR 07/31/05 Log 'adduser' event.
+#: CR 03/15/06 Fill in user_info.registered.
+#: CR 08/16/09 Always set field lname first, it creates user.
+#----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i center.cml
+end
+
+include $(main)/secure.i open
+
+set nch $unique()
+
+#============================================================================
+
+#---Handle form submission first.
+set regerrs
+if $not_empty ($form(tutorial)$form(caucenter))
+
+   set query SELECT uc.name FROM user_columns uc, user_iface ui \
+              WHERE uc.name = ui.name AND iface='$(iface)' \
+                AND ui.on_reg > 0
+   set allFields $sql_query_select ($(query)) 
+   
+   set query SELECT uc.name FROM user_columns uc, user_iface ui \
+              WHERE uc.name = ui.name AND iface='$(iface)' \
+                AND ui.on_reg > 0     AND ui.required > 0
+   set reqdFields $sql_query_select ($(query)) 
+   
+   set emptyerrs
+   for field in $(reqdFields)
+      if $tablefind ($(field) $(skipnames))
+         continue
+      end
+   
+      #---Make sure required fields are not empty.
+      if $empty ($form($(field)))
+         if $empty ($(emptyerrs))
+            set emptyerrs <p/>Some required fields (marked with a \
+                  <font color=red><b>*</b></font>) are empty.
+         end
+      end
+   end
+   set regerrs $(regerrs) $(emptyerrs)
+   
+   #---Create user if no errors.
+   if $empty ($(regerrs))
+      for field in lname $(allFields)
+         if $tablefind ($(field) $(skipnames))
+            continue
+         end
+         eval $set_user_info ($userid() $(field) $form($(field)))
+      end
+
+      #---Log user creation as an event.
+      eval $logevent (adduser $(iface) 0 0 0 0 0 0 $userid())
+      
+      #if $not_empty ($form(name.upload))
+      #   set fname $replace (/ 32 $form(name.upload))
+      #   set fname $word ($sizeof($(fname)) $(fname))
+      #   set url   $copy2lib ($form(upload) PICTURES/$userid()/$(fname))
+      #   eval  $set_user_var ($userid() picture $(url))
+      #end
+      
+      #---Record registration info: regdir and date/time
+      eval $set_user_data ($userid() ur__regdir $cml_dir())
+      eval $set_user_data ($userid() ur__time   $dateof($time()))
+      
+      #---If number of users is approaching licensed maximum, warn admin.
+      include $(main)/warnadmin.i
+      
+      if $not_empty ($form(caucenter))
+         "%location($(mainurl)/$page_return ($arg(2) # \
+                               center.cml?$(nch)+0+x+x+x+x+x+x))
+         "
+      end
+      else
+         "%location($(helpurl)/tutor1.cml?0+0+x+x+x+x+x+x)
+         "
+      end
+      quit
+   end
+end
+
+#============================================================================
+
+include $(main)/head.i $arg(3)  $quote(Personal Information Page)
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+include $(main)/headquit.i Personal_Information_Page
+
+"<P>
+"<H2>Welcome to Caucus!</H2>
+"<P>
+"Since this is your first time on this host, please tell us
+"a little bit about yourself.&nbsp;
+"Fill in the boxes below, then
+"scroll to the bottom and click on one of the buttons.&nbsp;
+"You may change this information later, whenever you wish, 
+"by clicking on your own name.
+
+"<P>
+"<form METHOD=POST ACTION="perinfo.cml?$(nch)+$arg(2)+$arg(3)" NAME="perinfo">
+
+set my_lname $user_info ($userid() lname)
+set my_fname $user_info ($userid() fname)
+set my_intro $user_info ($userid() intro)
+set my_phone $user_info ($userid() phone)
+
+set query SELECT name, format, position, width, label, required, \
+                 on_reg, on_public, on_self, on_mgr, macro, choices \
+            FROM user_iface WHERE iface='$(iface)' \
+             AND on_reg > 0 \
+           ORDER BY position
+set skipnames {none} {CML-line} {CML-box} {Password} {Verify-PW} {Error-msg} \
+              {Toolbar} userid laston
+include $(main)/reguser.i 0 0 $quote($(query)) $quote($(skipnames))
+"</table>
+
+if $not_empty ($(regerrs))
+   "<p/>
+   "<TABLE BORDER>
+   "<TR><TD>
+   "  <TABLE><TR VALIGN=top>
+   "    <TD><B><BLINK>Error:</BLINK></B></TD>
+   "    <TD>$(regerrs)</TD>
+   "  </TABLE></TD>
+   "</TABLE>
+   "<P>
+end
+
+#------------------------------------------------------------
+
+"<p/>
+"Now that you've entered your personal information, click on one
+"of the buttons below.&nbsp;
+"You can step through a short <B>tutorial</B> on using Caucus,
+"or you may go straight to the <B>Caucus Center</B> and see
+"the available conferences.
+"<P>
+"<CENTER>
+"<INPUT TYPE="submit" name="tutorial"  VALUE="Show Me the Tutorial">
+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+"<INPUT TYPE="submit" name="caucenter" VALUE="Go to the Caucus Center">
+"</CENTER>
+
+"</form>
+
+"<HR>
+"</div>
+"</body>
+"</HTML>
+#----------------------------------------------------------------------

@@ -1,0 +1,108 @@
+#
+#---H_IMENU.CML.   Help about Item Menu
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_imenu.cml $quote(Help on Item Menu)
+"<P>
+
+"<B>What Is It?</B><BR>
+"The <B>Item Menu</B> consists of a menu and a text entry box,
+"used to select a set or list of items.&nbsp;
+"It appears on several different pages.
+
+"<P>
+"<B>What Is Its Purpose?</B><BR>
+"Wherever the Item Menu appears, choose an option to select
+"which items you are working with on that page.
+"<P>
+"For example, 
+"on a <A HREF="$(helpurl)/h_confhome.cml?x+x">
+"Conference Home</A> page, 
+"use the Item Menu to 
+"select which items appear in the <B>Item List</B>.&nbsp;
+"On the <A HREF="$(helpurl)/h_search.cml?x+x">Search Page</A>, 
+"use the Item Menu to
+"select which items you want to search through.&nbsp;
+"And so on.
+
+"<P>
+"The rest of this page describes the precise meaning of each
+"menu option, and how to use it.
+
+"<P>
+"<FORM>
+"<DL>
+"<DT><SELECT><OPTION>All N Items</OPTION></SELECT><P>
+  "<DD>Choose this option to select all of the items in the conference. (N is 
+  "total number of items.)<P>
+
+"<DT><SELECT><OPTION>Items with new activity</OPTION></SELECT><P>
+   "<DD>Choose this option to select items that are completely new to you,
+   "or that have new responses.&nbsp;
+   "(See <A HREF="h_seenvs.cml">Seen vs. New</A> for the 
+   "details of what "new" means.)
+"<P>
+
+"<DT><SELECT><OPTION>Items active since (date):</OPTION></SELECT><P>
+  "<DD>Choose this option to select items that have had activity
+  "(been created or had responses added) since a certain date.&nbsp;
+  "Click in the text box, type the date, and press the appropriate button.
+  "<P>
+  "You can type the date in several ways:
+  "<TABLE CELLSPACING=0 CELLPADDING=0>
+     "<TR><TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+     "<TR><TD></TD><TD>4-JUL-96</TD> <TD></TD>
+     "    <TD>(July 4, 1996)</TD>
+     "<TR><TD></TD><TD>12/31/95</TD> <TD></TD>
+     "    <TD>(Dec 25, 1995)</TD>
+  "</TABLE>
+"<P>
+
+"<DT><SELECT><OPTION>Items active in past N days:</OPTION></SELECT><P>
+"<DD>Choose this option to select items that have had activity
+  "(been created or had responses added) within a specified time frame.
+  "Click in the text box, type the number of days, and press the appropriate 
+  "button.<P>
+
+"<DT><SELECT><OPTION>Items numbered:</OPTION></SELECT><P>
+  "<DD>Use this option to select a range of items by number.
+  "Click in the box, type the item numbers you want, and press the appropriate 
+  "button. You can enter single numbers: "3", ranges: "5-9", or numbers
+  "and/or ranges separated by commas: "3, 5-9".
+"<P>
+
+"<DT><SELECT><OPTION>Items titled (keywords):</OPTION></SELECT><P>
+  "<DD>Use this option to select a range of items by title.
+  "Click in the box, type a word or phrase contained in the title of the
+  "item(s) you're interested in, and press the appropriate
+  "button.
+"<P>
+
+"<DT><SELECT><OPTION>Items created by (author):</OPTION></SELECT><P>
+  "<DD>Use this option to select a range of items by author.
+  "Click in the box, type the author names you're interested in, and 
+  "press the appropriate button.
+"<P>
+
+"<DT><SELECT><OPTION>Items you created</OPTION></SELECT><P>
+  "<DD>Choose this option to select only the items that you've created.<P>
+
+"<DT><SELECT><OPTION>Forgotten items</OPTION></SELECT><P>
+  "<DD>Choose this option to select only options that you have designated as
+    ""forgotten."<P>
+
+"<DT><SELECT><OPTION>No items</OPTION></SELECT><P>
+  "<DD>Choose this option to select no items.  This option is most useful when
+  "you are selecting which item list you'd prefer to see when visiting a
+  "conference home page.
+"<P>
+"</DL>
+"</FORM>
+
+"<P>
+include $(help)/hb.i

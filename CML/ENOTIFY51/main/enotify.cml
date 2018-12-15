@@ -1,0 +1,292 @@
+#
+#---ENOTIFY.CML.   Caucus CML script: send notifications of new conference
+#                  material, as e-mail.
+#
+#   Invoked as:
+#      sweba enotify.conf enotify.cml temp sendmail dir xxx swebentry
+#
+#   Parameters:
+#      sweba         The Caucus stand-alone CML interpreter program
+#      enotify.conf  The configuration file for sweba
+#      enotify.cml   This file.  (Must be relative to CML_Path in enotify.conf!)
+#      temp          (arg 1) full pathname of temporary file directory
+#      sendmail      (arg 2) full pathname of sendmail program
+#      dir           (arg 3) name of Caucus interface directory, e.g. "CS41".
+#      xxx           (arg 4) ignored
+#      swebentry     (arg 5) ScriptAlias to enter caucus directly, as
+#                            in http://yourhost/caucus.
+#
+#   Purpose:
+#      Enotify.cml is a CML script for the Caucus stand-alone CML
+#      interpreter, sweba.  It implements the "e-mail notification"
+#      feature in Caucus 4.1.  It scans all of the conferences, and
+#      for each one that has e-mail notification enabled, sends
+#      out e-mail to all the members, summarizing any new material
+#      in each such conference.
+#
+#   How it works:
+#      Enotify must be run once an hour, every hour, preferably
+#      by 'cron' or some similar utility.
+#
+#   Known bugs:
+#      1. This does create (at least) 24 temp files per day.  Do we
+#         need to clean up after them?  Perhaps a rolling cleaner --
+#         on day x clean up day x-1's files.
+#
+#   History of revisions:
+#: CR  3/01/99 19:21 First version.
+#: CR  3/17/99 23:08 First true alpha test version.
+#: CR  8/12/99 13:45 4.1 release version.
+#: CR  2/08/00 14:09 add args 4 and 5, based on Scott's notes
+#: CR  3/27/00 13:41 include macros.i file
+#: CR  4/06/00 13:20 use $config() to get mailx and sendmail
+#: RL  9/14/00 15:14 Added enotifyif variable to send users to diff interfaces
+#: CR  7/17/01 12:30 use $config() to get sweb
+#: CR  8/23/02 Caucus 4.4 revisions
+#: CR 10/30/02 Set 'atdir' for use by sendmail.i
+#: CR 12/26/03 Make /tmp file names completely unique by userid & process id.
+#: CR 01/05/04 Add sitewide email notification features.
+#: CR 10/25/05 Use confaccess.i to ensure proper conf permission.
+#: CR 01/10/06 Fix setting of atdir (bug: extra right ")").
+#----------------------------------------------------------------------------
+
+set http $config(http)
+
+#---Special debugging log.
+#set sitelog /caucus/ntl/SITEWIDE/$replace(32 _ $dateof($time())).log
+
+#---Determine name of regular mail client.
+set mailx mail
+if $empty ($config())
+   set mailx $word (1 $config(mailx) mail)
+end
+
+#---Test args.
+set pid $word (1 $replace (/ 32 $pid()))
+set tmp /tmp/caucus.$userid().enotify_err.$(pid)
+if $empty ($arg(3))
+   eval $output($(tmp) 644)
+   "Subject: error running Caucus e-notify script.
+   "Missing arguments in $caucus_path()/enotify.
+   eval $output()
+   eval $xshell (0 1 1 $(mailx) $admin_mail() <$(tmp))
+   quit
+end
+
+#---Define include dir for ENOTIFY include files.
+set en   ENOTIFY51/main
+set main CC51/main
+
+#---Must define 'dir' to be normal Caucus interface directory name
+#   (Used to construct URLs sent in e-mails.)
+set dir  $arg(3)
+
+#---Must define 'sweb' to be the same as the overall interface; should
+#   be taken from swebd.conf Config parameter. ('reg' parameter in 4.4)
+set sweb $word (1 $config(reg) reg)
+
+#---Must define 'swebentry' as direct entry point to Caucus (e.g.,
+#   swebentry "caucus" for special URLs like (http://yourhost/caucus".)
+set swebentry $word (1 $arg(5) caucus)
+
+#---Must define 'sendmail' to be full pathname to sendmail program.
+#   This userid must be a "trusted user" in sendmail.cf, since it
+#   sends e-mail "as" the organizer of each conference.
+set sendmail $arg(2)
+if $empty ($config())
+   set sendmail $word (1 $config(sendmail) $(sendmail))
+end
+
+#---Determine precise os-dependent form of 'swebsock' used in URLs above.
+set swebsock swebsock
+if $equal ($word (1 $opsys()) nt)
+   set swebsock swebsock.exe
+end
+
+if $empty ($arg(1))
+   eval $output($(tmp) 644)
+   "Subject: error running Caucus e-notify script.
+   "Error: no temporary file directory specified.
+   eval $output()
+   eval $xshell (0 1 1 $(mailx) $admin_mail() <$(tmp))
+   quit
+end
+
+include $(en)/macros.i
+
+#---Build temporary email text file name.
+set tfile $arg(1)/caucus.$userid().enotify_txt.$(pid)
+
+#---If this id is not registered, "create" it as a person.
+if $empty ($user_info ($userid() lname))
+   eval $set_user_info ($userid() lname Administration)
+   eval $set_user_info ($userid() fname Caucus)
+end
+
+
+#---Make sure e-notification is enabled.
+if $less (0$site_data (0 - SWen_run) 1)
+   quit
+end
+
+#---Set start time and e-mail count, for logging purposes
+set  sent 0
+set  start_time $time()
+
+#---Get the current hour, day, and weekday numbers.
+set wday $weekday ($time())
+set date $dateof  ($time())
+set day  $plus ($word (1 $replace (- 32 $(date))) 0)
+#"day=$(day)
+set hour $word (2 $(date))
+set hour $word (1 $replace (: 32 $(hour)))
+if $equal  ($str_sub (0 1 $(hour)) 0)
+   set hour $str_sub (1 1 $(hour))
+end
+
+#---Clear list of people who have received sitewide notifications.
+set site_users
+
+#---Scan all conferences...
+set anycmlerr 0
+eval $delfile ($caucus_path()/enotify.err)
+for cnum in $cl_list()
+#  "$(cnum)  $cl_name($(cnum))
+
+   #---If the conference has a specific interface directory name
+   #   stored in $conf_var($(cnum) enotifyif), use it.
+   if $not_empty($site_data ($(cnum) - enotifyif))
+      set dir    $site_data ($(cnum) - enotifyif)
+   end
+   else
+      set dir $arg(3)
+   end
+   set atdir $(dir)
+   if $exists ($cml_path()/$(dir)/main/center.cml)
+      set dir $(dir)/main
+   end
+#  "cnum=$(cnum), dir=$(dir)
+
+   #---Make sure that 'caucus' userid is a member...
+   include CC51/main/confaccess.i $(cnum)
+   if $less ($group_access ($userid() CONF $(cnum)) 10)
+      eval $append ($caucus_path()/enotify.err \
+             Warning: $userid() is not allowed in $cl_name($(cnum)).$newline())
+      continue
+   end
+#  else
+#     if $not ($it_member($(cnum)))
+#        eval  $it_join  ($(cnum))
+#     end
+#  end
+#---The above section is almost certainly 100% obsolete!
+
+   #---Handle site-wide notification, conference by conference.
+   include $(en)/sitewide.i
+
+   #---Make sure e-notification is "on" and allowed for this conference.
+   if $not ($and (0$site_data ($(cnum) - en_on) \
+                  $or (0$site_data ($(cnum) - en_allow) \
+                       0$site_data (0 - SWe_notify))))
+      continue
+   end
+#  "cnum=$(cnum), enotification allowed
+
+   #---Scan A: are we in one of the default e-notify times?
+   #   Build the list of all item groups (duples of item group T
+   #   values and item triplet variable names) that are active
+   #   at this date and time.
+   set groups
+   set tindex 0
+   for eni in $list_site_data($(cnum) - en_items- )
+      set tc $str_sub (9 1000 $(eni))
+      set eni_group $site_data ($(cnum) - en_items-$(tc))
+
+      #---Is this item group active?
+      if $not ($word (1 $site_data ($(cnum) - en_items-$(tc))))
+         continue
+      end
+
+      #---Is this a notification hour for this group?
+      set hours $site_data ($(cnum) - en_hours-$(tc))
+      if $not ($tablefind ($(hour) $rest(2 $(hours))))
+         continue
+      end
+
+      #---Is this a notification day for this group?
+      set days $site_data ($(cnum) - en_dates-$(tc))
+      if $word (1 $(days))
+         if $tablefind ($(wday) $rest(2 $(days)) )
+            set groups $(groups) $(tc) tlist$(tindex)
+         end
+      end
+      else
+         if $tablefind ($(day)  $rest(2 $(days)) )
+            set groups $(groups) $(tc) tlist$(tindex)
+         end
+      end
+
+      #---This group is active now.  Build its triplet list.
+      include $(en)/tlist.i tlist$(tindex) eni_group
+      set tindex $plus ($(tindex) 1)
+   end
+
+
+   #---Build the list of members that have individual e-notification sched's.
+   set indiv
+   if 0$site_data ($(cnum) - i_notify)
+      for en_user_uid in $list_site_data ($(cnum) - en_user_)
+         set uid $str_sub (8 1000 $(en_user_uid))
+         if $not_empty ($user_info ($(uid) lname))
+#           "uid=$(uid), cnum=$(cnum)
+            set indiv $(indiv) $(uid)
+         end
+      end
+
+      #---Send e-notifications for users with individ. sched's.
+      for uid in $(indiv)
+#        "    doindiv $(uid)
+         include $(en)/doindiv.i
+      end
+   end
+
+   #---Build the list of members (who do *not* have individual sched's)
+   #   w/o duplications.
+   set members
+   for uid in $peo_members ($(cnum))
+      if $not ($tablefind ($(uid) $(indiv)))
+         set members $(members)  $(uid)
+      end
+   end
+
+   #---Send e-notifications for regular members (if this is a scheduled time)
+   if $not_empty ($(groups))
+      for uid in $(members)
+#        "send $(uid)
+#        "    doregular $(uid)
+         include $(en)/doregular.i
+      end
+   end
+
+   set errors $errors()
+   if $not_empty ($(errors))
+      eval $append ($caucus_path()/enotify.err $(errors))
+      set anycmlerr 1
+   end
+
+end
+#===done
+
+eval $append ($caucus_path()/enotify.log Start: \
+              $dateof($(start_time))$newline()\
+       +      Ran $minus ($time() $(start_time)) seconds, \
+              sent $(sent) e-mails.$newline())
+
+if $(anycmlerr)
+   eval $output($(tmp) 644)
+   "Subject: errors in Caucus e-mail notification
+   "See $caucus_path()/enotify.err for error listing.
+   eval $output()
+   eval $xshell (0 1 1 $(sendmail) $admin_mail() <$(tmp))
+end
+#----------------------------------------------------------------------------

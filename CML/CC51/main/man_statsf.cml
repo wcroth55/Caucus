@@ -1,0 +1,34 @@
+#
+#---man_statsf.cml.    Handles manager usage statistics: save query
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/14/03 New file.
+#: CR 10/15/05 C5 Changes.
+#------------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_statsf.cml
+end
+
+include $(main)/secure.i manage userReports
+
+if $equal ($form(submit) Save)
+#       "Save: $form(queryname)
+   eval $set_site_data (0 - $word (1 QueryLcl_$replace(32 _ $form(queryname))) \
+                            $form(query))
+end
+if $equal ($form(submit) Delete)
+#       "Delete: $form(queryname)
+   eval $set_site_data (0 - $word (1 QueryLcl_$form(queryname)))
+end
+
+set target x
+if $equal ($form(submit) Save)
+   set target QueryLcl_$form(queryname)
+end
+"%location($(mainurl)/man_stats.cml?\
+     $(nch)+$(nxt)+$arg(3)+x+x+x+x+$(target))
+#------------------------------------------------------

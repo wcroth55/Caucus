@@ -1,0 +1,2 @@
+Main-Class: com.caucus.jenzabar.JenzabarInterface
+Class-Path: jdom.jar mysql-connector-java-3.1.8-bin.jar

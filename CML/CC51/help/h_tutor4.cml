@@ -1,0 +1,32 @@
+#
+#---H_TUTOR4.CML.   Tutorial page 4 from help window
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#-----------------------------------------------------------------------
+
+include $(help)/ht.i h_tutor4.cml $quote(Caucus Tutorial: 4)
+
+"<P>
+
+include $(help)/tutor4.i 2
+
+"<FORM NAME="helpform2">
+"<TABLE WIDTH="100%">
+"<TR><TD>&nbsp;&nbsp;</TD>
+"<TD>
+"<INPUT TYPE="button" VALUE="The Tutorial Is Finished" 
+"                 onClick="window.opener.pop_gone('help'); window.close();">
+"<BR>
+"</TD>
+"<TD ALIGN=right><INPUT TYPE="button" VALUE="Back" onClick="history.back();">
+"<INPUT TYPE="button" VALUE="Close" 
+"    onClick="window.opener.pop_gone('help'); window.close();"></TD>
+"</TABLE>
+"</FORM>
+
+
+"</BODY>
+"</HTML>

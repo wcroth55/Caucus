@@ -1,0 +1,142 @@
+#
+#---UREPORT.CML  Caucus User REPORT program.  Report on user personal info.
+#
+#   Invoked as:
+# (1)  sweba ureport.conf ureport.cml E    x        email  iface
+# (2)  sweba ureport.conf ureport.cml U    userid   email  iface
+# (3)  sweba ureport.conf ureport.cml type name     email  iface
+#
+# In case (1), report on everyone.
+# In case (2), report on user 'userid'.
+# In case (3), report on everyone in group (type, name), as per
+# the usual outputs from groupselector.i.
+#
+# $arg(3)  email    send report to this email address
+# $arg(4)  iface    use fields from interface 'iface'
+#
+#   Purpose:
+#      UREPORT produces a report on the Caucus "personal information"
+#      for a group of users.
+#
+#      The report is formatted as one line per user, with tab-separated
+#      fields of personal info, in the order established by the
+#      "control new user registration" management page.
+#
+#      The report is e-mailed to the requestor.
+#
+#   How it works
+#
+#: CR 12/09/99 00:06 New script.
+#: CR  3/31/00 13:22 Add single-user option.
+#: CR  4/06/00 13:34 Use $config() to get mailx if possible.
+#: CR 03/25/01 16:00 Add [urc] argument to make report registration-specific
+#: CR 03/19/03 New args...
+#: CR 04/02/03 use send_tab_spreadsheet to send as attachment.
+#: CR 11/12/03 Add sendmail arg to send_tab_spreadsheet call.
+#: CR 01/18/05 Build process id into output file (to make it unique)
+#: CR 01/12/06 Rewrite for C5.
+#: CR 08/13/06 Include width=0 fields from user_iface (but not 'upload' fields)
+#==========================================================================
+
+#---Test argument(s).
+if $empty ($arg(3))
+   eval $output ($caucus_path()/ureport.log 644)
+   "$dateof($time())
+   "Incorrect usage of ureport.com.
+   "args=$arg(1), $arg(2), $arg(3), $arg(4)
+   "
+   eval $output()
+   quit
+end
+
+#---Determine location of mailx client
+set mailx /usr/bin/mailx
+if $empty ($config())
+   set mailx $word (1 $config(mailx) $(mailx))
+end
+
+set pid $word (1 $replace (/ 32 $pid()))
+set fname /tmp/ureport.$caucus_id().$(pid)
+eval $output ($(fname) 644)
+
+#---Pick up list of fields for this interface (and build header line
+#   for spreadsheet while we're at it).
+set query SELECT name, width, position FROM user_iface  \
+           WHERE iface='$arg(4)' AND format!='upload' AND name NOT LIKE '{%' \
+             AND name != 'userid' ORDER BY position
+set h $sql_query_open ($(query))
+set line userid$char(9)
+set qlist
+set ilist
+while $sql_query_row  ($(h))
+   set line $(line)$(name)$char(9)
+   set qlist   $(qlist)  i.$(name) i_$(name),
+   set ilist   $(ilist)  i_$(name)
+end
+eval $sql_query_close($(h))
+"$(line)
+
+
+#---Build queries to get the people and fields that we want, depending
+#   on which people were selected by the user.
+set iface $arg(4)
+if $equal ($arg(1) U)
+   set subject Caucus Report: $host() $(iface) User '$arg(2)'
+   set query SELECT DISTINCT $(qlist) i.userid FROM user_info i \
+              WHERE i.userid = '$arg(2)'
+end
+
+elif $equal ($arg(1) E)
+   set subject Caucus Report: $host() $(iface) All Users
+   set query SELECT DISTINCT $(qlist) i.userid FROM user_info i \
+              WHERE i.active >= 10 \
+              ORDER BY i.lname, i.fname
+end
+
+else
+   set query SELECT DISTINCT $(qlist) i.userid FROM user_info i, groups g \
+              WHERE i.userid = g.userid  AND  i.active >= 10 \
+                AND g.owner='$arg(1)' AND g.name='$arg(2)' AND g.access >= $priv(minimum) \
+              ORDER BY i.lname, i.fname
+
+   if $equal ($arg(1) CONF)
+      set subject Caucus Report: $host() $(iface) $cl_name($arg(2))
+      set query SELECT DISTINCT $(qlist) i.userid, u.lastin FROM (user_info i, groups g) \
+                  LEFT JOIN user_in_conf u ON (u.userid = i.userid  AND u.cnum = $arg(2)) \
+                 WHERE i.userid = g.userid  AND  i.active >= 10 \
+                   AND g.owner='$arg(1)' AND g.name='$arg(2)' AND g.access >= $priv(minimum) \
+                 ORDER BY i.lname, i.fname
+      set ilist $(ilist) lastin
+   end
+   elif $equal ($arg(1) Caucus4)
+      set subject Caucus Report: $host() $(iface) System:$arg(2)
+   end
+   elif $equal ($arg(1) MGR)
+      set subject Caucus Report: $host() $(iface) Managers:$arg(2)
+   end
+   elif $equal ($arg(1) Filesafe)
+      set subject Caucus Report: $host() $(iface) Filesafe:$arg(2)
+   end
+   else
+      set subject Caucus Report: $host() $(iface) $arg(1)->$arg(2)
+   end
+
+end
+
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set line $(userid)$char(9)
+   for x in $(ilist)
+      set text $replace(09 32 $replace(13 32 $replace(10 32 $($(x)))))
+      set line $(line)$(text)$char(9)
+   end
+   "$(line)
+end
+eval  $sql_query_close($(h))
+
+
+eval $output()
+
+eval $xshell (1 1 1 $caucus_path()/SCRIPTS/send_tab_spreadsheet  \
+                    $(fname)  "$(subject)"  $arg(3) $config(sendmail))
+#==========================================================================

@@ -1,0 +1,115 @@
+#0 roth 1 19-AUG-91 14:46 Charles Roth (roth)
++3 49 1193
++4 2
+ Customer Support Example: Bill Wetmore / American Welding Society / Unix
+ <TABLE>
+ <TR>
+ <TD WIDTH=10%>&nbsp;</TD>
+ <TD>
+    <TABLE BORDER>
+    <TR>
+    <TD>
+    <B>Customer support</B> is another good application
+    for Caucus conferencing.
+ 
+    <P>
+    In this item, we see a Caucus item being used to notify,
+    handle, and record support calls for a particular Caucus
+    customer.&nbsp;  
+    In this case, the conference was "private", and could only
+    be read by the tech support staff.
+ 
+    <P>
+    An "open" conference, that your customers can join, can also
+    be helpful in managing customer support.
+    </TD>
+    </TABLE>
+ </TD>
+ <TD WIDTH=10%>&nbsp;</TD>
+ </TABLE>
+ <P>
+ <PRE>
+     Customer: Bill Wetmore
+ Organization: American Welding Society
+        Phone: 800 441 9353 x 256
+          Fax:
+       E-mail: wwetmore@amwelder.org
+ 
+  System Type: Unix 386
+       Caucus: 2.4/SX
+      Release:
+ 
+      Dial-in: 800 447 6415
+     Internet: amwelder.org
+    Testid/pw:
+    Portid/pw:
+  Caucusid/pw: caucus/www654
+ 
+  Job Number  Callback  Comments
+  ---------------------------------------------------------
+  J930819js10           CLOSED: only root can use Caucus
+  J931210bw09           OPEN: "edit is disabled by sys op"
+ </PRE>
+ 
+#0001 roth 0 19-AUG-91 14:49 Charles Roth (roth)
+ Bill called in with a problem after installing Caucus: no-one but root
+ could use Caucus.  I dialed in through a temporary hook-up (he doesn't
+ have a regular dial-in number yet) and looked around.  Discovered that
+ the command "chmod 4711 caucus_x" doesn't work!
+ 
+ More precisely, it says "Warning: cannot change caucus_x".  After talking
+ with Bill, discovered that they have installed "C2" class security on
+ their system.  This is probably the cause, as further experimentation
+ showed that I could chmod to any permission that did not include the
+ set-uid-bit.
+ 
+ Anyway, I had Bill chmod caucus_x and cauchk_x from root, and he's
+ happy now.
+#0002 jvictor 0 30-AUG-91 17:01 Jeff Victor (jvictor)
+ Sounds like a request-for-doc-change to me.  Where do I make that request?
+#0003 roth 0 03-SEP-91 13:26 Charles Roth (roth)
+ In the left-brain conference, the "doc" item.
+#0004 roth 0 05-MAR-92 16:45 Charles Roth (roth)
+ Bill Wetmore now needs (and was just sent) 3.5 inch disks.
+#0005 richens 0 08-JUN-92 11:14 Michele L. Richens (richens)
+ Wetmore called Friday said he is just getting around to installing old 5
+ 1/4" kit.  Claims he never received 3.5" kit but has since bought a new
+ drive.  Said disk three was coming up unreadable.  Sent a new kit today.  His
+ support had expired, but since he hasn't used Caucus, we still sent the
+ updated version.  Also sent support renewal request.
+#0006 richens 0 22-DEC-92 12:32 Michele L. Richens (richens)
+ Problem:
+ Had never installed Caucus - equipment and other bothers.
+ Tried to this morning, but had upgraded Xenix so we relicensed Caucus.
+ Aren't we swell?
+ 
+ Then, he moved some stuff and did some things and couldn't get
+ Caucus to work again.  Aaron talked him through it and now things 
+ are peachy.  PS. he asked for a support invoice so I faxed and mailed 
+ one today.  This is not OPEN!
+ 
+ Job Number: J921221BW11
+#0007 richens 0 22-DEC-92 12:32 Michele L. Richens (richens)
++3 3 176
+ Well, Wetmore called back.  Problems with Can't open unitview.
+ Turned out to be an ownership problem.  Fixed that.
+ He'd like a call from Aaron about entryfiles.  Thank you.
+#0008 richens 0 22-DEC-92 16:40 Michele L. Richens-Fogel (richens)
+ Called again.  Wants to set up his own set of file libraries for access
+ through Caucus.  Can we help him?  Also asked about linking to Foxbase.  I
+ said I'd check, but the only way I know is by escaping to shell.  He seemed
+ thrilled that he could use !commands from Caucus.
+#0009 jvictor 0 28-DEC-92 10:35 Jeff Victor (jvictor)
+ "Can" we help him?  Sure.  We'll answer all sorts of questions, within
+ reason.  If he wants us to do any dictionary modifications, that costs
+ money.
+#0010 roth 0 19-OCT-93 18:07 Charles Roth (roth)
+ Bill Wetmore called.  He upgraded his SCO license, and his license
+ number changed.  I went through relicensing it, and he's OK now.
+ 
+ He is interested in not having the copyright notice appear.  I told
+ him he would have to talk to Michele for approval on that, that we've
+ been burned before.
+ 
+ Personally I think he's an OK & positive guy and we should approve his
+ request.

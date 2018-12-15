@@ -1,0 +1,103 @@
+#0 roth 0 25-APR-96 22:45 Charles Roth
++3 13 305
++4 2
+ Using Caucus: How do I put HTML into a response?
+ <B>This item is about how to actually <FONT SIZE=+3>use</FONT>
+ HTML in a Caucus
+ discussion.</B>
+ 
+ <P>
+ Several of the previous items have had highlighted links in
+ them that point to other pages, or fancy typographic stuff.&nbsp;  
+ How did we do that?&nbsp;  By
+ entering
+ a response as HTML.
+ 
+ <P>
+ But how does one do that?
+ <p/>
+ <ul>
+ <li>Write the HTML yourself.&nbsp; That's what this item is about.
+ <li>Use the richtext editor.  More on that at the very end of this item.
+ </ul>
+#0001 roth 0 25-APR-96 22:45 Charles Roth
++3 3 199
+ If I just type text into a response, Caucus will automatically highlight any URL's, and make them "blue" so you can click on them.
+ 
+ Like CaucusCare's home page, which is at http://www.caucuscare.com.
+#0002 roth 0 25-APR-96 22:45 Charles Roth
+ So what happens if I type in some fancy HTML code, say, to show me some great works of art?
+ 
+ I'll try this in the next response.
+#3
+#0004 roth 0 25-APR-96 22:45 Charles Roth
++3 26 392
+ <TABLE BORDER>
+ 
+ <TR>
+ 
+ <TD>
+ <IMG SRC="http://caucuscare.com/~ccare/GIF41/glisa.jpg">
+ </TD>
+ 
+ <TD>
+ <IMG SRC="http://caucuscare.com/~ccare/GIF41/gwave.jpg">
+ </TD>
+ 
+ <TD>
+ <IMG SRC="http://caucuscare.com/~ccare/GIF41/gtres.jpg">
+ </TD>
+ 
+ <TR>
+ <TD COLSPAN=3>
+   <CENTER>
+   <B>Three Famous Paintings at the
+      <A HREF="http://sunsite.unc.edu/louvre/">Louvre</A>.</B>
+   </CENTER>
+ 
+ </TD>
+ </TABLE>
+ 
+#0005 roth 0 25-APR-96 22:46 Charles Roth
+ Boy, that's a mess.  All it did was display what I wrote, and make the URL's blue.
+ 
+ I'll try it again.  I'll "cut" the text of my response above, and "paste" it into the response textbox.
+ 
+ Only this time, I'll click on the bar that says "word-wrapped", and pull it down until it says "HTML".
+#0006 roth 0 25-APR-96 22:46 Charles Roth
++3 20 306
++4 3
+ <TABLE BORDER>
+ <TR>
+ <TD>%libimg2(roth 1 glisa.jpg)</TD>
+ 
+ <TD>%libimg2(roth 1 gwave.jpg)</TD>
+ 
+ <TD>%libimg2(roth 1 gtres.jpg)</TD>
+ 
+ <TR>
+ <TD COLSPAN=3>
+   <CENTER>
+   <B>Three Famous Paintings at the
+      <A HREF="http://sunsite.unc.edu/louvre/" TARGET="_blank">Louvre</A>.
+   </CENTER>
+ </TD>
+ </TABLE>
+ <P>
+ 
+ 
+ 
+#0007 roth 0 25-APR-96 22:48 Charles Roth
++3 1 33
+ Voila!  Now that's more like it.
+#0008 roth 0 20-OCT-2005 13:51 Charles Roth
++3 8 441
++4 19
+ A much, <span style="font-weight: bold;">much</span>, simpler way of
+ creating fancy formatting is to use the "richtext editor".&nbsp; Simply
+ click on the "Use richtext editor" link, to the upper right of the
+ response box.&nbsp; Suddenly you have a full-featured word processor at
+ your command, which (underneath the hood, so to speak) simply spits out
+ HTML.&nbsp; You don't need to know anything about HTML to use it, just
+ point and click.
+ 

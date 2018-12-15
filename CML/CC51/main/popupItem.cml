@@ -1,0 +1,192 @@
+#
+#----popupItem.cml
+#
+#    arg(2) conf num
+#    arg(3) item id
+#----------------------------------------------------
+
+
+"Content-type: text/html
+"
+
+set q SELECT title, frozen, lastresp, qkey, type, userid itemOwner FROM items WHERE id=$arg(3)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isBlog $tablefind ($(type) freeblog modblog)
+
+if $not_empty($(qkey))
+   "<html>
+   "<body>
+   "This item is a quiz.
+   "</body>
+   "</html>
+   quit
+end
+
+set save_seen -1
+set forgot     0
+set q SELECT seen save_seen, forgot FROM resps_seen  \
+       WHERE userid='$userid()' AND items_id=$arg(3)
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set q SELECT c.hidden, c.items_parent, c.resps_parent, c.deleted, i.qkey \
+        FROM conf_has_items c \
+        LEFT JOIN items i \
+          ON (i.id = c.items_parent) \
+       WHERE c.cnum=$arg(2) AND c.items_id=$arg(3) \
+        ORDER BY deleted ASC LIMIT 1
+set h $sql_query_open ($(q))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+
+set co_change $site_data ($arg(2) - co_change)
+
+set vi_cnum $arg(2)
+set vi_inum $arg(3)
+set vi_rnum 0
+
+set cname %displayed_conf_name ($(vi_cnum))
+
+include $(main)/computeItemAccess.i $(vi_cnum) $(vi_inum)
+
+if $or ($empty($(hidden))   \
+        $(deleted) \
+        $equal($(itemAccess) 0) \
+        $and ($not($(is_org))  $equal ($(hidden) 1)) )
+   "<html>
+   "<body>
+   "(I'm sorry, this item is not visible.)
+   "</body>
+   "</html>
+   quit
+end
+
+
+set visible 1
+
+set cnum     $(vi_cnum)
+
+set itemcolor $site_data ($(vi_cnum) - confitem)
+if $not_empty ($(itemcolor))
+   set itemcolor bgcolor="$(itemcolor)"
+end
+
+"<head>
+   include $(main)/css.i 1
+"</head>
+include $(main)/body.i
+
+"<table CELLSPACING=0  CELLPADDING=0 width="100%" border=0 $(itemcolor) >
+"<TR><TD COLSPAN=2><IMG SRC="$(img)/clearpix.gif" width=1 HEIGHT=2></TD>
+
+"<TR valign=bottom>
+   "<TD><span class="item_title">$t2hbr($(title))</span>
+   if $not ($(visible))
+      "$(for_tag)
+   end
+
+   if $(isBlog)
+      "<div class="blogUrl">
+      "   $site_data($arg(2) - blogBaseUrl)/$replace(32 _ $(title))</div>
+   end
+   "</td>
+
+"</TABLE>
+
+#---OK!  Let's display the item!  Count across the responses...
+set uid
+set m_cnum $(cnum)
+set m_inum $(vi_inum)
+
+set showThumbNails $and ( \
+      $word (1 $site_data ($arg(2) - showThumbNails) $(cc_thumbnail)) \
+      $word (1 $user_data ($userid() showThumbNails) 1) )
+
+set showGeoLoc $word (1 $site_data ($arg(2) - showGeoLoc) $(cc_geoLoc) 0)
+
+set itemLabel $item_label ($(vi_cnum) $(vi_inum))
+
+set rquery SELECT r.rnum, r.userid owner, r.text, r.time, r.prop, r.bits, \
+                  r.copy_rnum, r.copy_item, r.copier, r.copy_time, r.lat_long respLatLong, \
+                  r.location respLocation, \
+                  r.author_shows_as, r.deleted, u.fname, u.lname \
+             FROM resps r \
+             LEFT JOIN user_info u ON (r.userid = u.userid) \
+            WHERE r.items_id=$(vi_inum) AND r.rnum = 0 \
+              AND r.version = \
+                 (SELECT MAX(q.version) FROM resps q WHERE q.items_id=$(vi_inum) AND q.rnum = 0)
+set rh $sql_query_open($(rquery))
+eval   $sql_query_row ($(rh))
+set rpos 0
+set filtered 0
+set RespSeenList
+#include $(main)/viewitemResp.i
+
+   set m_rnum $(rnum)
+   set is_own   $equal ($(owner) $userid())
+
+   if $(showUserid)
+      set uid &nbsp;($(owner))
+   end
+   "<div class="response">
+
+   "<table cellspacing=0 cellpadding=0 border=0 width="100%">
+
+#  include $(main)/setPersonName.i
+
+   #---Item date & time, and author.
+      "<tr><td width="90%">
+      "<span class="response_id">Item $(itemLabel)&nbsp;</span>
+
+      "<span class="response_author">$user_info ($(owner) fname) $user_info ($(owner) lname)</span>
+#     "<span class="response_note">$(personNameNote)</span>
+
+      "<span class="response_date">
+      "%monthDayYearHourTZ ($words (1 2 $(copytime) $(time)))
+      "   $(timezonename)</span>
+
+      "&nbsp;
+      if $and ($(showGeoLoc)  \
+               $not_equal (none $word (1 $(respLatLong) none)) \
+               $not_empty ($(respLocation)) )
+         "  $(respLocation)&nbsp;&nbsp;
+      end
+      "</td>
+
+   "</table>
+
+   #---Decide which set of prohibited tags to use, based on whether
+   #   the author was an organizer.
+   include $(main)/calculateProhibitedTagLists.i $(vi_cnum)
+   include $(main)/getProhibitedTagList.i $(bits)
+
+   "<div class="response_body">
+   "<div style="$ifthen ($not_empty ($(lmargin))  margin-left: $(lmargin);) \
+                $ifthen ($not_empty ($(rmargin)) margin-right: $(rmargin);)">
+
+   #---Show responder's thumbnail?
+   if $(showThumbNails)
+      set thumb $user_data ($(owner) thumbNailSize)
+      if $not_empty ($(thumb))
+         "<div class="thumbNail">
+         "<img src="$(http)://$host()/~$caucus_id()/LIB/PICTURES/\
+                     $(owner)/_thumb.jpg" border=0></div>
+      end
+   end
+
+   include $(main)/showResponseText.i $(prop)
+
+   "</div>
+   "</div>
+   "</div>
+eval $sql_query_close($(rh))
+  
+
+"</body>
+"</html>
+
+
+#==========================================================================

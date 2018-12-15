@@ -1,0 +1,55 @@
+#
+#---H_MAN_GROUPS.I    Help about "Manage User Groups" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_man_groups.cml $quote(Help on Manage User Groups)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Manage User Groups page allows authorized managers to create, modify, and 
+"delete user groups&#151;named collections of users that conference
+"organizers can use when creating conference user lists.
+"<p>
+"Groups are also used to control access to other features,
+"such as tables and 
+"<A HREF="$(helpurl)/h_filesafe.cml?x+x">$lower($(filesafe_name))(s)</A>.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"If you're a manager, from the $(center_name), click on 
+"<U>manage</U> underneath your name.&nbsp;
+"Then click on <U>Manage User Groups</U>.
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"<DL><DT><B>Creating User Groups:</B>
+"<DD>User groups are created using Part 2 of this page.  You need to provide
+"a name for your user group, an optional description, and a list of userids.<P>
+"The <B>Reload</B> button offers the option of automatically inserting the
+"contents of a conference member list into your group list.  Choose a 
+"conference from the adjoining menu and press the <B>Reload</B> button.<P>
+
+"When you have entered all the information for your new group, press the 
+"<B>Create this group</B> button to create it.<P>
+
+"<DT><B>Modifying User Groups:</B>
+"<DD>The list of existing user groups appears in Part 1 of the page.  To
+"modify a group, click on its name.  The page that loads contains fields
+"for the group name, description, and the list of users.  You can change
+"some or all of these fields and press the <B>Modify this group</B>
+"button to save your changes.<P>
+
+"<DT><B>Deleting User Groups:</B>
+"<DD>Follow the steps for modifying a group but press the 
+"<B>Delete this group</B> button instead to completely remove a group 
+"from Caucus.  This process is not reversible, so be sure that you no longer
+"need a group before deleting it.  If a deleted group is referred to in a 
+"conference user list, the members of that group will no longer have the
+"access (or lack of access) specified by the conference organizer.
+
+"</DL>
+include $(help)/hb.i

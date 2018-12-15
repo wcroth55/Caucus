@@ -1,0 +1,50 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='mysqldoc.css'>
+</head>
+<body>
+<a href='index.html'>Top</a> =&gt; <span class='title'>user_columns&nbsp;&nbsp;&nbsp;</span>Metadata about columns in <a href='user_info.html'>user_info</a>  
+<p/><b>Categories: </b>
+<a href='_Users.html'>Users</a>&nbsp;
+<p/>
+<b>Notes:</b>&nbsp;
+ One row per user information field  
+<p/>
+<table border=0>
+<tr>
+<td><b>Name</b></td>
+<td><b>Type</b></td>
+<td><b>Index</b></td>
+<td><b>Null?</b></td>
+<td><b>Default</b></td>
+<tr valign=top class='row0'>
+<td>name</td>
+<td>varchar(255) </td>
+<td>PK </td>
+<td>No</td>
+<td>''</td>
+<td> field name (column in <a href='user_info.html'>user_info</a>  <br></td>
+<tr valign=top class='row1'>
+<td>type</td>
+<td>varchar(32) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> type of field: string, text, int (number), date (&amp; time), dollars (decimal)  <br></td>
+<tr valign=top class='row0'>
+<td>descr</td>
+<td>varchar(255) </td>
+<td></td>
+<td></td>
+<td>NULL</td>
+<td> short description of field  <br></td>
+<tr valign=top class='row1'>
+<td>magic</td>
+<td>int(11) </td>
+<td></td>
+<td></td>
+<td>'0'</td>
+<td> 0 means normal field, anything else means "magic", i.e. data maintained   automatically by Caucus  <br></td>
+</table>
+</body>
+</html>

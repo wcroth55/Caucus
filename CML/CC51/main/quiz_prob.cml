@@ -1,0 +1,161 @@
+#
+#---quiz_prob.   Quiz creator's view of a problem.
+#
+#   arg(9)  problem key (0 for new)
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/17/06 New file.
+#: CR 02/28/06 Add graphic summary display of actual answers.
+#: CR 10/16/06 Add 'floating' field.
+#-----------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i quiz_prob.cml
+end
+ 
+include $(main)/secure.i org $arg(3)
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set cnum  $arg(3)
+set cname %displayed_conf_name ($(cnum))
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+set query SELECT qkey, type FROM items WHERE id=$arg(4)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set isQuiz $equal ($(type) quiz)
+set problemName $if ($(isQuiz) problem question)
+
+set title Orphaned&nbsp;$(problemName)s
+set query SELECT userid, title FROM quiz WHERE qkey=$(qkey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+set qname $unquote($(title))
+set quid  $(userid)
+
+set pkey $plus (0 $arg(9))
+
+#---Get fields from current problem.
+set title
+set q3 SELECT owner, category, title, text, texttype, floating \
+         FROM quizproblems WHERE pkey=$(pkey) AND deleted=0
+set h3 $sql_query_open ($(q3))
+eval   $sql_query_row  ($(h3))
+eval   $sql_query_close($(h3))
+
+set nxt   $page_save (1 quiz_prob.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # $(title))
+
+include $(main)/head.i $arg(3)  $quote($(title))
+
+include $(main)/body.i $arg(3) onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+set arglist  $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+include $(main)/header.i      quiz  </a><a href="#top">$replace(32 02 $(title))
+
+"<p/>
+"<blockquote>
+"<p/>
+"<table cellspacing=0 cellpadding=0 border=0>
+"<tr valign=top><td>Title:&nbsp;</td>
+"<td><a href="#" 
+"     onClick="confirm('This is $(problemName) $(pkey).'); \
+                     return false;"
+"      ><img $(src_key) border=0 alt="how to link"></a>&nbsp;$(title)</td>
+"<td><span style="margin-left: 10em;">&nbsp;</span></td>
+"<td><a href="quiz_probedit.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)"
+"    >Edit&nbsp;$upper1($(problemName))</a>&nbsp;</td>
+"<td>|&nbsp;<a href="quiz_probscores.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)"
+"   >See&nbsp;scores</a>&nbsp;</td>
+
+"<td>|&nbsp;<a href="quiz_copyprob.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8)+$(pkey)"
+"   >Copy&nbsp;this&nbsp;$(problemName)</a></td>
+
+"<tr><td>Category:&nbsp;</td>
+"<td>$(category)</td>
+
+
+"</table>
+
+"<p/>
+"<form>
+
+#---Show the text of the problem.
+include $(main)/quiz_probtext.i
+
+set td0 $ifthen ($not($(floating)) <td>)
+set td1 $ifthen ($not($(floating)) </td>)
+
+"<table border=0>
+set firstrow 1
+set query SELECT akey, text1, type, text2, answer, points, newrow \
+            FROM quizanswers WHERE pkey=$(pkey) ORDER BY sortorder
+set h $sql_query_open ($(query))
+while $sql_query_row  ($(h))
+   set tdClose
+   if $or ($(firstrow) $(newrow))
+      "<tr valign=top><td></td>
+      "<td class="quizProbRow">
+      set tdClose </td>
+   end
+   elif $not($(floating))
+      "<td class="quizProbRow">
+      set tdClose </td>
+   end
+      
+   set firstrow 0
+   "&nbsp;$(text1)$(td1)
+   if $equal ($(type) number)
+      "$(td0)<input type="text" size="5">&nbsp;$(td1)
+   end
+   elif $equal ($(type) radio)
+      "$(td0)<input type="radio" name="xyz">&nbsp;$(td1)
+   end
+   elif $equal ($(type) tf)
+      "$(td0)<nobr><input type="radio" name="tf">&nbsp;True&nbsp;&nbsp;&nbsp;<input type="radio" name="tf">&nbsp;False&nbsp;&nbsp;&nbsp;</nobr>$(td1)
+   end
+   elif $equal ($(type) check)
+      "$(td0)<input type="checkbox">$(td1)
+   end
+   elif $equal ($(type) text)
+      "$(td0)<input type="text" size="40">$(td1)
+   end
+   elif $equal ($(type) box)
+      "$(td0)<textarea cols=40 rows=4></textarea>$(td1)
+   end
+   else
+      "$(td0)type: $(type)$(td1)
+   end
+   "$(td0)$(text2)&nbsp;
+   "$(tdClose)
+end
+eval  $sql_query_close($(h))
+"</table>
+"</form>
+
+
+#---Graph the entire problem.
+"<p/>
+set q5 SELECT count(DISTINCT userid) FROM quizscore \
+        WHERE pkey=$(pkey) AND status >= 2
+set divisor $sql_query_select($(q5))
+
+"$(divisor) people have answered this $(problemName) so far.&nbsp;
+"The summary results are shown below:
+include $(main)/quiz_graphprob.i $(qkey) $(pkey)
+
+
+"</blockquote>
+
+"</div>
+"</body>
+"</html>

@@ -1,0 +1,152 @@
+#
+#---login.cml      Process cookie-based login from login.html or equivalent.
+#
+#   Invoked as:
+#      http://thedance.net/reg/swebsock/0/0/CC51/main/login.cml
+#
+#   Parameters: may be passed in as <form> values, OR in querystring
+#   (as "?userid=x&password=y&location=z&error=e").
+#      userid    (required)
+#      password  (required)
+#      location  (optional: "[@interface/][conference[/item[/response]]]
+#      error     (optional: URL to return to if userid/password error)
+#      confirm   (optional: confirmation code for users who registered
+#                           with require-valid-email turned on)
+#
+#   Purpose:
+#      In Caucus 4.4, login.cml is where the user first (really) enters
+#      the swebs-generated dynamic Caucus pages.  Login.cml does
+#      several things:
+#
+#         Verify the userid and password.  (If authentication fails, goes
+#         to the supplied "error" page, or goes BACK one if none supplied.)
+#
+#         Make sure cookies are enabled.  (If not, goes to explanatory
+#         'nocookie' page.)
+#
+#         Parse any supplied "location" (i.e. to take user directly to
+#         a specific conference, item, or response, with the optionally
+#         selected interface -- goes via location.cml).
+#
+#   Notes:
+#          
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 06/18/02 new file.
+#: CR 05/06/04 Set $co_priv() values right away!
+#: CR 05/31/04 Set $co_priv() via include file.
+#: CR 01/25/05 Allow auth_method 3, CAUCUSID cookie.
+#: CR 04/24/05 Use location.replace() to prevent IE back key error.
+#: CR 02/16/06 Add confirm parameter and test.
+#---------------------------------------------------------------
+
+#"Content-type: text/plain
+#"
+set http $config(http)
+
+#---Determine initial interface (CML directory) name from URL.
+set iface       $str_sub (0 $str_revdex (/ $cml_dir()) $cml_dir())
+set main        $(iface)/main
+
+#---Set values used to build URLs and other key items.
+include $(main)/switch.i
+set reg         $word (1 $config(reg)  reg)
+set sweb        $(reg)
+set loginurl    $(http)://$host()/$(sweb)/swebsock/$pid()/$(main)
+set img         $(http)://$host()/~$caucus_id()/GIF41
+set icon        $(img)
+set body_bg     BGCOLOR="#FFFFFF"
+set center_name Caucus Center
+
+#---Parse userid, password, location, and error parameters from querystring
+#   or from <form> values.  <form> values have higher priority.
+set querystring $replace (& 32 $arg(1))
+for keyword in userid password location error confirm
+   for parameter in $(querystring)
+      if $equal ($str_index ($(keyword)= $(parameter)) 0)
+         set $(keyword) $url_decode ($word (2 $replace (= 32 $(parameter)) ))
+      end
+   end
+
+   if $not_empty ($form ($(keyword)))
+      set $(keyword) $form ($(keyword))
+   end
+end
+
+#---HTTP header.  Build header, set identity cookie if userid & password
+#   are OK.
+set login_succeeded 10
+"Content-type: text/html
+if $not_equal ($auth_method() 3)
+   if $equal ($pw_verify ($(userid) $(password)) 0)
+      set active $user_info ($(userid) active)
+      if $less ($(active) 10)
+         if $equal (0$(confirm) 0$user_data($(userid) confirm))
+            eval $set_user_info ($(userid) active 10)
+            set   active 10
+         end
+      end
+      if $less ($(active) 10)
+         set login_succeeded 5
+         eval $goodbye()
+      end
+      else
+         "$auth_cookie ($(userid) /$(sweb)/swebsock/)
+         eval $auth_pw ($(password))
+      end
+   end
+   else
+      set login_succeeded 0
+      eval $goodbye()
+   end
+end
+"
+
+#---Display a blank web page to either 
+#    (a) immediately redirect itself to the real caucus session, or
+#    (b) complain about bad userid & password
+#    (c) complain about cookies not enabled.
+"<html>
+"<body bgcolor="#FFFFFF">
+
+"<script type="text/javascript" language="javascript">
+
+if $less ($(login_succeeded) 10)
+   if   $equal ($(login_succeeded) 5)
+      "confirm ('Userid not activated.  Please see your email.');
+   end
+   elif $equal ($(login_succeeded) 0)
+      "confirm ('Invalid userid or password.');
+   end
+   if $not_empty ($(error))
+      "location.href = '$(error)';
+   end
+   else
+      "history.back();
+   end
+end
+
+else
+   #---Cookies not enabled, go to nocookie page to tell user what s/he can do.
+   "if (document.cookie == null  ||  document.cookie.length == 0)
+   "   location.href = '/~$caucus_id()/nocookie.html';
+
+   "else {
+       if $empty ($(location))
+          "location.href = '$(loginurl)/center.cml?0+0+x+x+x+x+x+x';
+       end
+       else
+#         "location.href = '$(loginurl)/location.cml?0+0+x+x+x+x+x+x';
+          "location.replace ('$(loginurl)/location.cml?0+0+x+x+x+x+x+x');
+       end
+"   }
+end
+"</script>
+
+"</div>
+"</body>
+"</html>
+
+#-------------------------------------------------------------------------

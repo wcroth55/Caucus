@@ -1,0 +1,202 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide 4.24: Authentication and Authorisation</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH="90%">
+<TR VALIGN=top>
+<TD><H2>Chapter 4.24:&nbsp; Authentication and Authorisation</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+   [<A HREF="ref4.html">UP</A>]
+   [<A HREF="ref423.html">PREV</A>]
+   [<A HREF="ref425.html">NEXT</A>]
+</TD>
+</TABLE>
+
+<P>
+Caucus 4.4 and 4.6 expanded the possibilies for how to do
+user authentication and authorisation.&nbsp;
+"Authentication" is the way that the user provides his or
+her identity (userid and password) to the Caucus software.&nbsp;
+"Authorisation" is the way that Caucus verifies the user
+is really who they say they are (validate userid and password
+against a known source of information).
+<p>
+There are basically three methods for handling authentication:
+<ol>
+<li><b>Web-server basic authentication</b>.&nbsp;
+This is the original Caucus method, in which
+authentication is done entirely by the web server.
+<p>
+The Caucus pages are run from a "protected" directory, 
+which means that the web server insists that a user be 
+authorised before they can see those pages.&nbsp;
+The server sends an authentication request to the browser,
+which pops up a (built-in) userid and password dialog box.&nbsp;
+The userid and password are sent back to the server via
+environment variables, and the server then compares them to
+its authorisation source (typically a 'passwd' file).
+<p>
+If the user is authorised, then the server displays the pages.&nbsp;
+The browser caches the userid and password, and sends them along
+with every request for a page in the protected directory.
+
+<p>
+<li><b>Cookie-based Caucus authentication</b>.&nbsp;
+This is new in Caucus 4.4.
+<p>
+In this method, the user arrives at a Caucus 'login' page,
+which prompts for userid and password.&nbsp;
+Caucus checks the values against its authorisation source,
+currently via the function 
+<a href="ref421.html#pw_verify">$pw_verify()</a>,
+and if they pass, it sends a cookie to the browser that
+identifies the user as authorised for the duration of this
+Caucus session.
+<p>
+All subsequent requests for Caucus pages send the cookie
+to the server, which ensures that the userid is constant
+throughout the session.&nbsp;
+<p>
+Note that Caucus cookies are kept (only) in the browser's
+memory, they are <b>not</b> written to the user's hard
+drive.&nbsp;
+(For more information about cookies, see
+<a href="http://wp.netscape.com/newsref/std/cookie_spec.html"
+   >wp.netscape.com/newsref/std/cookie_spec.html</a>.)
+
+<p/>
+<li><b>External cookie-based authentication.</b>&nbsp;
+This is new in Caucus 4.6.
+<p/>
+In this method, it is assumed that some other application has 
+<b>already</b> gone through the authentication and authorisation
+process.&nbsp;
+But that other application needs to pass the authenticated userid
+on to Caucus, in a way that cannot be spoofed.&nbsp;
+Here's how it works:
+<p/>
+<ol type="a">
+<li>The original application computes the MD5 hash of 
+the string "<i>userid</i>,<i>secret</i>", where <i>userid</i>
+is the authenticated userid, and <i>secret</i> is some secret
+word.
+<p/>
+<li>The original application writes a cookie called CAUCUSID,
+with the value "<i>userid</i>+<i>hash</i>", 
+where <i>hash</i> is the 32 character
+hexadecimal encoding of the MD5 hash from the previous step.
+<p/>
+<li>The Caucus configuration file swebd.conf contains the 
+parameter setting:
+<pre>
+   Auth3Tag  <i>secret</i>
+</pre>
+
+<p/>
+<li>The original application directs the user's browser to
+a URL of the form
+<pre>
+   http://localhost/sweb/swebsock/0/0/CC44/main/center.cml?0+0+x+x+x+x+x+x
+</pre>
+(See the caucus.html file to determine the precise URL, except that
+the above link must terminate in "center.cml" as shown.)
+<p/>
+<li>Caucus decodes the userid from the CAUCUSID cookie, and
+does its own calculation of the MD5 hash, to ensure that the
+userid has not been spoofed.
+</ol>
+<p/>
+Note that you may completely disable this method by providing 
+an Auth3Tag without a value, in swebd.conf.
+
+</ol>
+
+<p>
+In all three methods, when a user is authorised, their userid is
+provided by the $userid() function (inside a CML page).
+
+<p>
+The rest of this page describes the functions that are used
+to provide and extend cookie-based authentication.
+
+
+<DL>
+
+<p>
+<dt><a name="auth_method">$auth_method()</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<dd>Evaluates to a number that indicates the authentication method
+currently in use (as described above):
+<ul>
+0 = None (not authorised)<br>
+1 = Basic authentication (http_remote_user)<br>
+2 = Session-cookie based authentication<br>
+3 = External application CAUCUSID cookie<br>
+4 = No supplied userid, "<guest>" login (leading G in pid code in URL).
+</ul>
+
+<P><DT><A NAME="auth_cookie">$auth_cookie (userid [path])</A> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<dd>For authentication method 2 <b>only</b>.&nbsp;
+Once the user has passed the 'login' page described above,
+use $auth_cookie() to generate the proper cookie(s) and send
+them to the browser.&nbsp;
+<p>
+The call to $auth_cookie() should follow a "Location:" or
+"Content-type" HTTP header directive, but should appear 
+before the blank line that signals the end of the directive.
+<p>
+<i>Userid</i> is the user's userid.&nbsp;
+<i>Path</i> is the URL directory path for which the cookie
+applies; a typical value would be the string 
+"/$(sweb)/swebsock", which means the cookie is good
+for any page in Caucus, regardless of interface directory.
+<p>
+<b>Note:</b> you should also call $auth_cookie <i>without arguments</i>
+to "log out" -- it sets the Caucus cookies to appropriate "garbage"
+values that un-authenticate, so to speak, the user.&nbsp;
+Do this (the "logout") for <b>both</b> authentication method 2 <b>and</b>
+method 3.
+
+<p>
+<dt><a name="auth_pw">$auth_pw ([password])</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B><A 
+   HREF="ref402.html#protect">{protected}</A></B>
+<dd>For authentication method 2 <b>only</b>.&nbsp;
+$auth_pw() provides a way to save and retrieve the user's
+   password for future use, such as implementing "single-signon"
+   with another web tool from inside Caucus.
+<p>
+Call $auth_pw (password) to save the user's <i>password</i>
+immediately after verifying (authorising) it.&nbsp;
+This stores the password in the server's memory, but not on disk,
+and in a way that is not accessible by Caucus users (even if they
+are allowed to put CML text in their items and responses).
+<p>
+Call $auth_pw() (without an argument) to get the saved password
+(as the value of the function).&nbsp;
+
+
+
+
+
+
+
+</DL>
+</BLOCKQUOTE>
+<P>
+<HR>
+</BODY>
+</HTML>

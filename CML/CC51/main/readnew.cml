@@ -1,0 +1,81 @@
+#
+#---READNEW.CML.   Read all new material in all confs in pers conf list.
+#
+#   arg(2)  page_save index of page to return to.
+#   arg(3)  1 => only scan thru "course" conferences.
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR 11/28/05 Add arg(3) for course conferences.
+#------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i readnew.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch $unique()
+
+set vi_markseen 1
+
+#---Come up with an ILIST var for the list of all new stuff.
+set ilist $plusmod ($(ilist) 1 $(ilistmax))
+
+#---For each qualifying conference, add the entries to the ilist.
+set ilist$(ilist)   
+
+set q0  SELECT a.name, a.cnum, o.alpha FROM 
+set q1 (SELECT c.name, c.cnum FROM (confs c, groups g) \
+         LEFT JOIN confhidden h \
+           ON (h.userid = '$userid()' AND  g.name = h.cnum) \
+        WHERE  g.userid = '$userid()' AND  g.active > 0  AND g.access >= $priv(minimum) \
+          AND  g.owner = 'CONF'  AND  c.cnum = g.name \
+          AND  c.deleted = 0 \
+          AND  h.hidden IS NULL) a 
+set q2 LEFT JOIN conforder o \
+       ON (o.userid = '$userid()'  AND o.cnum = a.cnum)
+
+if $equal (x$arg(3) x1)
+   set query $(q0) (site_data s, $(q1)) $(q2) \
+          WHERE a.cnum = s.cnum AND s.name='ConfType' AND s.value='Course' \
+          ORDER BY ifnull(o.alpha, a.name)
+end
+else
+   set query $(q0) $(q1) $(q2) ORDER BY ifnull(o.alpha, a.name)
+end
+
+set hnew $sql_query_open ($(query))
+#"Content-type: text/plain
+#"
+#"query=$(query)
+#"hnew=$(hnew)
+while $sql_query_row  ($(hnew))
+
+   include $(main)/confpartic.i $(cnum)
+
+   include $(main)/itemListOf.i $(cnum) $userid() new 0 0 0 
+
+   set ilist$(ilist) $(ilist$(ilist)) $(itemList)
+end
+eval $sql_query_close($(hnew))
+set ilist$(ilist) $(ilist$(ilist))  $arg(2)
+
+
+if $empty ($word (2 $(ilist$(ilist))))
+   "%location($(mainurl)/center.cml?$(nch)+x+x+x+x+x+x)
+   "
+   return
+end
+
+set cn $word (1 $(ilist$(ilist)))
+set in $word (2 $(ilist$(ilist)))
+set rn $word (3 $(ilist$(ilist)))
+
+"%location($(mainurl)/viewitem.cml?$(nch)+$arg(2)+\
+           $(cn)+$(in)+$(rn)+x+1+ilist$(ilist)#here)
+#---------------------------------------------------------------

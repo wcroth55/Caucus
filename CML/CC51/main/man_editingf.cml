@@ -1,0 +1,42 @@
+#
+#---man_editingf.cml.   Process form results of man_editingf.cml
+#
+#   arg(4) directory name
+#   arg(5) file name
+#   arg(6) base dir name (e.g. "main")
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/09/03 New file.
+#--------------------------------------------------------------------------
+
+#"Content-type: text/plain
+#"
+set nch $unique()
+
+if $equal ($form(submit) Cancel)
+   "Location: $(mainurl)/man_editcml.cml?$(nch)+$arg(2)+x
+   "
+   quit
+end
+
+set basedir $word (3 $form(submit))
+
+if $not ($exists ($caucus_path()/CML/$(iface)/$(basedir)))
+   eval $xshell (1 1 1 mkdir     $caucus_path()/CML/$(iface)/$(basedir); \
+                       chmod 755 $caucus_path()/CML/$(iface)/$(basedir) )
+end
+   
+#"basedir=$(basedir)
+set filename $form(savein$(basedir))
+#"filename=$(filename)
+set fd $open ($caucus_path()/CML/$(iface)/$(basedir)/$(filename) w)
+#"fd=$(fd)
+eval $writeln ($(fd) $form(filetext))
+eval $close   ($(fd))
+
+"Location: $(mainurl)/man_editcml.cml?$(nch)+$arg(2)+x
+"
+#--------------------------------------------------------------------------

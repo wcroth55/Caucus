@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>CML Reference Guide 4.8: Conference List</title>
+
+
+  <link rel="stylesheet" type="text/css" href="cml.css">
+
+</head>
+
+
+<body style="background-color: rgb(255, 255, 255);">
+
+<center>
+<h2>CML Reference Guide</h2>
+
+</center>
+
+<blockquote>
+  <table cellpadding="0" cellspacing="0" width="90%">
+
+    <tbody>
+
+      <tr valign="top">
+
+        <td>
+        <h2>Chapter 4.8:&nbsp; Conference List Information</h2>
+
+        </td>
+
+        <td align="right"> [<a href="index.html">TOP</a>]
+[<a href="ref4.html">UP</a>] [<a href="ref407.html">PREV</a>] [<a href="ref409.html">NEXT</a>]
+        </td>
+
+      </tr>
+
+    </tbody>
+  </table>
+
+  <p>There is a family of functions that provide basic
+information
+about conferences.&nbsp; All of these functions begin with "$cl_",
+to indicate that they refer to information about a list of conferences
+("cl", as in <b>c</b>onference <b>l</b>ist). </p>
+
+  <p>
+  </p>
+  <dl>
+
+    <p></p>
+
+    <dt><a name="cl_list">$cl_list(names)</a> </dt>
+
+    <dd>Evaluates to a list of conference numbers.&nbsp; If <i>names</i>
+is
+empty (i.e., nothing), $cl_list() evaluates to the list of all
+conferences on the host that are accessible to the current user.&nbsp; If <i>names</i>
+contains one or more
+words, $cl_list() evaluates to the list of conferences that match
+any of the words in <i>names</i> (that are accessible to the current user). &nbsp;Example:
+      <p> <tt>for cnum in <b>$cl_list(</b>web
+x<b>)</b></tt> </p>
+
+      <p>$cl_list() becomes the list of all conferences whose
+names start
+with "web" or with "x".&nbsp; (The "for"
+loop thus sets <tt>cnum</tt>
+to each such conference number in turn.) </p>
+The list of conference numbers is sorted, not by number,
+but by the name of each conference, regardless of the order of
+the arguments to $cl_list(). &nbsp;Sorting is independent of
+upper/lower case, i.e. they are sorted as if all the conference names
+were in lower case.
+
+      <p></p>
+
+    </dd>
+
+    <dt><a name="cl_num">$cl_num(name)</a> </dt>
+
+    <dd>Evaluates to the number of the conference whose name
+matches <i>name</i>.&nbsp;
+If there is an exact match, returns that number. &nbsp;If there are
+"substring" matches (e.g. $cl_num(abc) matches "abcdef"), one of the
+matches is arbitrarily selected. &nbsp;The current user must have
+access to the conference in order to "see" it.
+      <p></p>
+
+    </dd>
+
+    <dt><a name="cl_name">$cl_name(num)</a> </dt>
+
+    <dd>Evaluates to the name of conference number <i>num</i>.&nbsp;
+Note that the name may be in mixed case!
+      <p></p>
+
+    </dd>
+
+  </dl>
+
+</blockquote>
+
+<p>
+</p>
+
+<hr>
+</body>
+</html>

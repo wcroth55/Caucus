@@ -1,0 +1,80 @@
+#
+#---H_PER_ENGRP.I    Help about "Personal Edit E-mail Notification group"
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+
+include $(help)/ht.i h_per_engrp.cml $quote(Help on Personal Edit \
+         E-mai Notification)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"An e-mail notification group is a schedule (a set of days and times)
+"and a list of items.&nbsp;
+"On the scheduled days and times, you will get a summary, 
+"via e-mail, of
+"the new (to you) activity in the items in the list.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on a conference name.&nbsp;
+"Underneath the list of items, click on the "you may request
+"<U>e-mail notification</U>" link.&nbsp;
+"From there, click on the specific item notification group
+"that you want to edit.
+
+
+"<P>
+"<B>What Can I Do From There?</B><BR>
+"From the 'Edit Personal E-mail Notification' page, you can set or change both the
+"schedule and the list of items for this group.&nbsp;
+"(Or, if you created the group,  you can delete it entirely.)
+
+"<P>
+"This page takes you through the process of creating or changing a
+"group in five numbered steps:
+
+"<P>
+"<OL>
+"<LI>Choose the days to send e-mail.&nbsp;
+"You must pick either days of the month, <B>or</B> days of the week,
+"but <B>not both</B>.&nbsp;
+"The e-mail notifications will be sent on those days.
+
+"<P>
+"<LI>Choose the hour(s) of the day to send the e-mail notices.&nbsp;
+"You may select as many hours as you like; e-mail will be sent at
+"<B>each</B> selected hour of the selected days.&nbsp;
+"(In most cases, you'll only want to choose one hour per day.)
+"<P>
+"The e-mails will be sent sometime between that hour and the next.&nbsp;
+"(For example, if you click on 8 a.m., the e-mails will be sent sometime
+"during that hour, i.e. between 8 a.m. and 9 a.m.)&nbsp;
+"Caucus uses the state of the conference (and you've read)
+"<B>at that time</B> to decide whether or not to
+"send an e-mail, and what information to include in it.
+
+"<P>
+"<LI>Select the items for this group by checking the boxes next to the
+"appropriate items.&nbsp;
+"This is pretty straight-forward.
+
+"<P>
+"<LI>If new items are added to the conference, you may want them
+"automatically included in your group, without having to go and edit
+"the group every time.&nbsp;
+"That's what this box is for; if checked, new items are automatically
+"added to this group, regardless of who created the item or when.
+
+"<P>
+"<LI>Finally, use <B>Submit</B> to create this group (if new) 
+"or to actually make your changes (if the group already existed).&nbsp;
+"<B>Cancel</B> goes back to the previous page <B>without</B>
+"creating the group or making any changes.
+"</OL>
+include $(help)/hb.i
+
+
+

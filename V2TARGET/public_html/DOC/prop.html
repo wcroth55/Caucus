@@ -1,0 +1,88 @@
+<HTML>
+<HEAD>
+<TITLE>CML Reference Guide Appendix: Property Numbers</TITLE>
+<link rel="stylesheet" type="text/css" href="cml.css">
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<CENTER>
+<H2>CML Reference Guide</H2>
+</CENTER>
+
+<BLOCKQUOTE>
+<TABLE CELLSPACING=0 CELLPADDING=0 WIDTH=90%>
+<TR VALIGN=top>
+<TD><H2>CML Reference Guide Appendix: Property Numbers</H2></TD>
+<TD ALIGN=right>
+   [<A HREF="index.html">TOP</A>]
+</TD>
+</TABLE>
+
+
+<P>
+Several CML functions use "text property numbers" as a way to
+record the "type" of text in an item or response, or some other
+control information about that item or response.&nbsp;
+These functions include
+<A HREF="ref414.html#re_prop">$re_prop()</A>, 
+<A HREF="ref414.html#re_bits">$re_bits()</A>.
+
+<P>
+While the meaning of specific property numbers or bits is not
+explicitly tied to the CML functions, there is a convention for
+the use of these numbers in the Caucus 4.x interface.&nbsp;
+If you wish to reserve property values for your own customized
+application, please contact CaucusCare, so that we may reserve
+some bits for you, and avoid conflicts with them in future releases.
+
+<P>
+Property numbers (aka property bits) are stored as a single 16-bit
+number, as part of the data that makes up an item or response.&nbsp;
+
+<P>
+The function <A HREF="ref414.html#re_prop">$re_prop()</A> returns
+the low-order 
+4 bits of this number
+(bits 0-3, right-endian),
+values 0 through 0x0F, 
+for a particular item or response.&nbsp;
+Currently, the following values are assigned specific meanings:
+<P>
+<UL>
+<TABLE>
+<TR><TH>value&nbsp;&nbsp;</TH> <TH>means response text is</TH>
+<TR><TD ALIGN=center>0</TD>  <TD>word-wrapped</TD>
+<TR><TD ALIGN=center>1</TD>  <TD>literal</TD>
+<TR><TD ALIGN=center>2</TD>  <TD>HTML</TD>
+<TR><TD ALIGN=center>3</TD>  <TD>CML</TD>
+</TABLE>
+</UL>
+
+<P>
+The function <A HREF="ref414.html#re_bits">$re_bits()</A> returns the
+high-order 12 bits of the item/response property number.&nbsp;
+These bits have assigned meanings that are independent
+of each other.&nbsp;  Use the <A HREF="ref406.html#bit_and">$bit_and()</A>
+function to test individual bits.
+<P>
+<UL>
+<TABLE>
+<TR><TH>bit&nbsp;</TD> <TH>value&nbsp;</TH> <TH ALIGN=left>means</TH>
+<TR><TD ALIGN=center>4</TD> <TD>0x10</TD>
+<TD>response was written by an organizer</TD>
+<TR><TD ALIGN=center>5</TD><TD>0x20</TD>
+<TD>if on for response 0, item allows anonymous responses</TD>
+</TABLE>
+</UL>
+</BLOCKQUOTE>
+
+
+
+<P>
+
+
+<P>
+<HR>
+</BODY>
+</HTML>

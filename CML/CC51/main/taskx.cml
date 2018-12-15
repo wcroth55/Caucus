@@ -1,0 +1,191 @@
+#
+#---taskx.cml    View individual task page.
+#
+#   Argument usage: $arg(n)
+#   1  cache defeater
+#   2  'calling' page
+#   3  conf num
+#   ... usual
+#   9  task-key
+#   
+# Notes:
+#   3. Clone task?
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 03/04/05 New file.
+#: CR 10/05/05 Major revamp of form submission for C5.
+#: CR 10/28/08 Use new $priv() function for privilege levels.
+#------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i taskx.cml
+end
+ 
+include $(main)/secure.i open
+include $(main)/requiredinfo.i
+
+set nch     $unique()
+set cnum    $arg(3)
+set cname   %displayed_conf_name ($(cnum))
+set arglist $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)
+
+set thekey $word (1 $arg(9) 0)
+
+#---Get info on this task.
+set tkey 0
+set tid  0
+set title (New Task)
+set lead 
+set assigner 
+set tgroup
+set towner
+set target
+set priority
+set category
+set status
+set updated
+set text
+set texttype  html
+set query SELECT tkey, tid, title, lead, assigner, tgroup, towner, target, \
+                 priority, category, status, updated, text, \
+                 texttype \
+            FROM tasks WHERE tkey = $(thekey)
+set h $sql_query_open ($(query))
+eval  $sql_query_row  ($(h))
+eval  $sql_query_close($(h))
+if $and ($not_empty ($(tgroup)) $empty($(towner)))
+   set towner Caucus4
+end
+
+
+#---Make sure user has access to this task (to prevent arg(9) spoofing).
+set access  $if ($or ($equal (x$userid() x$(lead)) \
+                      $equal (x$userid() x$(assigner))) $priv(organizer) 0)
+if $not ($(access))
+   set access $group_access ($userid() $(towner) $(tgroup))
+end
+set display $gt_equal ($(access) $priv(readonly))
+if $not ($(display))
+   "%location($(mainurl)/tasks.cml?$(nch)+$arg(2)+$arg(3)+$arg(4)+$arg(5)+\
+                                          $arg(6)+$arg(7)+$arg(8))
+   "
+   quit
+end
+
+#========================================================================
+#---Build page name & begin display.
+
+set tname  $upper1($(tasks_name))
+set pname  $(tname): $(title)
+set pagename <span class="pageTitle"><B>$(pname)</B></span><BR>
+
+set nxt   $page_save (1 taskx.cml $(arglist)+$(thekey) # $(tname))
+
+
+#---Header
+include $(main)/head.i $arg(3)  $quote($(tname)) 0 0 1
+include $(main)/body.i $arg(3) onUnload="pop_close('all','');"
+include $(main)/header.i  tasks </a><a href="tasks.cml?$(nch)+$(arglist)"\
+    >$(tname)s</a>&nbsp;$(compass_arrow)&nbsp;<a href="#top">$quote($(title))
+
+"<script src="/~$caucus_id()/popover.js"></script>
+
+#========================================================================
+
+"<p/>
+"<table cellspacing=0 cellpadding=0 width="100%" border=0>
+"<tr valign=top>
+"<td><table border=0>
+
+   "<tr>
+   "<td>Category:</td>  
+   "<td>$unquote($sql_query_select (SELECT catname FROM task_cats \
+                            WHERE category = $(category)))</td>
+   
+   "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+   "<td>Target Date:&nbsp;</td>
+   "<td>%monthDayYear($(target))</td>
+   
+   "<tr>
+   "<td>Title:</td>
+   "<td>$(title)</td>
+   
+   "<td></td>
+   "<td>Priority:</td>
+   "<td>%taskPriority($(priority))</td>
+   
+   "<tr>
+   "<td>Lead:</td>
+   "<td>%person($(lead))</td>
+   
+   "<td></td>
+   "<td>Status:</td>
+   "<td>$(status)</td>
+   
+   "<tr>
+   "<td>Assigner:&nbsp;</td>
+   "<td>%person($(assigner))</td>
+   
+   "<td></td>
+   "<td>Group:</td>
+   "<td>
+      include $(main)/task_group.i $(towner) $(tgroup)
+   "</td>
+   
+   "<tr><td>&nbsp;</td>
+   "<tr>
+   "<td>Item Links:</td>
+   "<td colspan=6
+         set query SELECT cnum ci, inum ii, rnum ri FROM task_links \
+                    WHERE tid = $(tid)   ORDER BY ci, ii, ri
+         set h2 $sql_query_open ($(query))
+         set ci0 0
+         while  $sql_query_row  ($(h2))
+            if $not_equal ($(ci0) $(ci))
+               ">$ifthen($(ci0) $(whitespace) )<nobr><a 
+               "  href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x#here"
+               "   >%displayed_conf_name($(ci)) 
+               "   $item_label($(ci) $(ii)):$(ri)</a>&nbsp;<a 
+               " href="taskdelink.cml?$(nch)+$(nxt)+$(tid)+$(ci)+$(ii)+$(ri)"
+               "   ><img $(src_trash2) border=0></a></nobr
+               set ci0 $(ci)
+            end
+            else
+               ">, <a href="viewitem.cml?$(nch)+$(nxt)+$(ci)+$(ii)+$(ri)+x+x+x"
+               "    >$item_label($(ci) $(ii)):$(ri)</a>&nbsp;<a 
+               "      href="taskdelink.cml?$(nch)+$(nxt)+$(tid)+$(ci)+$(ii)+$(ri)"
+               "    ><img $(src_trash2) border=0></a
+            end
+         end
+         eval   $sql_query_close($(h2))
+         "$ifthen ($(ci0) >)
+   "</td>
+   
+   "<tr><td>&nbsp;</td>
+   "<tr valign=top>
+   "<td>Description:</td>
+   
+   "</table>
+"</td>
+
+if $gt_equal ($(access) $priv(include))
+   "<td align=right><span class="response_actionbar"><nobr
+   "   ><a href="taskdel.cml?$(nch)+$(arglist)+$(tid)"
+   "       onClick="return confirm('OK to delete this task?');">Delete</a> | 
+   "    <a href="taske.cml?$(nch)+$(arglist)+$(thekey)">Edit</a
+   "   >&nbsp;&nbsp;&nbsp;&nbsp;</nobr></span></td>
+end
+
+"</table>
+
+"<blockquote>
+"$(text)
+"</blockquote>
+
+"$errors()
+"</div>
+"</body>
+"</html>

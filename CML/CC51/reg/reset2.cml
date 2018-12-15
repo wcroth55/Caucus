@@ -1,0 +1,239 @@
+#
+#   RESET.CML     2nd step in resetting a user's password.
+#
+#   Invoked as:
+#      reset2.cml?code
+#
+#   Arguments:
+#      code     random number selected by reset.cml
+#
+#   Purpose:
+#      2nd step in resetting forgotten/lost password.
+#      Displays change that actually allows user to change password --
+#      then takes them straight into Caucus.
+#
+#   How it works
+#      Looks up SOCKET file encoded with random number by reset.cml,
+#      verifies that this is proper, and not too dated (>48 hours).
+#      If successful, reads userid from SOCKET file, displays page
+#      prompting user for new password (and confirmation).
+#
+#      Acts as its own form handling code as well, to process password
+#      change, and forward user on to Caucus Center.
+#
+#   Notes:
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 02/19/03 New script.
+#: CR 10/13/04 Use CSS.
+#==========================================================================
+
+#---Determine iface (interface) dir, and location of "main" interface area.
+set iface   $str_sub (0 $str_revdex (/ $cml_dir()) $cml_dir())
+set regis   $cml_dir()
+set main    $(iface)/main
+
+include $(main)/switch.i
+
+#---Set sweb and reg, aliases for web server password & non-password
+#   Caucus environments.
+set sweb  sweb
+set reg   reg
+if $empty ($config())
+   set sweb $word (1 $config(sweb) $(sweb))
+   set reg  $word (1 $config(reg)  $(reg))
+end
+
+set dir    $cml_dir()
+
+set goodbye_url $word (1 $site_data (0 - if_$(iface)_quiturl) \
+                         $site_data (0 - SWgoodbye_url) \
+                         http://$host()/~$caucus_id()/caucus.html)
+
+#---Define any needed macros
+#     %leave(url)  terminate caucus process and goto URL
+eval $mac_define (leave leave.cml?@@)
+eval $mac_define (per_name  \$user_info (@1 fname) \$user_info (@1 lname))
+
+#---HREF:  handy shortcut for CML href's everywhere.
+set href   $(http)://$host()/$(reg)/swebsock/$pid()/$(dir)
+set img    $(http)://$host()/~$caucus_id()/GIF50
+set icon   $(img)
+set body_bg BGCOLOR="#FFFFFF"
+set center_name Caucus Center
+
+
+#---If we somehow got here without a real userid, this file has been
+#   installed incorrectly.
+if $not_empty ($http_remote_user())
+   set error <b>System Error:</b> \
+      This file, reset2.cml, has been installed improperly.&nbsp;\
+      The current userid appears to be $userid(), yet there should \
+      not <b>be</b> a current userid!  <p>\
+      Please inform the Caucus manager.
+end
+
+#---If we somehow got here but can't reset passwords, complain and quit.
+if $not ($pw_can_reset())
+   set error $(error)<p><b>Cannot Reset Passwords</b>:<P>\
+      The Caucus manager has turned off the ability to reset \
+      passwords.&nbsp;<P>\
+      Please contact the manager of this host for more information.
+end
+
+#---Handle form submission (i.e. after user has entered new password):
+if $not_empty ($form(submit))
+   if $empty ($form(password))
+      set error $(error)<p><b>No password was entered.</b>&nbsp; \
+                Please try again.
+   end
+
+   elif $not_equal (x$form(password) x$form(confirm))
+      set error $(error)<p><b>Passwords do not match.</b>&nbsp;  \
+                Please try again.
+   end
+
+   elif $not ($pw_can_reset ($user_data ($(codeid) auth_source)))
+      set error $(error)<p><B>Sorry!</B>&nbsp; The password for userid \
+                <b>$form(userid)</b> cannot be reset.
+   end
+
+   #---OK, change the password!
+   else
+      set rc $pw_change ($(codeid) $form(password))
+
+      if $equal ($(rc) 0)
+         #---Log user directly into Caucus.
+         "Location: $(http)://$host()/$(reg)/swebsock/$pid()/$(main)/login.cml\
+                    ?userid=$(codeid)&password=$form(password)
+         "
+         quit
+      end
+      else
+         set error $(error)<p>Cannot change password: system error code $(rc).
+      end
+      
+   end
+end
+
+
+#---Handle initial display of form, where user gets to set their password.
+"Content-type: text/html
+"
+"<html>
+"<head>
+
+#---css user & site (interface) properties
+set css_font  $site_data (0 - if_$(iface)_css_font)
+set css_size  $site_data (0 - if_$(iface)_css_size)
+set css_file  $site_data (0 - if_$(iface)_css_file)
+set ucss_font $user_data ($userid() cssfont)
+set ucss_size $user_data ($userid() csssize)
+include $(main)/browser_detection.i
+include $(main)/css.i
+
+"<TITLE>Change your password</TITLE>
+
+"<script language="javascript">
+"   function setfocus() {
+"      if (document.reset.password != null)  document.reset.password.focus();
+"      return;
+"   }
+"</script>
+
+"</HEAD>
+
+"<BODY $(body_bg) onLoad="setfocus();">
+"<blockquote>
+
+"<table CELLSPACING=0 CELLPADDING=0 WIDTH="90%" border=0>
+"<TR>
+"<TD><H2>Change Your Password</H2></TD>
+"<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+"<TD ALIGN=RIGHT>
+"   <A HREF="http://www.caucuscare.com" TARGET="_blank"><IMG
+"       SRC="$(icon)/lcaucus0.gif"  ALT="Caucus"
+"       WIDTH=148 HEIGHT=40 border=0
+"      ></A><A HREF="$(href)/goodbye.cml"><IMG
+"           SRC="$(icon)/bred1quit.gif"
+"           ALT="Quit" border=0></A>
+"</TD></TR>
+"</table>
+"<p>
+
+
+#---OK, get data from SOCKET file.
+set  codefile $caucus_path()/SOCKET/pw.$caucus_id().$arg(1)
+if $exists ($(codefile))
+   set   codedata $readfile ($(codefile))
+   eval $delfile ($(codefile))
+   set   codeid   $word (1 $(codedata))
+   set   codetime $word (2 $(codedata))
+end
+
+"<form METHOD=POST ACTION="$(href)/reset2.cml?$arg(1)" NAME=reset>
+
+#---Display any error messages from above.
+"$(error)
+"<p>
+
+#---No userid.
+if $empty ($(codeid))
+   "I'm sorry, this is not a valid change password request.
+   "<p>
+   "Please return to the
+   "<a href="$(goodbye_url)">Caucus login page</a> and try again.&nbsp;
+   "Make sure that you read and use your password-change e-mail within
+   "48 hours.
+   eval $goodbye()
+end
+
+#---Waited too long to change password.
+elif $greater ($minus ($time() $(codetime)) $mult (48 3600))
+   "I'm sorry, too much time has elapsed since you requested
+   "changing your password.
+   "<p>
+   "Please return to the
+   "<a href="$(goodbye_url)">Caucus login page</a> and try again.&nbsp;
+   "Make sure that you read and use your password-change e-mail within
+   "48 hours.
+   eval $goodbye()
+end
+  
+#---Ask for new password(s).
+else
+   "Welcome, %per_name ($(codeid)).
+   "<p>
+   "You may now change your password to whatever you like.
+   "<p>
+   "<table cellspacing=0 cellpadding=0>
+   "<tr>
+   "<td>Enter new password:&nbsp;</td>
+   "<td><input type="password" name="password" size=10></td>
+   "<tr><td> </td>
+   "<tr>
+   "<td>Enter it again:</td>
+   "<td><input type="password" name="confirm"  size=10></td>
+   "<tr><td> </td>
+   "<tr><td></td>
+   "<td><input type="submit" name="submit" value="Change Password"></td>
+   "</table>
+ end
+  
+"</form>
+  
+"</blockquote>
+
+include $(main)/errors.i
+"<HR>
+
+"</BODY>
+"</HTML>
+
+#---Clear error message text after all display is done!
+set error
+
+#---------------------------------------------------------------------

@@ -1,0 +1,47 @@
+#
+#---blogController.cml  
+
+set main CC51/main
+set http http
+include $(main)/switch2.i
+include $(main)/macros.i
+
+set blogItemquery \
+    SELECT h.cnum, h.items_id, i.title \
+      FROM conf_has_items h, items i, confs c \
+     WHERE i.type IN ('modblog', 'freeblog') \
+       AND h.items_id = i.id AND h.deleted=0 \
+       AND c.cnum = h.cnum  AND h.item1=0 \
+      ORDER BY h.item0, h.item1
+
+set h1 $sql_query_open($(blogItemquery))
+while $sql_query_row ($(h1))
+   "$(cnum):$(items_id) $(item1)
+   set targetDir $site_data($(cnum) - blogTargetDir)/$replace(32 _ $(title))
+   eval $mkdir($(targetDir))
+
+   set parent $(items_id)
+   set blogName $(title)
+
+   set entryQuery \
+       SELECT DISTINCT i.id \
+         FROM conf_has_items h, items i, resps r \
+        WHERE h.items_id = i.id \
+          AND h.items_parent = $(parent) \
+          AND h.items_id = r.items_id AND r.rnum = 0 \
+          AND r.approved = 1 \
+        ORDER BY h.item1 DESC
+   set entries $sql_query_select ($(entryQuery))
+   "entries=$(entries)
+
+   #---write index.html for top 4 entries
+   set items $words(1 4 $(entries))
+   include $(main)/blogEntryCreate.i $(targetDir) index.html $quote($(blogName)) $(cnum) $(parent) \
+                      $quote($(items)) $quote($(entries))
+   #---write individual file for each entry
+   for entry in $(entries)
+      include $(main)/blogEntryCreate.i $(targetDir) $(entry).html $quote($(blogName)) \
+                         $(cnum) $(parent) $(entry) $quote($(entries) )
+   end
+end
+eval  $sql_query_close($(h1))

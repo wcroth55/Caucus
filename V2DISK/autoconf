@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+#---autoconf:   Take a snapshot of a conference...
+#
+#   Invoked: from autocsnap, every 5 minutes
+#
+#   Arguments:
+#      $1     target directory (where to put snapshot)
+#      $2     minutes (frequency, e.g. 10 => every 10 minutes)
+#      $3     Caucus interface name
+#      $4     calling script start time (minutes)
+#      $5...  conference list
+#
+#   Purpose:
+#
+#   How it works:
+#      Workhorse script.  Do not edit; see autocsnap instead.
+#
+#      Assumes CSNAP44.
+#
+#   Known bugs:
+#
+#   History of revisions:
+#: CR 12/17/02 First version.
+#: CR  7/23/03 Replace whoami with $LOGNAME.
+#: CR 10/12/05 C5 changes.
+#----------------------------------------------------------------------
+
+#---Check the modulus of the calling script start time, against the
+#   frequency of snapping.  If 0, then snap this set of confs this time.
+#   (Otherwise, skip it for now.)
+modulus=`echo "$4 % $2" | bc`
+if test "x$modulus" = "x0"; then
+
+   target=$1
+   iface=$3
+   
+   #---create conf list
+   uid=$LOGNAME
+   clist=/tmp/autosnap_clist_$uid
+   rm -f $clist
+   while test "x$5" != "x"; do
+      echo $5 >>$clist
+      shift
+   done
+
+   rm -rf $target.tmp
+   $HOME/SWEB/sweba $HOME/SWEB/swebd.conf CSNAP51/main/csnap.cml   \
+         $HOME/public_html/GIF50 \
+         -d $target.tmp -i $iface -p  -c $clist  >/dev/null 2>/dev/null
+   mv $target $target.old
+   mv $target.tmp $target
+   rm -rf $target.old
+
+   rm -f $clist
+fi
+#----------------------------------------------------------------------

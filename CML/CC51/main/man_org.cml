@@ -1,0 +1,118 @@
+#
+#---MAN_ORG.CML.   Manager managing organizer privs
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR  4/13/04 Use $co_priv() for checking %access() priv levels.
+#: CR  1/28/05 Add autojoin.
+#: CR 09/23/05 Remove autojoin.
+#: CR 11/07/05 Allow in page if conferenceAllPrivileges, groupEditNonManager
+#---------------------------------------------------------------------------
+
+if $empty ($(mainurl))
+   include $cml_dir()/startup.i man_org.cml
+end
+
+include $(main)/secure.i manage conferenceChange conferenceAllPrivileges \
+                                groupEditAll groupEditNonManager
+include $(main)/requiredinfo.i
+
+set nch   $unique()
+set nxt   $page_save (2 man_org.cml \
+                      $arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8) \
+                      # Manager Options: Conference Organizers )
+
+include $(main)/head.i $arg(3)  $quote(Manager Options : Conference&nbsp;Settings)
+
+include $(main)/body.i x onUnload="pop_close('all');"
+
+#--- This ugly include is required because location.i doesn't understand
+#    multi-level function pages (yet)
+
+include $(main)/header.i   man_org  </A><A HREF="manage.cml?\
+   $arg(1)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">Manager Options</A>&nbsp;$(compass_arrow)&nbsp;<A HREF="#top">Conference&nbsp;Settings
+
+"From this page, you can:
+"<UL>
+"<LI>Set the primary organizer for any conference
+"<LI>Add or remove yourself as an organizer
+"<LI>Allow/disallow e-mail notification
+"</UL>
+
+
+#---If there are "too many" conferences, ask user to select one,
+#   and then come back to this page with just that one.
+set time0 $time()
+set phalf $divide ($pagetime() 2)
+if $and ($empty($form(cnum)) $gt_equal ($sizeof($cl_list()) $(manage_maxconfs)))
+   "<form METHOD=POST ACTION="man_org.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+   "Select a conference to modify:
+   "<SELECT NAME=cnum SIZE=1>
+
+   for cnum in $cl_list()
+     "<OPTION VALUE=$(cnum)>%displayed_conf_name ($(cnum))
+     "</OPTION>
+
+      #---If we've gone pagetime/2 seconds since the start or the last
+      #   page_flush(), flush the output.
+      if $greater ($minus ($time() $(time0)) $(phalf))
+         eval $page_flush()
+         set  time0 $time()
+      end
+   end
+   "</SELECT><P>
+   "<INPUT TYPE=SUBMIT VALUE="Modify this Conference">
+   "</form>
+end
+
+#---Otherwise, display the few (or the one selected by $form(cnum)) and
+#   let them change things.
+else
+   "<form METHOD=POST ACTION="man_orgf.cml?$(nch)+$arg(2)+$arg(3)+x+x+x+x+x+x">
+   "<table CELLPADDING=5 border=0>
+   "<TR VALIGN=top><TD><B>Conference<BR>Name</B></TD>
+   "<TD><B>Primary<BR>Organizer</B></TD><TD><B>Am I An<BR>Organizer?</B></TD>
+   "<TD><B>Allow e-mail<BR>notification?</B></TD>
+#  "<td><b>Autojoin<br>members?</b></td>
+
+   set cnum_list $form(cnum)
+   if $empty ($(cnum_list))
+      set cnum_list $cl_list()
+   end
+#  set tempjoin $replace(, 32 $site_data (0 - autojoin))
+   for cnum in $(cnum_list)
+      set cname %displayed_conf_name ($(cnum))
+      "<TR><TD><A HREF="confhome.cml?$(nch)+$(nxt)+$(cnum)+x+x+x+x+x">
+      "$(cname)</A></TD>
+      "<TD><INPUT TYPE=TEXT NAME=primary$(cnum) VALUE=$co_org($(cnum))
+      "    SIZE=15></TD>
+      "<TD ALIGN=CENTER><INPUT TYPE=CHECKBOX NAME=org$(cnum)
+      "  $if($gt_equal(%access($(cnum)) $priv(organizer)) CHECKED) >
+      "</TD>
+      "<TD ALIGN=CENTER><INPUT TYPE=CHECKBOX NAME=en_allow$(cnum)
+      "  $if (0$site_data($(cnum) - en_allow) CHECKED) VALUE="1"></TD>
+#     "<td ALIGN=CENTER><INPUT TYPE=CHECKBOX NAME="autojoin$(cnum)"
+#     "    value="1"
+#     "  $ifthen($tablefind ($(cnum) $(tempjoin)) checked)
+      "</td>
+
+      #---If we've gone pagetime/2 seconds since the start or the last
+      #   page_flush(), flush the output.
+      if $greater ($minus ($time() $(time0)) $(phalf))
+         eval $page_flush()
+         set  time0 $time()
+      end
+   end
+   "</table>
+   "<INPUT TYPE=HIDDEN NAME="cnum" VALUE="$(cnum_list)">
+   "<INPUT TYPE=SUBMIT VALUE="Make These Changes">
+   "</form>
+end
+
+"</div>
+"</body>
+"</HTML>
+#------------------------------------------------------------------------

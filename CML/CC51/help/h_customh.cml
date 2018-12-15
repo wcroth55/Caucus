@@ -1,0 +1,116 @@
+#
+#---H_CUSTOMH.I    Help about "Customize : Home Page Options" page
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR  4/18/00 15:09 Substitute "attach" wording for "upload".
+#----------------------------------------------------------------
+
+include $(help)/ht.i h_customh.cml $quote(Help on Customize Home Page Options)
+set help_not_found 0
+
+"<B>What Is It?</B><BR>
+"The Customize Home Page Options page controls the look
+"and content of three parts of the conference home page:
+"the name, the greeting, and the list of items.
+
+"<P>
+"<B>How Do I Get There?</B><BR>
+"From the $(center_name), click on the name of a conference that
+"you organize.&nbsp;
+"Then click on <U>Customize</U> (underneath your name).&nbsp;
+"Click on <U>Conference Home Page Options</U>.
+
+"<P>
+"<B>What is on the Customize Home Page Options page?</B><P>
+"<UL>
+include $(help)/h_pagetop.i
+"</UL>
+
+"<P>
+"<FONT SIZE=+2><B>The Conference Home Page Name</B></FONT><BR>
+"In this section, you can define the language used to describe the main
+"page of your conference.  By default, this page is called the "Home Page,"
+"but some other name may be more appropriate for your application.<P>
+
+"To change the name of your main conference page, enter a new label in the 
+"text box provided.<P>
+"<HR>
+"<P>
+"<FONT SIZE=+2><B>The Greeting</B></FONT><BR>
+"In this section, Caucus shows you a text box, containing
+"the conference <B>Greeting</B>.&nbsp;
+"The greeting appears to all members of the conference, 
+"on the conference Home Page.
+"<P>
+"You may enter or edit the text in this box, just like you
+"would a response on an Item page.&nbsp;
+"You can just use a simple text Greeting, or, 
+"like an item or response, you can include any
+"kind of Web data&#151;see
+"<A HREF="$(helpurl)/h_itemcont.cml">More You Can Do</A>.&nbsp;
+"<P>
+"Use the <B>Greeting</B> as a way to remind people of the
+"purpose of the conference, and as a place to post any 
+"short bulletins about the conference.&nbsp;
+"This could include pointers to special items, 
+"short-lived announcements that everyone should know about,
+"etc.
+"<P>
+"<B>Attach button:</B>&nbsp;
+"You can use the Attach button to copy files from your computer
+"or local network into Caucus, so that they can be displayed or
+"linked from your Greeting.
+"<P>
+
+"<HR>
+"<FONT SIZE=+2><B>Item List Options</B></FONT><BR>
+"Normally, Caucus lists all of the items in the conference on the
+"conference home page.&nbsp;
+"You can instruct Caucus to list only certain items (or certain kinds of
+"items), and you can also control what information about those items
+"appears in the list.
+
+"<P>
+"Click on the pull-down menu under <B>Default Item List</B> to select
+"which items should be listed.&nbsp;
+"This menu is identical to the menu that appears on the conference home
+"page at the top of the list of items -- it just sets what is in the
+"<B>default</B> list of items, that is, what the user gets if s/he has not
+"specifically selected something else.&nbsp;
+"<P>
+"For example, in a large conference, it might make more sense to
+"only list the items with new activity, or only the items that have
+"had some activity within the last 30 days.
+"<P>
+"The <B>Item List Columns</B> section controls which information 
+"about items in the list appears in which columns.&nbsp;
+"Each menu represents a column in the display, reading from left
+"to right.  The choices include:
+"<UL>
+"<LI>The item number.
+"<LI>The item title.
+"<LI>The author of the item.
+"<LI>The number of new responses, or a "new" icon if the entire
+"item is new.
+"<LI>The number of the last response (same as the number of responses
+"if no responses have been deleted).
+"<LI>The date of the last response.
+"<LI>Has the item been frozen?
+"<LI>Empty Column.&nbsp;  Use this to "blank out" a column.
+"</UL>
+"The default columns are item number, title, author, new responses,
+"and last response in that order -- but feel free to experiment with
+"different arrangements.&nbsp;
+"Some sites find, for example, that the date of the last response may
+"be more useful than knowing the author of the item.
+
+"<HR>
+"<P>
+"<B>Make These Changes button:</B>&nbsp; 
+"Once you have made changes to the text on this page,
+"you <B>must press this button</B>
+"to save them.&nbsp;
+include $(help)/hb.i

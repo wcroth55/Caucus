@@ -1,0 +1,21 @@
+#
+#---quiz_probdel.   Delete a quiz problem.
+#
+#   arg(9)  problem key
+#
+# Copyright (C) 1995-2005 CaucusCare.com.  All rights reserved.
+# This program is published under the terms of the CDDL; see
+# the file license.txt in the same directory.
+#
+#: CR 01/18/06 New file.
+#-----------------------------------------------------------------------
+
+set arglist  $arg(3)+$arg(4)+$arg(5)+$arg(6)
+
+set qkey $sql_query_select (SELECT qkey FROM items WHERE id=$arg(4))
+set pkey $plus (0 $arg(9))
+
+set hx $sql_query_open (UPDATE quizproblems set deleted=1 WHERE pkey=$(pkey))
+eval   $sql_query_close($(hx))
+
+"%location($(mainurl)/quiz.cml?$(nch)+$(nxt)+$(arglist)+$arg(7)+$arg(8))
