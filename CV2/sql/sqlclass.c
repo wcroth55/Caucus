@@ -171,8 +171,8 @@ FUNCTION int sql_exec (int h, char *stmt) {
    if (resultSet[h] != NULL)  mysql_free_result(resultSet[h]);
 
    logQueryStatement (stmt);
-   mysql_query (&connection, stmt);
-   logQueryTime();
+   rc = mysql_query (&connection, stmt);
+   logQueryTime(rc);
 
    resultSet[h] = mysql_store_result (&connection);
    
@@ -187,7 +187,7 @@ FUNCTION logQueryStatement (char *stmt) {
    logger (0, LOG_FILE, stmt);
 }
 
-FUNCTION logQueryTime() {
+FUNCTION logQueryTime(int rc) {
    struct timeval stopTime;
    char   text[200];
 
@@ -198,7 +198,7 @@ FUNCTION logQueryTime() {
       --deltaSec;
       deltaMic += 1000000;
    }
-   sprintf (text, "MySQL %s: %6d.%06d", (deltaSec <= 0 ? "FAST" : "SLOW"), deltaSec, deltaMic);
+   sprintf (text, "MySQL rc=%d, %s: %6d.%06d", rc, (deltaSec <= 0 ? "FAST" : "SLOW"), deltaSec, deltaMic);
    logger (0, LOG_FILE, text);
 }
 
@@ -303,8 +303,8 @@ FUNCTION int sql_query_open (char *stmt, Chix *chixlist) {
 
    /*** Execute the statement. */
    logQueryStatement (stmt);
-   mysql_query (&connection, stmt);
-   logQueryTime();
+   rc = mysql_query (&connection, stmt);
+   logQueryTime(rc);
 
    resultSet[h] = mysql_store_result (&connection);
    if (resultSet[h] == NULL  &&  mysql_errno(&connection) > 0) h = -1;
