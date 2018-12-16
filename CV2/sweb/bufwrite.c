@@ -70,19 +70,14 @@ FUNCTION  buf_write (
 #if UNIX
          errno = 0;
          sent   = send (hose, (char *) &sockmsg, sizeof(sockmsg), 0);
-         prefix = " |||";
-         if (sent <= 0)  prefix = " <<<";
-         sprintf (temper, "NEW8: %s send bytes=%d to pid=%d, sent=%d, errno=%d", 
-             prefix, sizeof(sockmsg), client_pid, sent, errno);
-         logger (1, LOG_FILE, temper);
 
-/*
-         if (sent < 0) {
-            char diagnostic[200];
-            sprintf (diagnostic, " <<< SEND -1 on %d, errno=%d", sizeof(sockmsg), errno);
-            logger (1, LOG_FILE, diagnostic);
-         }
-*/
+         #if DIAGNOSE
+            prefix = " |||";
+            if (sent <= 0)  prefix = " <<<";
+            sprintf (temper, "NEW8: %s send bytes=%d to pid=%d, sent=%d, errno=%d", 
+                prefix, sizeof(sockmsg), client_pid, sent, errno);
+            logger (1, LOG_FILE, temper);
+         #endif
 #endif
 
 #if NUT40 | WNT40
@@ -95,23 +90,15 @@ FUNCTION  buf_write (
 
 #if LNX12
          ackgot = recv (hose, &temp, 1, MSG_WAITALL);
-         prefix = " |||";
-         if (ackgot <= 0)  prefix = " <<<";
-         sprintf (temper, "NEW9: %s recv 1 from pid=%d, ackgot=%d, errno=%d", prefix, client_pid, ackgot, errno);
-         logger (1, LOG_FILE, temper);
+
+         #if DIAGNOSE
+            prefix = " |||";
+            if (ackgot <= 0)  prefix = " <<<";
+            sprintf (temper, "NEW9: %s recv 1 from pid=%d, ackgot=%d, errno=%d", prefix, client_pid, ackgot, errno);
+            logger (1, LOG_FILE, temper);
+         #endif
+
          if (ackgot <= 0)  sleep(1);
-/*
-         if (ackgot ==  0) {
-            logger (1, LOG_FILE, " <<< RECV  0 >>>");
-            sleep(1);
-         }
-         if (ackgot == -1) {
-            char diagnostic[200];
-            sprintf (diagnostic, " <<< RECV -1, errno=%d", errno);
-            logger (1, LOG_FILE, diagnostic);
-            sleep(1);
-         }
-*/
 #endif
 /*       fprintf (stderr, "sent=%d, errno=%d, ackgot=%d\n", 
                            sent, errno, ackgot);   */

@@ -271,7 +271,7 @@ FUNCTION  main (int argc, char *argv[])
          sprintf (temp,
           "BAD: remote='%s', userid='%s', secure=%07d, subcode=%07d, ver='%s'",
                      conf.remote, remote, conf.secure, subcode, caucus_ver);
-         logger (1, LOG_FILE, temp);
+         logger (0, LOG_FILE, temp);
          if (errcomm)  {
             strcpy (reasonDied, "NEW5: died-errcom");
             break;        /* Something's hosed, exit. */

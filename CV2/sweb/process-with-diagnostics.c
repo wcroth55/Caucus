@@ -74,9 +74,17 @@ FUNCTION  process_request (
    static   int    first_call = 1;
    static   int4   request1;
    static   Target tg;
+   static   Chix   pageOutput;
+   static   Chix   contentType;
+   static   Chix   location;
+   static   Chix   htmlOpen;
+   static   Chix   htmlClose1;
+   static   Chix   htmlClose2;
    char     query[CMAX], cmlname[CMAX], temp[CMAX];
+   char    *tempOut;
    int      num, size, broke, contd, found, urilen;
    Chix     empty;
+   Chix     makeChix();
    CML_File make_cml();
    Obtab    make_obtab();
    Target   target();
@@ -86,12 +94,19 @@ FUNCTION  process_request (
    /    and the forms-data variable list. */
    if (first_call) {
       errtext = chxalloc (L(256), THIN, "process errtext");
+      pageOutput = chxalloc (L(10000), THIN, "process pageOutput");
+      contentType = makeChix ("Content-type:");
+      htmlOpen    = makeChix ("<HTML");
+      htmlClose1   = makeChix ("</HTML");
+      htmlClose2   = makeChix ("</html");
+      location    = makeChix ("Location:");
       cfile = make_cml(errtext);
       otab  = make_obtab(100);
       vars  = a_mak_vartab ("process vars");
       form  = a_mak_vartab ("process form");
       macs  = a_mak_vartab ("process macs");
-      tg    = target (cd, nullchix);
+/*    tg    = target (cd, nullchix); */
+      tg    = target (NULL, pageOutput);
       first_call = 0;
       request1   = time(NULL);
       http.referer0[0] = '\0';
@@ -142,11 +157,42 @@ FUNCTION  process_request (
    if (size == 0)  say_no_file (cd, cmlname, conf);
 
    /*** If it does, parse the entire CML file. */
-   else    parse_cml (tg, cfile, size, 0, conf, vars, form, query, 
+   else  {
+      parse_cml (tg, cfile, size, 0, conf, vars, form, query, 
                        &broke, empty, macs, otab, &contd, nullchix);
+      convert_and_write (cd, tg->po, 0, conf);
+
+      if (chxindex (tg->po, 0, contentType) < 0  &&
+          chxindex (tg->po, 0, location)    < 0) {
+         logger (1, LOG_FILE, "<<<NO CONTENT-TYPE<<<<<<<<<<<<<<<<<<");
+         tempOut = asciifull (tg->po);
+         logger (1, LOG_FILE, tempOut);
+         logger (1, LOG_FILE, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+         free (tempOut);
+      }
+      else if (chxindex (tg->po, 0, htmlOpen)   >= 0   &&
+               chxindex (tg->po, 0, htmlClose1) <  0   &&
+               chxindex (tg->po, 0, htmlClose2) <  0) {
+         logger (1, LOG_FILE, "<<<NO CLOSE_HTML<<<<<<<<<<<<<<<<<<");
+         tempOut = asciifull (tg->po);
+         logger (1, LOG_FILE, tempOut);
+         logger (1, LOG_FILE, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+         free (tempOut);
+      }
+    
+      chxclear (tg->po);
+   }
 
    logger (0, LOG_FILE, " done");
    chxfree (empty);
 
    RETURN (1);
+}
+
+FUNCTION Chix makeChix (char *text) {
+   Chix result;
+
+   result = chxalloc (L(20), THIN, "process makeChix");
+   chxofascii (result, text);
+   return result;
 }

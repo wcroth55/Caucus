@@ -395,13 +395,6 @@ FUNCTION  main (argc, argv)
       fputs (sockmsg.buf, stdout);
       fflush (stdout);
 
-/*
-      { char temp[10000];
-        sprintf (temp, "subpid=%d, sockmsg='%s'\n", subpid, sockmsg.buf);
-        logger  (1, LOG_FILE, temp);
-      }
-*/
-
 /*    syssleep(3);  */   /* Simulate slow client. */
 
    } while (NOT sockmsg.eof);
@@ -439,18 +432,23 @@ FUNCTION  void removeOpenidProtocol (char *userid) {
 }
 
 FUNCTION void myLogN(char *msg, int number) {
+#if DIAGNOSE
    char temp[500];
    sprintf (temp, "NEW1: %s=%d\n", msg, number);
    logger (1, LOG_FILE, temp);
+#endif
 }
 
 FUNCTION void myLogS(char *msg, char text) {
+#if DIAGNOSE
    char temp[500];
    sprintf (temp, "NEW2: %s=%s\n", msg, text);
    logger (1, LOG_FILE, temp);
+#endif
 }
 
 FUNCTION logRead(int subpid, int sockfd, int size, int got) {
+#ifDIAGNOSE
    char temp[200];
    char *prefix;
 
@@ -459,9 +457,11 @@ FUNCTION logRead(int subpid, int sockfd, int size, int got) {
    sprintf (temp, "NEW3: %s read from pid=%d on fd=%d size=%d got=%d, errno=%d", 
          prefix, subpid, sockfd, size, got, errno);
    logger (1, LOG_FILE, temp);
+#endif
 }
 
 FUNCTION logSend(int subpid, int acksent) {
+#if DIAGNOSE
    char temp[200];
    char *prefix;
  
@@ -469,4 +469,5 @@ FUNCTION logSend(int subpid, int acksent) {
    if (acksent <= 0)  prefix = " <<<";
    sprintf (temp, "NEW4: ||| send to pid=%d, size=1, ack=%d, errno=%d", subpid, acksent, errno);
    logger (1, LOG_FILE, temp);
+#endif
 }
