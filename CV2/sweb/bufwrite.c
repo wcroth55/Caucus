@@ -68,7 +68,7 @@ FUNCTION  buf_write (
       if (sockmsg.len == SOCKMSGMAX) {
 
 #if UNIX
-         errno = 0;
+/*       errno = 0;   RA2 */
          sent   = send (hose, (char *) &sockmsg, sizeof(sockmsg), 0);
 
          #if DIAGNOSE
@@ -89,7 +89,8 @@ FUNCTION  buf_write (
 /*       sleep (10);  */
 
 #if LNX12
-         ackgot = recv (hose, &temp, 1, MSG_WAITALL);
+/*       ackgot = recv (hose, &temp, 1, MSG_WAITALL);   RA2 */
+         ackgot = recv (hose, &temp, 1, 0);
 
          #if DIAGNOSE
             prefix = " |||";

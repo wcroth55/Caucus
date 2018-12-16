@@ -86,7 +86,7 @@ FUNCTION  int shake_subserver (
    sprintf (temp, "%07d", subcode);
    hose_write   (sockfd, temp,    7);
    hose_write   (sockfd, userid, MAX_USERID);
-   hose_write   (sockfd, &pid, sizeof(int));
+/*   hose_write   (sockfd, &pid, sizeof(int));  RA2 */
    hose_write   (sockfd, &auth_method, 1);
    hose_write   (sockfd, caucus_ver, 10);
    env_var (remote, "REMOTE_ADDR");

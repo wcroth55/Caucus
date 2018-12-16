@@ -203,7 +203,7 @@ FUNCTION  main (int argc, char *argv[])
       remote[0] = 0xFF;
       hose_read (cd, temp,     7, 0);             temp   [ 7] = '\0';
       hose_read (cd, remote,  MAX_USERID, 0);     remote [MAX_USERID] = '\0';
-      hose_read (cd, &client_pid, sizeof(int), 0);
+/*    hose_read (cd, &client_pid, sizeof(int), 0);   RA2 */
       hose_read (cd, &conf.auth_method, 1, 0);
       hose_read (cd, caucus_ver, 10, 0);          caucus_ver[10] = '\0';
       hose_read (cd, ip_addr, 25, 0);             ip_addr[25]    = '\0';
