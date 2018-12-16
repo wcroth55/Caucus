@@ -315,7 +315,7 @@ FUNCTION  main (int argc, char *argv[])
       buf_close (cd);
    }
 
-   logger (1, LOG_FILE, reasonDied);
+   logger (0, LOG_FILE, reasonDied);
 
    /*** Here if we received a SIGHUP or SIGALRM (kill or a timeout).
    /    Run the timeout.cml to do any UI level cleanup. */

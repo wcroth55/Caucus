@@ -448,7 +448,7 @@ FUNCTION void myLogS(char *msg, char text) {
 }
 
 FUNCTION logRead(int subpid, int sockfd, int size, int got) {
-#ifDIAGNOSE
+#if DIAGNOSE
    char temp[200];
    char *prefix;
 
