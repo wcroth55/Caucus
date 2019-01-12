@@ -1,5 +1,5 @@
 Caucus 5.1   Build & Installation Instructions
-Last revision: 12 December 2014
+Last revision: 12 January 2015
 
 I. INTRODUCTION
 Caucus is a sophisticated web-based group discussion and e-learning 
@@ -229,6 +229,17 @@ VI. INSTALL PHASE
          This will setup a forwarding filter so that all email bound for
          Caucus items goes to the right place.  Any other "junk" email
          will be discarded.
+
+  12. (Optional) Configure MySQL.
+      If individual Caucus sessions on your site may last longer than an hour,
+      you will want to raise the timeouts on the MySQL connections.  Edit /etc/my.cnf,
+      and in the [mysqld] section, add:
+
+         interactive_timeout = 28800
+         wait_timeout        = 28800
+         connect_timeout     = 28800
+
+      then restart the MySQL service.
 
       
 VII. PLUG-INS.
