@@ -23,6 +23,7 @@
 #: CR 05/16/08 Add map display.
 #: CR 07/11/08 Add "keep my reading private" option.
 #: CR 01/03/11 Allow cml-box & cml-line to appear on edit-my-self page.
+#: CR 01/23/2020 use Plaintext, not Textbox
 #=============================================================================
 
 if $empty ($(mainurl))
@@ -135,7 +136,7 @@ if $and ($(change_password) $pw_can_change($pw_source()) $(chguid))
    "<A NAME="ii">
    "<HR>
    "</A>
-   "<FORM METHOD=POST ACTION="me2f.cml?$(nch)+$arg(2)+\
+   "<form METHOD=POST ACTION="me2f.cml?$(nch)+$arg(2)+\
           $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
    "<table>
    "<TR>
@@ -191,62 +192,53 @@ end
 "<HR>
 "</A>
 
-"<FORM METHOD=POST ACTION="me3f.cml?$(nch)+$arg(2)+\
+"<form METHOD=POST ACTION="me3f.cml?$(nch)+$arg(2)+\
        $arg(3)+$arg(4)+$arg(5)+$arg(6)+$arg(7)+$arg(8)">
 "<table CELLSPACING=0 CELLPADDING=0 border=0>
 "<TR>
 "<TD><span class="bigger"><B>Section&nbsp;III:&nbsp;</B></span></TD>
 "<TD COLSPAN=2><span class="bigger"><B>Your Settings</B></span></TD>
 
-#"<TR>
-#"<TD>Icons in:</TD>
-#"<TD><INPUT TYPE="text" NAME="icons" SIZE=25
-#"          VALUE="$user_var($userid() icons)">
-#"  (<A HREF="icons.cml?$(nch)+$(nxt)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
-#             $arg(7)+$arg(8)+$arg(9)">About the Icons field</A>)</TD>
-
-
 if $tablefind (ebox $(me3options))
    "<tr valign=top>
    "<td>Editor?</td>
    "<td><SELECT NAME="ebox">
-   "    <option $if ($equal (x$(ebox) x(default)) SELECTED)>(default)
-   "    <option $if ($equal (x$(ebox) xRichtext)  SELECTED)>Richtext
-   "    <option $if ($equal (x$(ebox) xTextbox)   SELECTED)>Plaintext
+   "    <option $if ($equal (x$(ebox) x(default)) SELECTED)>(default)</option>
+   "    <option $if ($equal (x$(ebox) xRichtext)  SELECTED)>Richtext</option>
+   "    <option $if ($equal (x$(ebox) xPlaintext) SELECTED)>Plaintext</option>
    "    </select>&nbsp;</td>
-   #"<td>Choose "WYSWYG" editing, or old-style Textbox editing.</td>
    "<td>Choose your editor: 
    " <b>Richtext</b> (WYSWYG editing)
    " or <nobr>old-style <b>plaintext</b> (textbox).</nobr>
    "</td>
 end
 
-if $tablefind (detail $(me3options))
+#if $tablefind (detail $(me3options))
 #  "<TR>
 #  "<TD>Detail New?</TD>
 #  "<TD ALIGN=left>
 #  "<INPUT TYPE="checkbox" VALUE="1" NAME=detail
 #  "$if($not_empty ($user_data ($userid() item_detail)) CHECKED)></TD>
 #  "<TD>Show detailed breakdown of new items & responses in $(center_name)?</TD>
-end
+#end
 
-if $tablefind (sort_all $(me3options))
+#if $tablefind (sort_all $(me3options))
 #  "<TR>
 #  "<TD>Sort conferences?</TD>
 #  "<TD ALIGN=left>
 #  "<INPUT TYPE="checkbox" VALUE="1" NAME=sort_all
 #  "$if ($not_empty ($user_data ($userid() sort_all)) CHECKED)></TD>
 #  "<TD>Keep your list of conferences alphabetized?</TD></TR>
-end
+#end
    
-if $tablefind (sort_new $(me3options))
+#if $tablefind (sort_new $(me3options))
 #  "<TR>
 #  "<TD>Sort by activity?</TD>
 #  "<TD ALIGN=left>
 #  "<INPUT TYPE="checkbox" VALUE="1" NAME=sort_new
 #  "$if($not_empty ($user_data ($userid() sort_new)) CHECKED)></TD>
 #  "<TD>List conferences with new material first in $(center_name)?</TD></TR>
-end
+#end
    
 if $tablefind (dates $(me3options))
    "<TR>

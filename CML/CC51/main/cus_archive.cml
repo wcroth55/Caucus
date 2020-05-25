@@ -7,6 +7,7 @@
 #
 #: CR 04/07/01 14:00 Add archive and delete options.
 #: CR 10/18/02 %displayed_conf_name() calculates displayable conference name.
+#: CR 01/23/20 Add option to make a csnap archive, zip it, and email organizer with link to zip file.
 #----------------------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -54,14 +55,23 @@ include $(main)/mac_bug.i
 
 "<TD colspan="2"><INPUT TYPE=TEXT NAME=archive SIZE=80 VALUE="$(cname)"></TD>
 
+"<tr><td>&nbsp;</td></tr>
 "<tr>
 "<td>&nbsp;</td>
-"<TD><INPUT TYPE="submit" VALUE="Private archive" onClick="document.archiver.email.value = ''; return true;">
+"<TD><INPUT TYPE="submit" name="submit" VALUE="Private archive" onClick="document.archiver.email.value = ''; return true;">
 "<td>Archive with Caucus, to be used when creating new conferences.</td>
+
 "<tr>
 "<td></td>
-"<TD><INPUT TYPE="submit" VALUE="Email archive"></TD>
+"<TD><INPUT TYPE="submit" name="submit" VALUE="Email archive"></TD>
 "<td>Send me an email with a link to the archive.</td>
+
+"<tr valign='top'>
+"<td></td>
+"<TD><INPUT TYPE="submit" name="submit" VALUE="Snapshot"></TD>
+"<td>Create HTML "Snapshot" of conference, as a zip file,<br/>
+" and send the URL via email.</td>
+
 "</TABLE>
 
 "</FORM>

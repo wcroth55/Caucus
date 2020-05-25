@@ -19,6 +19,7 @@
 #: CR 10/15/05 Turn off applet for now (may return some day!)
 #: CR 08/20/09 Make RTE default.
 #: CR 08/23/09 But fix bug to still allow(!) plaintext
+#: CR 01/23/2020 use Plaintext, not Textbox
 #----------------------------------------------------------------------------
 
 set ebox_rt 0
@@ -32,7 +33,7 @@ elif 0$inc(1)
    set ebox_ta 1
 end
 
-elif $equal (x$(ebox) xTextbox)
+elif $equal (x$(ebox) xPlaintext)
    set ebox_ta 1
 end
 

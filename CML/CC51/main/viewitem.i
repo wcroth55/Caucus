@@ -24,6 +24,7 @@
 #: CR 06/08/06 Rewrite for C5.1
 #: CR 05/13/08 Add limits on # responses, size of responses.
 #: CR 07/12/08 Add 'who has seen' control.
+#: CR 01/23/2020 iPhone richtext, add explicit link to change to plaintext
 #----------------------------------------------------------------
 
 include $(main)/getNextPageTarget.i
@@ -231,11 +232,14 @@ else
    end
 
    if $(ebox_rt)
-      "<table border=0>
+      "<table border="0" width="100%">
       "<TR>
-      "<TD><INPUT TYPE=SUBMIT NAME="submitpv"
-      "          VALUE="Post &amp; View">&nbsp; </TD>
-      "<TD>it&nbsp;now.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      "<TD colspan='2'><INPUT TYPE=SUBMIT NAME="submitpv"
+      "          VALUE="Post &amp; View">&nbsp;
+      "  it&nbsp;now.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+      if $greater ($str_index(iPhone $http_user_agent()) 0)
+         "<td align='right'><a href="#" onClick="return ebox_switch();">Use plaintext editor</a></td>
+      end
       "</table>
    end
 

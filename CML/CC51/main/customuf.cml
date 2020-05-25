@@ -14,6 +14,7 @@
 #: CR 11/21/05 Replace group_update() with group_update_rule().
 #: CR 06/08/06 Rewrite for C5.1
 #: CR 07/12/08 Add 'who has seen' control.
+#: CR 01/23/20 Add ideletor key/value (can item authors delete ENTIRE item?)
 #--------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -67,6 +68,11 @@ end
 set icreator $if ($empty($form(icreator)) 0 1)
 if $not_equal (x$(icreator) x$site_data ($arg(3) - icreator))
    eval $set_site_data ($arg(3) - icreator $(icreator))
+end
+
+set ideletor $if ($empty($form(ideletor)) 0 1)
+if $not_equal (x$(ideletor) x$site_data ($arg(3) - ideletor))
+   eval $set_site_data ($arg(3) - ideletor $(ideletor))
 end
 
 set allowcml $if ($empty($form(allowcml)) 0 1)

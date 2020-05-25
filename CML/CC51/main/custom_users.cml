@@ -16,6 +16,7 @@
 #: CR 04/13/05 C5 code merge.
 #: CR 06/08/06 Rewrite for C5.1
 #: CR 07/12/08 Add 'who has seen' control.
+#: CR 01/23/20 Add ideletor key/value (can item authors delete ENTIRE item?)
 #-------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -74,11 +75,17 @@ set allowcopy $word (1 $site_data($arg(3) - allowcopy) $(allow_copy))
 "<TD>Allow copying responses in (and into) this conference?</TD>
 
 
-#---Allow Item creators to Freeze/delete/rename item?
+#---Allow Item creators to Freeze or rename item?
 "<TR VALIGN=top>
 "<TD><INPUT TYPE=checkbox NAME=icreator
 "       $if ($not_equal (x$site_data($arg(3) - icreator) x0) CHECKED)></TD>
-"<TD> Allow item creator to Freeze, Delete, and <NOBR>Rename Item?</NOBR></TD>
+"<TD> Allow item creator to Freeze or <NOBR>Rename Item?</NOBR></TD>
+
+#---Allow Item creators to delete item?
+"<TR VALIGN=top>
+"<TD><INPUT TYPE=checkbox NAME=ideletor
+"       $if ($equal (x$site_data($arg(3) - ideletor) x1) CHECKED)></TD>
+"<TD> Allow item creator to Delete Item?</TD>
 
 #---Allow anonymous responses?
 "<tr>

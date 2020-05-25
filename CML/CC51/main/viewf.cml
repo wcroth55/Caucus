@@ -10,6 +10,7 @@
 #: CR 11/09/04 Post-process richtext for blueing URLS.
 #: CR 09/21/05 Rearrange test for Pass vs Post; see detailed comments
 #                 in case of future weirdness.
+#: CR 01/23/20 Properly handle ENTER key on iPhones (but only in richtext)
 #-----------------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -58,7 +59,14 @@ if $and ($(post)  $not_empty ($form(tx_resp)) \
    if $(ebox_rt)
       set temp $addtarget ($(temp))
       set temp     $h2url ($(temp))
+      #---For iPhones under richtext, turn two newlines into a <p/>
+      if $greater ($str_index(iPhone $http_user_agent()) 0)
+         set temp $str_replace($quote($newline()$newline()) $char(3) $(temp))
+         set temp $str_replace($quote($newline()) $quote($newline()<br/>) $(temp))
+         set temp $str_replace($char(3) $quote($newline()<p/>$newline()) $(temp))
+      end
    end
+
 
    set bits $sql_query_select (\
                 SELECT r.bits FROM resps r WHERE r.items_id=$arg(4) AND r.rnum=0 AND r.version= \

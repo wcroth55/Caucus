@@ -6,6 +6,7 @@
 # the file license.txt in the same directory.
 #
 #: CR 06/08/06 Rewrite for C5.1
+#: CR 01/23/20 Add ideletor key/value (can item authors delete ENTIRE item?)
 #-------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -72,6 +73,7 @@ elif $greater ($(cnum) 0)
 
    #--- Only organizers can freeze/delete/etc. items
    eval $set_site_data ($(cnum) - icreator 0)
+   eval $set_site_data ($(cnum) - ideletor 0)
 
    set result Conference <B>$(cname)</B> successfully created.
 

@@ -7,6 +7,7 @@
 #
 #: CR 04/07/01 14:00 Add archive and delete options.
 #: CR 04/20/04 Call archivesql.i
+#: CR 01/23/20 Add option to make a csnap archive, zip it, and email organizer with link to zip file.
 #---------------------------------------------------------------
 
 include $(main)/secure.i org $form(cnum)
@@ -16,6 +17,15 @@ set nch $unique()
 include $(main)/archiveName.i archname $quote($form(archive))
 
 set cnum  $form(cnum)
+
+set submit $form(submit)
+
+if $equal($(submit) Snapshot)
+   eval $xshell (0 0 1 $caucus_path()/csnapZipEmail \
+                 $host() $cl_name($(cnum)) $(archname) $form(email) $caucus_path())
+   "%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
+   quit
+end
 
 #---Complain if it exists already.
 if $empty($form(email))
@@ -37,7 +47,6 @@ set rc 0
 
 if $equal ($(rc) 0)
    set result Archive <B>$form(archive)</B> successfully created.
-   "%location($(mainurl)/$page_return ($arg(2) # manage.cml?$(nch)+0+x+x+x+x+x+x))
 end
 
 #------------------------------------------------------

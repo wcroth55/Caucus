@@ -25,6 +25,7 @@ include $(main)/requiredinfo.i
 
 "<HTML>
 "<HEAD>
+"<meta name="viewport" content="width=device-width, initial-scale=1">
 "<TITLE>Go to a Location</TITLE>
 if $empty ($(mainurl))
    "<script type="text/javascript" language="javascript">

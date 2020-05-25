@@ -26,6 +26,7 @@
 #: CR 10/10/08 Add handling for individual item perms.
 #: CR 08/19/09 Clean up display/tables.
 #: CR 04/22/10 Temporarily disable 'move' with '#?'.
+#: CR 01/23/20 Implement use of ideletor key/value (can item authors delete ENTIRE item?)
 #--------------------------------------------------------------------------
  
 if $empty ($(mainurl))
@@ -53,19 +54,15 @@ set is_org     $gt_equal ($(myaccess) $priv(instructor))
 set is_owner   $equal ($(owner) $userid() )
 set safe       0
 set creator_privileged  $not_equal (x$site_data($arg(3) - icreator) x0)
+set deletor_privileged  $equal     (x$site_data($arg(3) - ideletor) x1)
 set can_manage $or ($(is_org) \
                     $and ($(is_owner) \
                           $gt_equal ($(myaccess) $priv(include)) \
                           $(creator_privileged)) )
-#set can_manage 1
-
-#---Enforce that this page is only for the item owner or conference organizer.
-#if $and ($not_equal ($re_owner ($arg(3) $arg(4) 0) $userid()) \
-#         $not_equal (%access($arg(3)) 3))
-#   "%location($(mainurl)/confhome.cml?$(nch)+$arg(3)+x+x+x+x+x)
-#   "
-#   return
-#end
+set can_delete $or ($(is_org) \
+                    $and ($(is_owner) \
+                          $gt_equal ($(myaccess) $priv(include)) \
+                          $(deletor_privileged)) )
 
 set ilabel $item_label ($arg(3) $arg(4))
 
@@ -122,7 +119,6 @@ end
 
 #---Forget and Remember item.
 if $(forgot)
-   #"$ifthen ($(can_manage) <LI>)
    "<LI>
    "<A HREF="iforget.cml?0+$arg(2)+$arg(3)+$arg(4)+$arg(5)+$arg(6)+\
                                    $arg(7)+$arg(8)">Remember</A>
@@ -159,8 +155,12 @@ end
 
 if $(can_manage)
    "<p/>
-   "<LI><A HREF="#copy">$(freezeword), reverse, delete, copy, move, or divide</A>
-   "the item and its responses
+   "<LI><A HREF="#copy">$(freezeword), reverse, 
+   if $(can_delete)
+      " delete, 
+   end
+   " copy, move, or divide</A>
+   " the item and its responses
 
    if $(is_org)
       "<p/>
@@ -458,7 +458,11 @@ end
 if $(can_manage)
    "<A NAME="copy"><P>&nbsp;</A><P>
    "<TABLE CELLPADDING=4 CELLSPACING=0 BORDER=0 WIDTH="100%">
-   "<TR><TD BGCOLOR=#BBBBBB><B>$(freezeword), Reverse, Delete, Copy, Move, Divide</B></TD>
+   "<TR><TD BGCOLOR=#BBBBBB><B>$(freezeword), Reverse, 
+   if $(can_delete)
+      " Delete, 
+   end
+   " Copy, Move, Divide</B></TD>
    "</TABLE>
   
    "<BLOCKQUOTE>
@@ -499,7 +503,7 @@ end
 
 "<TABLE BORDER=0>
 
-#---If the item creator is allowed Freeze/Delete/Rename...
+#---If the item creator is allowed Freeze/Rename...
 #if $or ($(is_org) $not_equal (x$site_data($arg(3) - icreator) x0) )
 if $or ($(is_org) $and ($(can_manage) \
                         $not_equal (x$site_data($arg(3) - icreator) x0)) )
@@ -531,11 +535,12 @@ if $(can_manage)
       "   in reverse order, highest (newest) first, on down.</td>
    end
 
-   "<P>
+   if $(can_delete)
       "<TR><TD>
       "<INPUT TYPE="submit" NAME="button" VALUE="Delete">&nbsp;</TD>
       "<TD COLSPAN=3> this item and all of its responses
       "and <b>all sub-items</b>? </TD>
+   end
 end
 
 if $(is_org)
@@ -617,13 +622,6 @@ end
    end
 
 "</form>
-
-#if $(can_manage)
-#   include $(main)/trailer.i    imanage  Manage Item $arg(4)
-#end
-#else
-   "<HR>
-#end
 
 "</div>
 "</body>

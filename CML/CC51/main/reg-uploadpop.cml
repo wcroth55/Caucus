@@ -25,6 +25,7 @@ set upload_failed 0
 "
 "<html>
 "<head>
+"<meta name="viewport" content="width=device-width, initial-scale=1">
 "<title>Attach a file to your $if ($arg(5) response item)</title>
 include $(main)/css.i 1
 "<script type="text/javascript" language="javascript">
@@ -106,10 +107,15 @@ end
 "<tr><td></td>
 "<td><input type="radio" name="utype" value="zip">&nbsp;</td>
 "<td colspan=2>A zip file (unzip it)</td>
+
 "<tr><td></td>
 "<td><input type="radio" name="utype" value="iframe">&nbsp;</td>
 "<td>In an iframe</td>
 "<td align=right><input type="submit" name="submit" value="Continue"></td>
+
+"<tr><td class="vertSpacer">&nbsp;</td>
+"<tr><td colspan='3'></td>
+"<td align=right><input type="button" value="Close" onClick="self.close();"></td>
 
 "</table>
 "</ul>

@@ -72,6 +72,7 @@
 #: CR 09/04/09 Make all href targets explicitly go to mainWindow (in case of frames!)
 #: CR 09/22/09 grouprules.grkey is now auto-increment.
 #: CR 09/24/09 Add top banner center image option.
+#: CR 01/23/2020 use Plaintext, not Textbox
 #========================================================================
 
 #---IFACE   Interface directory
@@ -208,6 +209,9 @@ set wordhigh $word (1 $user_data ($userid() wordhigh) $(default_wordhigh))
 
 #---ebox: choice of editor
 set ebox $word (1 $user_data ($userid() ebox) (default))
+if $equal($(ebox) Textbox)
+   set ebox Plaintext
+end
 
 #---trailerbar: show toolbar at bottom?
 set trailerbar 0$user_data ($userid() trailerbar)
@@ -270,7 +274,7 @@ set target_window onClick="win = window.open ('', 'fromcau', \
     TARGET="fromcau"
 
 #---CML Interface version number
-set i_version  222
+set i_version  225
 
 include $(main)/helpstrings.i
 

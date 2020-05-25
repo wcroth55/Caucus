@@ -5,6 +5,7 @@
 #: CR 08/32/09 Correct is_ins vs is_incl confusion.
 #: CR 03/06/10 Creating breakouts: must not be frozen, must have access > readonly.
 #: CR 04/24/10 Show breakout links even if containing response is deleted!
+#: CR 01/23/20 Only allow item deletion if ideletor key/value true (can item authors delete ENTIRE item?)
 #------------------------------------------------------------------------------------------
 
    set _gallery
@@ -141,7 +142,7 @@
           #   deletion) can delete entire item.
           if $or ($(is_org) $(like_org) \
                   $and ($(is_own) $(is_incl)  \
-                        $not_equal(x$site_data($(vi_cnum) - icreator) x0)) )
+                        $equal(x$site_data($(vi_cnum) - ideletor) x1)) )
              set delhref idel.cml?$(nch)+$(nxt)+$(vi_cnum)+$(vi_inum)+0+\
                                   x+$arg(7)+$arg(8)
              if $(use_javascript)
