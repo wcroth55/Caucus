@@ -7,6 +7,7 @@
 #
 #: CR 12/20/03 Use %datetz() to display proper time zone info.
 #: CR 10/07/05 Simplify for C5.
+#: CR 04/10/21 Set limit on date range to current year + 1
 #-----------------------------------------------------------------
 
 if $empty ($(mainurl))
@@ -80,7 +81,7 @@ set tyear          $word (3 $(tomor))
      end
 "    </SELECT></TD>
 "<TD><SELECT NAME=lyear>
-     count year 1993 2020
+     count year 1993 $plus($str_sub(0 4 $yyyymmddOf($time())) 1)
 "       <OPTION VALUE=$(year) $if ($equal ($(year) $(tyear)) SELECTED)>\
                       $(year)</OPTION>
      end
