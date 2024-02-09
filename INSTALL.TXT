@@ -38,6 +38,7 @@ Caucus requires the following packages:
 
    1. MySQL  4.1 or higher.  See www.mysql.com.
    2. MySQL development package (libraries and include files)
+         (Often called mysql-devel.x86_64 or similar)
    3. A web server (Apache is recommended)
 
 Caucus also requires the OpenLDAP libraries, but they are included
