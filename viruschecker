@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+#---viruschecker.    Shell script interface to local virus checker.
+#
+#   Usage:
+#      viruschecker filename
+#
+#      If infected, writes "infected" to stdout, and exits with status 1.
+#      Otherwise, exits with status 0.
+#  
+#   09/23/2008 Charles Roth.
+#--------------------------------------------------------------------
+
+clamd=/usr/bin/clamdscan
+
+if test "x$1" = "x"; then
+   exit 0
+fi
+
+if test ! -f $1; then
+   exit 0
+fi
+
+tmp=/tmp/viruschecker$$
+rm -f $tmp
+
+if test -x $clamd; then
+   cp $1 $tmp
+   chmod 644 $tmp
+   if $clamd $tmp 2>/dev/null | grep "Infected files: 1" >/dev/null; then
+      echo " infected"
+      echo "Infected: $1" >>/tmp/viruschecker.log
+      rm -f $tmp
+      exit 1
+   fi
+
+   rm -f $tmp
+   echo "Clean: $1" >>/tmp/viruschecker.log
+   exit 0
+fi

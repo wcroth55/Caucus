@@ -259,3 +259,10 @@ VII. PLUG-INS.
       The professional license includes the ability to upload
       multiple files simultaneously from a single page.
       
+
+
+
+============= mysql 8 has problems, trying mysql 5 ================
+
+https://www.techoism.com/how-to-install-mysql-5-7-on-centos-rhel-8/#google_vignette
+

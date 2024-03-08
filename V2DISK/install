@@ -763,7 +763,7 @@ if $HOME/SWEB/sweba $HOME/SWEB/swebd.conf updateDatabase.cml $admin_userid >>ins
    echo "    (for users who have cookies disabled)"
 else
    echo
-   echo "Correct SWEB/swebd.conf DSN parameters, and then run './initc5'."
+   echo "Correct SWEB/swebd.conf DNS parameters, and then run './initc5'."
    echo "When this runs without error, the installation is complete,"
    echo "and you can continue with the web server configuration as "
    echo "described in the install guide."
