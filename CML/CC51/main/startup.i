@@ -274,7 +274,7 @@ set target_window onClick="win = window.open ('', 'fromcau', \
     TARGET="fromcau"
 
 #---CML Interface version number
-set i_version  226
+set i_version  227
 
 include $(main)/helpstrings.i
 
